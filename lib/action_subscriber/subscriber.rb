@@ -5,7 +5,7 @@ module ActionSubscriber
         if ::ActionSubscriber::Threadpool.ready?
           queue.pop(queue_subscription_options) do |header, payload|
             if payload
-              subscriber = self.class.new(header, payload)
+              subscriber = self.new(header, payload)
               ::ActionSubscriber::Threadpool.perform_async(subscriber)
             end
           end
@@ -16,7 +16,7 @@ module ActionSubscriber
     def auto_subscribe!
       queues.each do |queue|
         queue.subscribe(queue_subscription_options) do |header, payload|
-          subscriber = self.class.new(header, payload)
+          subscriber = self.new(header, payload)
           ::ActionSubscriber::Threadpool.perform_async(subscriber)
         end
       end
@@ -30,7 +30,7 @@ module ActionSubscriber
       queue_name = queue_name_for_method(method_name)
       routing_key_name = routing_key_name_for_method(method_name)
 
-      channel = ::ActionSubscriber::Rabbit::Connection.new_channel
+      channel = ::ActionSubscriber::RabbitConnection.new_channel
       exchange = channel.__send__('topic', exchange_name)
       queue = channel.queue(queue_name)
       queue.bind(exchange, :routing_key => routing_key_name)

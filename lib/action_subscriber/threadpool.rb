@@ -11,19 +11,12 @@ module ActionSubscriber
       self.pool.async.perform(*args)
     end
 
-    def self.pool(reload = false, size = 8)
-      if reload || @pool.nil?
-        @pool = ::ActionSubscriber::Worker.pool(:size => size)
-      end
-      @pool
+    def self.pool
+      @pool ||= ::ActionSubscriber::Worker.pool(:size => ::ActionSubscriber.config.threadpool_size)
     end
 
     def self.ready?
       !busy?
-    end
-
-    def self.set_size!(size)
-      self.pool(true, size)
     end
   end
 end

@@ -43,11 +43,12 @@ module ActionSubscriber
 
       def print_routes
         exchange_names.each do |exchange_name|
-          puts "-- Exchange : #{exchange_name}"
+          puts "  -- Exchange : #{exchange_name}"
           subscribable_methods.each do |method|
-            puts "  -- :#{method}"
-            puts "    -- queue :       #{queue_names[method]}"
-            puts "    -- routing_key : #{routing_key_names[method]}"
+            puts "    -- #{method}"
+            puts "      -- queue :       #{queue_names[method]}"
+            puts "      -- routing_key : #{routing_key_names[method]}"
+            puts ""
           end
         end
       end
@@ -58,7 +59,7 @@ module ActionSubscriber
       #   "local.remote.resoure.action"
       #
       # Example
-      #   "newman.amigo.user.created"
+      #   "bob.alice.user.created"
       #
       def queue_name_for_method(method_name)
         return queue_names[method_name] if queue_names[method_name]
@@ -103,10 +104,9 @@ module ActionSubscriber
     module InstanceMethods
 
       def consume_event
-        self.__send__(resource_action, payload)
-      rescue => e
-        # TODO: error handling interface
-        raise
+        self.__send__(resource_action, payload) if self.respond_to?(resource_action)
+      rescue => error
+        ::ActionSubscriber.configuration.error_handler.call(error)
       end
 
       private
