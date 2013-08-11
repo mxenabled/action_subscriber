@@ -13,6 +13,12 @@ module ActionSubscriber
     def exchange_names(*names)
       @_exchange_names ||= []
       @_exchange_names += names
+
+      if @_exchange_names.empty?
+        return [ ::ActionSubscriber.config.default_exchange ]
+      else
+        return @_exchange_names
+      end
     end
     alias_method :exchange, :exchange_names
 

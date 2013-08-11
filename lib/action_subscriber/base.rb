@@ -26,27 +26,8 @@ module ActionSubscriber
     # Class Methods
     #
 
-    # Loop over all subscribers and pull messages if there are
-    # any waiting in the queue for us.
-    #
-    def self.auto_pop!
-      inherited_classes.each do |klass|
-        klass.auto_pop!
-      end
-    end
-
-    # Loop over all subscribers and register each as
-    # a subscriber.
-    #
-    def self.auto_subscribe!
-      inherited_classes.each do |klass|
-        klass.setup_queues!
-        klass.auto_subscribe!
-      end
-    end
-
     def self.connection
-      ::ActionSubscriber::Rabbit::Connection.connection
+      ::ActionSubscriber::RabbitConnection.connection
     end
     
     # Inherited callback, save a reference to our descendents
@@ -62,14 +43,15 @@ module ActionSubscriber
     end
 
     def self.print_global_settings
-      puts "TODO : Global settings should be displayed here"
+      ::ActionSubscriber.configuration.print
     end
 
     def self.print_subscriptions
       print_global_settings
+      puts ""
 
       inherited_classes.each do |klass|
-        puts " * #{klass.name} * "
+        puts "* #{klass.name} * "
         klass.print_routes
       end
 

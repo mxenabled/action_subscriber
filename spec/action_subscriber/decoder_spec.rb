@@ -21,16 +21,7 @@ describe ActionSubscriber::Decoder do
       let(:content_type) { "application/json" }
 
       it "deserializes JSON" do
-        ::ActionSubscriber::Serializers::JSON.better_receive(:deserialize).with(raw_payload)
-        subject.payload
-      end
-    end
-
-    context "when the content type is protobuf" do
-      let(:content_type) { "application/protocol-buffers" }
-
-      it "deserializes protobuf" do
-        ::ActionSubscriber::Serializers::Protobuf.better_receive(:deserialize).with(raw_payload)
+        ::JSON.better_receive(:parse).with(raw_payload)
         subject.payload
       end
     end

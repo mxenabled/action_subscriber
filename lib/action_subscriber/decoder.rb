@@ -2,34 +2,21 @@ module ActionSubscriber
   module Decoder
 
     def payload
-      @payload ||= case
-      when json_payload?
-        ::ActionSubscriber::Serializers::JSON.deserialize(raw_payload)
-      when proto_payload?
-        ::ActionSubscriber::Serializers::Protobuf.deserialize(raw_payload)
-      when text_payload?
-        raw_payload.dup
+      return @payload if @payload
+
+      if callable = ::ActionSubscriber.config.decoder[content_type]
+        @payload = callable.call(raw_payload)
       else
-        raw_payload.dup
+        @payload = raw_payload.dup
       end
+
+      return @payload
     end
 
     private
 
     def content_type
-      header.content_type
-    end
-
-    def json_payload?
-      !!(content_type =~ /application\/json/i)
-    end
-
-    def proto_payload?
-      !!(content_type =~ /application\/protocol-buffers/i)
-    end
-
-    def text_payload?
-      !!(content_type =~ /text/i)
+      header.content_type.to_s
     end
   end
 end
