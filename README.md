@@ -1,4 +1,3 @@
-action_subscriber
+ActionSubscriber
 =================
-
-Action Subscriber is a plugin for rails that provides an observer-like DSL that allows your rails app to take action on events that occur on a RabbitMQ broker.
+ActionSubscriber is a dsl for for easily connection to a RabbitMQ messaging server.
