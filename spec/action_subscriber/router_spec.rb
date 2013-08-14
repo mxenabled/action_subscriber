@@ -3,10 +3,49 @@ require 'spec_helper'
 TestSubscriber = Class.new(ActionSubscriber::Base) do
   def updated
   end
+
+  def updated_low
+  end
 end
 TestSubscriber.remote_application_name :bob
 
 describe ActionSubscriber::Router do
+  describe "allow_low_priority_methods?" do
+    after do
+      ::ActionSubscriber.configure { |config| config.allow_low_priority_methods = false }
+    end
+
+    it "when the configuration is false is is false" do
+      ::ActionSubscriber.configure { |config| config.allow_low_priority_methods = false }
+      TestSubscriber.allow_low_priority_methods?.should be_false
+    end
+
+    it "when the configuration is true it is true" do
+      ::ActionSubscriber.configure { |config| config.allow_low_priority_methods = true }
+      TestSubscriber.allow_low_priority_methods?.should be_true
+    end
+  end
+
+  describe "filter_low_priority_methods" do
+    context "when allow_low_priority_methods? is false" do
+      before { TestSubscriber.better_stub(:allow_low_priority_methods?).and_return(false) }
+
+      it "removes low priority methods" do
+        filtered_methods = TestSubscriber.filter_low_priority_methods([:updated, :updated_low])
+        filtered_methods.should eq([:updated])
+      end
+    end
+
+    context "when allow_low_priority_methods? is true" do
+      before { TestSubscriber.better_stub(:allow_low_priority_methods?).and_return(true) }
+
+      it "allows low priority methods" do
+        filtered_methods = TestSubscriber.filter_low_priority_methods([:updated, :updated_low])
+        filtered_methods.should eq([:updated, :updated_low])
+      end
+    end
+  end
+
   describe "generate_queue_name" do
     it "returns a queue name" do
       queue_name = TestSubscriber.generate_queue_name(:created)

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    action_subscriber (0.0.1)
+    action_subscriber (0.1.0)
       activesupport (~> 3.2.0)
       amqp
       celluloid
