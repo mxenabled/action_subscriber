@@ -41,16 +41,18 @@ module ActionSubscriber
         @_local_application_name
       end
 
-      def print_routes
+      def inspect
+        inspection_string = "#{self.name}\n"
         exchange_names.each do |exchange_name|
-          puts "  -- Exchange : #{exchange_name}"
+          inspection_string << "  -- exchange: #{exchange_name}\n"
           subscribable_methods.each do |method|
-            puts "    -- #{method}"
-            puts "      -- queue :       #{queue_names[method]}"
-            puts "      -- routing_key : #{routing_key_names[method]}"
-            puts ""
+            inspection_string << "    -- method: #{method}\n"
+            inspection_string << "      -- queue:       #{queue_names[method]}\n"
+            inspection_string << "      -- routing_key: #{routing_key_names[method]}\n"
+            inspection_string << "\n"
           end
         end
+        return inspection_string
       end
 
       # Build the `queue` for a given method.
