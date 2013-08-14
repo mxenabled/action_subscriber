@@ -8,6 +8,18 @@ module ActionSubscriber
     end
 
     module ClassMethods
+      def allow_low_priority_methods?
+        !!(::ActionSubscriber.configuration.allow_low_priority_methods)
+      end
+
+      def filter_low_priority_methods(methods)
+        if allow_low_priority_methods?
+          return methods
+        else
+          return methods - methods.grep(/_low/)
+        end
+      end
+
       def generate_queue_name(method_name)
         [ 
           local_application_name,
@@ -95,7 +107,11 @@ module ActionSubscriber
       end
 
       def subscribable_methods
-        @_subscribable_methods ||= instance_methods.sort - ::Object.instance_methods - unwanted_methods
+        return @_subscribable_methods if @_subscribable_methods
+
+        methods = instance_methods.sort - ::Object.instance_methods - unwanted_methods
+        @_subscribable_methods = filter_low_priority_methods(methods)
+        return @_subscribable_methods
       end
 
       def unwanted_methods

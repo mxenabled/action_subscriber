@@ -1,8 +1,10 @@
 module ActionSubscriber
   class Configuration
-    attr_accessor :decoder, :default_exchange, :error_handler, :host, :port, :threadpool_size
+    attr_accessor :allow_low_priority_methods, :decoder, :default_exchange,
+      :error_handler, :host, :port, :threadpool_size
 
     def initialize
+      self.allow_low_priority_methods = false
       self.decoder = { 
         'application/json' => lambda { |payload| JSON.parse(payload) },
         'text/plain' => lambda { |payload| payload.dup }
@@ -26,6 +28,7 @@ module ActionSubscriber
         Rabbit Host: #{host}
         Rabbit Port: #{port}
         Threadpool Size: #{threadpool_size}
+        Low Priority Subscriber: #{allow_low_priority_methods}
         Decoders:
       INSPECT
       decoder.each_key { |key| inspection_string << "  --#{key}\n" }
