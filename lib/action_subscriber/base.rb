@@ -42,17 +42,12 @@ module ActionSubscriber
       @_inherited_classes ||= []
     end
 
-    def self.print_global_settings
-      ::ActionSubscriber.configuration.print
-    end
-
     def self.print_subscriptions
-      print_global_settings
+      puts ::ActionSubscriber.configuration.inspect
       puts ""
 
       inherited_classes.each do |klass|
-        puts "* #{klass.name} * "
-        klass.print_routes
+        puts klass.inspect
       end
 
       nil

@@ -21,15 +21,15 @@ module ActionSubscriber
       self.decoder.merge!(hash)
     end
 
-    def print
-      puts ""
-      puts "Rabbit Host : #{host}"
-      puts "Rabbit Port : #{port}"
-      puts "Threadpool Size : #{threadpool_size}"
-      puts "Decoders :"
-      decoder.each_key { |key| puts "  --#{key}" }
-
-      nil
+    def inspect
+      inspection_string  = <<-INSPECT.strip_heredoc
+        Rabbit Host: #{host}
+        Rabbit Port: #{port}
+        Threadpool Size: #{threadpool_size}
+        Decoders:
+      INSPECT
+      decoder.each_key { |key| inspection_string << "  --#{key}\n" }
+      return inspection_string
     end
   end
 end
