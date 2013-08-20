@@ -1,7 +1,11 @@
 module ActionSubscriber
   module Subscriber
     def auto_pop!
-      ::ActionSubscriber::Threadpool.ready_size.times do
+      # Because threadpools can be large we want to cap the number
+      # of times we will pop in a single turn of the reactor to 10
+      times_to_pop = [::ActionSubscriber::Threadpool.ready_size, 10].min
+
+      times_to_pop.times do
         queues.each do |queue|
           next unless ::ActionSubscriber::Threadpool.ready?
 
