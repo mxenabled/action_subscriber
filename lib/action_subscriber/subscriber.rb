@@ -1,14 +1,26 @@
 module ActionSubscriber
   module Subscriber
     def auto_pop!
-      queues.each do |queue|
-        if ::ActionSubscriber::Threadpool.ready?
+      nil_pops = 0
+
+      # Each "turn" of the timer should look at the available threads
+      # and attempt to fill them in with work, if it gets a nil pop
+      # (which means no jobs are avail) then we will track it and 
+      # return from the method after 2; this allows us to make the
+      # timer interval greater because auto_pop! is more "eager"
+      while ::ActionSubscriber::Threadpool.ready? && nil_pops < 2
+        queues.each do |queue|
+          next unless ::ActionSubscriber::Threadpool.ready?
+
           queue.pop(queue_subscription_options) do |header, payload|
             if payload
               subscriber = self.new(header, payload)
               ::ActionSubscriber::Threadpool.perform_async(subscriber)
+            else
+              nil_pops = nil_pops + 1
             end
           end
+
         end
       end
     end
