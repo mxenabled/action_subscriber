@@ -18,5 +18,10 @@ module ActionSubscriber
     def self.ready?
       !busy?
     end
+
+    def self.ready_size
+      ready_size = pool.size - pool.busy_size
+      return ready_size >= 0 ? ready_size : 0
+    end
   end
 end
