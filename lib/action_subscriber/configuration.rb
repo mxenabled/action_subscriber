@@ -19,8 +19,14 @@ module ActionSubscriber
     ##
     # Instance Methods
     #
-    def add_decoder(hash)
-      self.decoder.merge!(hash)
+    def add_decoder(decoders)
+      decoders.each_pair do |content_type, decoder|
+        unless [1, 3].include?(decoder.arity)
+          raise "ActionSubscriber decoders must have an arity of 1 or 3. The #{content_type} decoder was given with arity of #{decoder.arity}."
+        end
+      end
+
+      self.decoder.merge!(decoders)
     end
 
     def inspect
