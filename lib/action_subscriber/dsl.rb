@@ -24,7 +24,7 @@ module ActionSubscriber
 
     # Explicitly set the name of a queue for the given method route
     #
-    # Ex. 
+    # Ex.
     #   queue_for :created, "derp.derp"
     #   queue_for :updated, "foo.bar"
     #

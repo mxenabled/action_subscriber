@@ -5,7 +5,7 @@ module ActionSubscriber
 
     def initialize
       self.allow_low_priority_methods = false
-      self.decoder = { 
+      self.decoder = {
         'application/json' => lambda { |payload| JSON.parse(payload) },
         'text/plain' => lambda { |payload| payload.dup }
       }

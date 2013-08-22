@@ -21,7 +21,7 @@ module ActionSubscriber
       end
 
       def generate_queue_name(method_name)
-        [ 
+        [
           local_application_name,
           remote_application_name,
           resource_name,
@@ -30,7 +30,7 @@ module ActionSubscriber
       end
 
       def generate_routing_key_name(method_name)
-        [ 
+        [
           remote_application_name,
           resource_name,
           method_name
