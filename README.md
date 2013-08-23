@@ -1,6 +1,6 @@
 ActionSubscriber
 =================
-ActionSubscriber is a dsl for for easily connection to a RabbitMQ messaging server.
+ActionSubscriber is a DSL for for easily intergrating your Rails app with a RabbitMQ messaging server.
 
 Requirements
 -----------------
@@ -8,7 +8,7 @@ I test on Ruby 1.9.3 and Jruby 1.7.x.  Ruby 1.8 is not supported.
 
 Supported Message Types
 -----------------
-ActionSubscriber support JSON and plain text our of the box, but you can easily
+ActionSubscriber support JSON and plain text out of the box, but you can easily
 add support for any custom message type.
 
 Installation
@@ -29,9 +29,12 @@ In an initializer, you can set the host and the port like this :
 
 Other configuration options include :
 
-config.threadpool_size # set the number of threads availiable to action_subscriber, default 8
-config.error_handler   # handle error like you want to handle them!
-config.decoder         # add a custom decoder for a custom content type
+* config.allow_low_priority_methods - subscribe to queues for methods suffixed with "_low"
+* config.default_exchange - set the default exchange that your queues will use, using the default RabbitMQ exchange is not recommended
+* config.times_to_pop - when using RabbitMQ's pull API, the number of messages we will grab each time we pool the broker
+* config.threadpool_size - set the number of threads availiable to action_subscriber
+* config.error_handler - handle error like you want to handle them!
+* config.add_decoder - add a custom decoder for a custom content type
 
 Usage
 -----------------
