@@ -1,9 +1,9 @@
 module ActionSubscriber
   class Base
-    include ::ActionSubscriber::Decoder
-    include ::ActionSubscriber::Router
     extend ::ActionSubscriber::DSL
     extend ::ActionSubscriber::Subscriber
+    include ::ActionSubscriber::Decoder
+    include ::ActionSubscriber::Router
 
     ##
     # Private Attributes
