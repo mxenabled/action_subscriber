@@ -5,7 +5,11 @@ module ActionSubscriber
       return @payload if @payload
 
       if callable = ::ActionSubscriber.config.decoder[content_type]
-        @payload = callable.call(raw_payload)
+        if callable.arity == 1
+          @payload = callable.call(raw_payload)
+        elsif callable.arity == 3
+          @payload = callable.call(routing_key, header, raw_payload)
+        end
       else
         @payload = raw_payload.dup
       end
