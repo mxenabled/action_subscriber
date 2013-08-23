@@ -61,4 +61,6 @@ module ActionSubscriber
     end
 
   end
+
+  ::ActiveSupport.run_load_hooks(:action_subscriber, Base)
 end
