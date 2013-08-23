@@ -29,7 +29,7 @@ module ActionSubscriber
     def self.connection
       ::ActionSubscriber::RabbitConnection.connection
     end
-    
+
     # Inherited callback, save a reference to our descendents
     #
     def self.inherited(klass)
