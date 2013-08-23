@@ -109,13 +109,17 @@ module ActionSubscriber
       def subscribable_methods
         return @_subscribable_methods if @_subscribable_methods
 
-        methods = instance_methods.sort - ::Object.instance_methods - unwanted_methods
-        @_subscribable_methods = filter_low_priority_methods(methods)
-        return @_subscribable_methods
-      end
+        methods = instance_methods
+        methods -= ::Object.instance_methods
 
-      def unwanted_methods
-        [:consume_event, :payload]
+        self.included_modules.each do |mod|
+          methods -= mod.instance_methods
+        end
+
+        @_subscribable_methods = filter_low_priority_methods(methods)
+        @_subscribable_methods.sort!
+
+        return @_subscribable_methods
       end
     end
 
