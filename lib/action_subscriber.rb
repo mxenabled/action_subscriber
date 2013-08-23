@@ -1,3 +1,9 @@
+require "active_support"
+require "active_support/core_ext"
+require "amqp"
+require "celluloid"
+require "thread"
+
 require "action_subscriber/version"
 
 require "action_subscriber/decoder"
@@ -9,11 +15,6 @@ require "action_subscriber/subscriber"
 require "action_subscriber/threadpool"
 require "action_subscriber/worker"
 require "action_subscriber/base"
-
-require 'active_support/core_ext'
-require 'amqp'
-require "celluloid"
-require 'thread'
 
 module ActionSubscriber
   ##
