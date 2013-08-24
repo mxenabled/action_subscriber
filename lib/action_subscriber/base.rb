@@ -59,8 +59,5 @@ module ActionSubscriber
     class << self
       alias_method :subscribers, :inherited_classes
     end
-
   end
-
-  ::ActiveSupport.run_load_hooks(:action_subscriber, Base)
 end
