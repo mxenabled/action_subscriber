@@ -55,6 +55,30 @@ routing keys named intelligently.
 Once ActionSubscriber receives a message, it will call the associated method and the 
 parameter you recieve will be a decoded message.
 
+Testing
+-----------------
+ActionSubscriber includes support for easy unit testing with RSpec.
+
+In your spec_helper.rb:
+
+```
+require 'action_subscriber/rspec'
+
+RSpec.configure do |config|
+  config.include ::ActionSubscriber::Rspec
+end
+```
+
+In your_subscriber_spec.rb :
+``` subject { mock_subscriber }```
+
+Your test subject will be an instance of your subscriber class, and you can
+easily test your public methods without dependence on data from Rabbit.  You can 
+optionally pass data for your mock subscriber to consume if you wish.
+
+``` subject { mock_subscriber(:header => "test_header", :payload => "payload") } ```
+
+
 Examples
 -----------------
 Check out action_subscriber/examples.
