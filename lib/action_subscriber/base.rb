@@ -33,6 +33,8 @@ module ActionSubscriber
     # Inherited callback, save a reference to our descendents
     #
     def self.inherited(klass)
+      super
+
       inherited_classes << klass
     end
 
