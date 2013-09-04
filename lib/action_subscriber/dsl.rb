@@ -12,12 +12,12 @@ module ActionSubscriber
     #
     def exchange_names(*names)
       @_exchange_names ||= []
-      @_exchange_names += names
+      @_exchange_names += names.flatten
 
       if @_exchange_names.empty?
         return [ ::ActionSubscriber.config.default_exchange ]
       else
-        return @_exchange_names
+        return @_exchange_names.compact.uniq
       end
     end
     alias_method :exchange, :exchange_names
@@ -42,7 +42,8 @@ module ActionSubscriber
     end
 
     def remote_application_name(name = nil)
-      @_remote_application_name ||= name
+      @_remote_application_name = name if name
+      @_remote_application_name
     end
     alias_method :publisher, :remote_application_name
 
