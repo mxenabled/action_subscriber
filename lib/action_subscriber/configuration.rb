@@ -1,7 +1,14 @@
 module ActionSubscriber
   class Configuration
-    attr_accessor :allow_low_priority_methods, :decoder, :default_exchange,
-      :error_handler, :host, :port, :times_to_pop, :threadpool_size
+    attr_accessor :allow_low_priority_methods,
+                  :decoder,
+                  :default_exchange,
+                  :error_handler,
+                  :heartbeat,
+                  :host,
+                  :port,
+                  :times_to_pop,
+                  :threadpool_size
 
     def initialize
       self.allow_low_priority_methods = false
@@ -11,6 +18,7 @@ module ActionSubscriber
       }
       self.default_exchange = :events
       self.error_handler = lambda { |error| raise }
+      self.heartbeat = 1.0
       self.host = 'localhost'
       self.port = 5672
       self.times_to_pop = 8
