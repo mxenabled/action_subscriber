@@ -5,6 +5,7 @@ module ActionSubscriber
                   :default_exchange,
                   :error_handler,
                   :heartbeat,
+                  :timeout,
                   :host,
                   :port,
                   :times_to_pop,
@@ -19,6 +20,7 @@ module ActionSubscriber
       self.default_exchange = :events
       self.error_handler = lambda { |error| raise }
       self.heartbeat = 1.0
+      self.timeout = 0.5
       self.host = 'localhost'
       self.port = 5672
       self.times_to_pop = 8
