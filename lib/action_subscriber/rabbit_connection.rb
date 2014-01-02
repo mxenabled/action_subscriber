@@ -22,7 +22,8 @@ module ActionSubscriber
       {
         :heartbeat => ::ActionSubscriber.configuration.heartbeat,
         :host      => ::ActionSubscriber.configuration.host,
-        :port      => ::ActionSubscriber.configuration.port
+        :port      => ::ActionSubscriber.configuration.port,
+        :timeout   => ::ActionSubscriber.configuration.timeout
       }
     end
 
