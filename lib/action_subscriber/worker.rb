@@ -5,13 +5,7 @@ module ActionSubscriber
     include ::Celluloid
 
     def perform(subscriber)
-      if defined?(::ActiveRecord)
-        ::ActiveRecord::Base.connection_pool.with_connection do
-          subscriber.consume_event
-        end
-      else
-        subscriber.consume_event
-      end
+      ::ActionSubscriber.config.middleware.call(subscriber)
     end
   end
 end
