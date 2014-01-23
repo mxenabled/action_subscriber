@@ -9,7 +9,8 @@ module ActionSubscriber
                   :host,
                   :port,
                   :times_to_pop,
-                  :threadpool_size
+                  :threadpool_size,
+                  :middleware
 
     def initialize
       self.allow_low_priority_methods = false

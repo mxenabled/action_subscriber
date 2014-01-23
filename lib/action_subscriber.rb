@@ -2,6 +2,7 @@ require "active_support"
 require "active_support/core_ext"
 require "amqp"
 require "celluloid"
+require "middleware"
 require "thread"
 
 require "action_subscriber/version"
@@ -9,6 +10,7 @@ require "action_subscriber/version"
 require "action_subscriber/decoder"
 require "action_subscriber/dsl"
 require "action_subscriber/configuration"
+require "action_subscriber/middleware"
 require "action_subscriber/rabbit_connection"
 require "action_subscriber/router"
 require "action_subscriber/subscriber"
@@ -78,7 +80,11 @@ module ActionSubscriber
   end
 
   # Initialize config object.
-  config
+  config.middleware = ::Middleware::Builder.new do
+    use ActionSubscriber::Middleware::Router
+  end
 
   ::ActiveSupport.run_load_hooks(:action_subscriber, Base)
 end
+
+require "action_subscriber/railtie" if defined?(Rails)
