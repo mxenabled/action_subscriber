@@ -21,6 +21,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'activesupport', '>= 3.2.0'
   spec.add_dependency 'amqp'
   spec.add_dependency 'celluloid'
+  spec.add_dependency 'middleware'
 
   spec.add_development_dependency "better_receive"
   spec.add_development_dependency "bundler"
