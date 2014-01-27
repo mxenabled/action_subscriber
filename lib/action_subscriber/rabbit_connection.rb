@@ -38,13 +38,22 @@ module ActionSubscriber
       # to be dead. By closing the underlying EventMachine connection,
       # a connection loss is triggered in AMQP .
       self.connection.on_skipped_heartbeats do |session|
+        last_heartbeat = session.instance_variable_get(:@last_server_heartbeat)
+        last_heartbeat = "\"#{Time.now - last_heartbeat} seconds ago\"" if last_heartbeat
+        session.logger.info "[action_subscriber] closing rabbitmq connection heartbeat_interval=#{session.heartbeat_interval} last_heartbeat=#{last_heartbeat}"
+
         EventMachine.close_connection(session.signature, false)
       end
 
       # When the connection loss is triggered, we reconnect, which
       # also runs the auto-recovery code
       self.connection.on_tcp_connection_loss do |session, settings|
+        session.logger.info "[action_subscriber] connection lost, initiating recovery"
         session.reconnect(false, 1)
+      end
+
+      connection.after_recovery do |session|
+        session.logger.info("[action_subscriber] connection recovered")
       end
     end
   end
