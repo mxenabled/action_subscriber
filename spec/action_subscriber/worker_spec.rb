@@ -5,11 +5,14 @@ end
 
 describe ::ActionSubscriber::Worker do
   describe "perform" do
-    let(:subscriber) { WorkerTester.new("header", "payload") }
+    let(:env) { ::ActionSubscriber::Env.new('header' => double(:header), 'encoded_payload' => double(:payload)) }
+    let(:subscriber) { WorkerTester.new(env.header, env.encoded_payload) }
+
+    before { env.better_stub(:subscriber).and_return(subscriber) }
 
     it "calls consume event" do
       subscriber.better_receive(:consume_event)
-      subject.perform(subscriber)
+      subject.perform(env)
     end
   end
 end
