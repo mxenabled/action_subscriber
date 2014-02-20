@@ -81,9 +81,7 @@ module ActionSubscriber
   end
 
   # Initialize config object.
-  config.middleware = ::Middleware::Builder.new do
-    use ActionSubscriber::Middleware::Router
-  end
+  config.middleware = ::Middleware::Builder.new(:runner_class => ::ActionSubscriber::Middleware::Runner)
 
   ::ActiveSupport.run_load_hooks(:action_subscriber, Base)
 end
