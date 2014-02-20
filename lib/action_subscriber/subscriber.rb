@@ -10,8 +10,8 @@ module ActionSubscriber
 
           queue.pop(queue_subscription_options) do |header, payload|
             if payload
-              subscriber = self.new(header, payload)
-              ::ActionSubscriber::Threadpool.perform_async(subscriber)
+              env = Env.new('header' => header, 'encoded_payload' => payload, 'subscriber_class' => self)
+              ::ActionSubscriber::Threadpool.perform_async(env)
             end
           end
         end
@@ -21,8 +21,8 @@ module ActionSubscriber
     def auto_subscribe!
       queues.each do |queue|
         queue.subscribe(queue_subscription_options) do |header, payload|
-          subscriber = self.new(header, payload)
-          ::ActionSubscriber::Threadpool.perform_async(subscriber)
+          env = Env.new('header' => header, 'encoded_payload' => payload, 'subscriber_class' => self)
+          ::ActionSubscriber::Threadpool.perform_async(env)
         end
       end
     end

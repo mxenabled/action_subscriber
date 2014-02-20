@@ -1,10 +1,8 @@
 module ActionSubscriber
   module Middleware
     class Router < Base
-      def call(subscriber)
-        subscriber.consume_event
-
-        # app.call(subscriber) ?
+      def call(env)
+        env.subscriber.consume_event
       end
     end
   end

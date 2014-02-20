@@ -7,8 +7,8 @@ module ActionSubscriber
         @app = app
       end
 
-      def call(subscriber)
-        app.call(subscriber)
+      def call(env)
+        app.call(env)
       end
     end
   end
