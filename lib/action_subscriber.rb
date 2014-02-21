@@ -79,10 +79,8 @@ module ActionSubscriber
     alias_method :config, :configuration
   end
 
-  # Initialize config object.
-  config.middleware = ::Middleware::Builder.new do
-    use ActionSubscriber::Middleware::Router
-  end
+  # Initialize config object + middleware stack
+  config.middleware = ::Middleware::Builder.new(:runner_class => ::ActionSubscriber::Middleware::Runner)
 
   ::ActiveSupport.run_load_hooks(:action_subscriber, Base)
 end
@@ -92,5 +90,5 @@ require "action_subscriber/railtie" if defined?(Rails)
 ::ActiveSupport.on_load(:active_record) do
   require "action_subscriber/middleware/active_record_connection"
 
-  ::ActionSubscriber.config.middleware.insert_before ::ActionSubscriber::Middleware::Router, ::ActionSubscriber::Middleware::ActiveRecordConnection
+  ::ActionSubscriber.config.middleware.use ::ActionSubscriber::Middleware::ActiveRecordConnection
 end
