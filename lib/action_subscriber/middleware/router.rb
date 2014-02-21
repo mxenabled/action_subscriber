@@ -3,8 +3,6 @@ module ActionSubscriber
     class Router < Base
       def call(subscriber)
         subscriber.consume_event
-
-        # app.call(subscriber) ?
       end
     end
   end
