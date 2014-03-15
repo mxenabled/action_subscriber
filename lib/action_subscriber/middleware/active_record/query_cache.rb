@@ -6,12 +6,12 @@ module ActionSubscriber
           @app = app
         end
 
-        def call(subscriber)
+        def call(env)
           enabled = ::ActiveRecord::Base.connection.query_cache_enabled
           connection_id = ::ActiveRecord::Base.connection_id
           ::ActiveRecord::Base.connection.enable_query_cache!
 
-          @app.call(subscriber)
+          @app.call(env)
         ensure
           restore_query_cache_settings(connection_id, enabled)
         end

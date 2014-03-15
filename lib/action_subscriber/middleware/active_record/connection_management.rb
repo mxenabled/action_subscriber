@@ -6,8 +6,8 @@ module ActionSubscriber
           @app = app
         end
 
-        def call(subscriber)
-          @app.call(subscriber)
+        def call(env)
+          @app.call(env)
         ensure
           ::ActiveRecord::Base.clear_active_connections!
         end
