@@ -5,8 +5,8 @@ module ActionSubscriber
         @app = app
       end
 
-      def call(subscriber)
-        subscriber.consume_event
+      def call(env)
+        env.subscriber.consume_event
       end
     end
   end

@@ -8,10 +8,10 @@ module ActionSubscriber
         queues.each do |queue|
           next unless ::ActionSubscriber::Threadpool.ready?
 
-          queue.pop(queue_subscription_options) do |header, payload|
-            if payload
-              subscriber = self.new(header, payload)
-              ::ActionSubscriber::Threadpool.perform_async(subscriber)
+          queue.pop(queue_subscription_options) do |header, encoded_payload|
+            if encoded_payload
+              env = ::ActionSubscriber::Middleware::Env.new(self, header, encoded_payload)
+              ::ActionSubscriber::Threadpool.perform_async(env)
             end
           end
         end
@@ -20,9 +20,10 @@ module ActionSubscriber
 
     def auto_subscribe!
       queues.each do |queue|
-        queue.subscribe(queue_subscription_options) do |header, payload|
-          subscriber = self.new(header, payload)
-          ::ActionSubscriber::Threadpool.perform_async(subscriber)
+        queue.subscribe(queue_subscription_options) do |header, encoded_payload|
+          # TODO: Initialize this in the router, at the end of the stack
+          env = ::ActionSubscriber::Middleware::Env.new(self, header, encoded_payload)
+          ::ActionSubscriber::Threadpool.perform_async(env)
         end
       end
     end
