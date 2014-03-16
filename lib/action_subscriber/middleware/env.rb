@@ -35,7 +35,7 @@ module ActionSubscriber
 
       # TODO: Initialize this in the router, at the end of the stack
       def subscriber
-        @subscriber ||= subscriber_class.new(header, encoded_payload)
+        @subscriber ||= subscriber_class.new(self)
       end
     end
   end

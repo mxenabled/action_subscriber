@@ -7,7 +7,6 @@ require "thread"
 
 require "action_subscriber/version"
 
-require "action_subscriber/decoder"
 require "action_subscriber/dsl"
 require "action_subscriber/configuration"
 require "action_subscriber/middleware"
