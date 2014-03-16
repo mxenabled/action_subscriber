@@ -9,8 +9,7 @@ module ActionSubscriber
                   :host,
                   :port,
                   :times_to_pop,
-                  :threadpool_size,
-                  :middleware
+                  :threadpool_size
 
     def initialize
       self.allow_low_priority_methods = false
@@ -39,6 +38,10 @@ module ActionSubscriber
       end
 
       self.decoder.merge!(decoders)
+    end
+
+    def middleware
+      @middleware ||= Middleware.initialize_stack
     end
 
     def inspect

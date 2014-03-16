@@ -1,6 +1,8 @@
 module ActionSubscriber
   module Middleware
     class Env
+      attr_accessor :payload
+
       attr_reader :encoded_payload,
                   :header,
                   :subscriber_class
@@ -9,6 +11,10 @@ module ActionSubscriber
         @header = header
         @encoded_payload = encoded_payload
         @subscriber_class = subscriber_class
+      end
+
+      def content_type
+        header.try(:content_type).to_s
       end
 
       def exchange
@@ -21,11 +27,6 @@ module ActionSubscriber
 
       def method
         header.try(:method)
-      end
-
-      # TODO: Extract decoding into a middleware
-      def payload
-        subscriber.payload
       end
 
       def routing_key

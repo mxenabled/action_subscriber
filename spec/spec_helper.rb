@@ -42,10 +42,10 @@ require 'support/user_subscriber'
   end
 end
 
-shared_context 'middleware env' do
+shared_context 'middleware env' do |attributes|
   let(:app) { Proc.new { |inner_env| inner_env } }
   let(:env) { ActionSubscriber::Middleware::Env.new(UserSubscriber, header, '') }
-  let(:header) { amqp_header(:events, 'app.user.created') }
+  let(:header) { amqp_header(:events, 'app.user.created', attributes || {}) }
 end
 
 shared_examples_for 'a middleware' do
