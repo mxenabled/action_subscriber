@@ -78,8 +78,8 @@ module ActionSubscriber
     alias_method :config, :configuration
   end
 
-  # Initialize config object + middleware stack
-  config.middleware = ::Middleware::Builder.new(:runner_class => ::ActionSubscriber::Middleware::Runner)
+  # Initialize config object
+  config
 
   ::ActiveSupport.run_load_hooks(:action_subscriber, Base)
 end
