@@ -5,8 +5,9 @@ end
 
 describe ::ActionSubscriber::Worker do
   describe "perform" do
-    let(:env) { double(:env) }
-    let(:subscriber) { WorkerTester.new("header", "payload") }
+    include_context 'middleware env'
+
+    let(:subscriber) { WorkerTester.new(env) }
 
     before { env.stub(:subscriber).and_return(subscriber) }
 

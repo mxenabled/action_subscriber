@@ -25,12 +25,6 @@ describe ActionSubscriber::Middleware::Env do
     end
   end
 
-  describe "#payload" do
-    it "returns the payload from the subscriber" do
-      subject.payload.should eq subject.subscriber.payload
-    end
-  end
-
   describe "#routing_key" do
     it "returns the routing key from the header" do
       subject.routing_key.should eq header.routing_key
