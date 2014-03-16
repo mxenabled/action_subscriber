@@ -15,13 +15,7 @@ describe ::ActionSubscriber::Configuration do
       subject.decoder.should include("application/protobuf")
     end
 
-    it 'adds decoder with arity of 3' do
-      expect {
-        subject.add_decoder("foo" => lambda { |a,b,c| })
-      }.to_not raise_error
-    end
-
-    it 'raises an error when decoder does not have arity of 1 or 3' do
+    it 'raises an error when decoder does not have arity of 1' do
       expect {
         subject.add_decoder("foo" => lambda { |*args|  })
       }.to raise_error(/The foo decoder was given with arity of -1/)
@@ -33,10 +27,6 @@ describe ::ActionSubscriber::Configuration do
       expect {
         subject.add_decoder("foo" => lambda { |a,b| })
       }.to raise_error(/The foo decoder was given with arity of 2/)
-
-      expect {
-        subject.add_decoder("foo" => lambda { |a,b,c,d| })
-      }.to raise_error(/The foo decoder was given with arity of 4/)
     end
   end
 end
