@@ -1,8 +1,8 @@
 module ActionSubscriber
   class Base
     extend ::ActionSubscriber::DSL
+    extend ::ActionSubscriber::Subscribable
     extend ::ActionSubscriber::Subscriber
-    include ::ActionSubscriber::Router
 
     ##
     # Private Attributes

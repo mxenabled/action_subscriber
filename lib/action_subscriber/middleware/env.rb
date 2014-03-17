@@ -5,12 +5,19 @@ module ActionSubscriber
 
       attr_reader :encoded_payload,
                   :header,
-                  :subscriber_class
+                  :subscriber
 
-      def initialize(subscriber_class, header, encoded_payload)
+      def initialize(subscriber, header, encoded_payload)
         @header = header
         @encoded_payload = encoded_payload
-        @subscriber_class = subscriber_class
+        @subscriber = subscriber
+      end
+
+      # Return the last element of the routing key to indicate which action
+      # to route the payload to
+      #
+      def action
+        routing_key.split('.').last.to_s
       end
 
       def content_type
@@ -31,11 +38,6 @@ module ActionSubscriber
 
       def routing_key
         method.try(:routing_key)
-      end
-
-      # TODO: Initialize this in the router, at the end of the stack
-      def subscriber
-        @subscriber ||= subscriber_class.new(self)
       end
     end
   end
