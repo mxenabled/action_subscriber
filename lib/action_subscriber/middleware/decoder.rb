@@ -10,7 +10,7 @@ module ActionSubscriber
       def call(env)
         @env = env
 
-        env.payload = decoder? ? decoder.call(encoded_payload) : encoded_payload
+        env.payload = decoder? ? decoder.call(encoded_payload) : encoded_payload.dup
 
         @app.call(env)
       end
@@ -26,7 +26,7 @@ module ActionSubscriber
       end
 
       def encoded_payload
-        @encoded_payload ||= env.encoded_payload.dup
+        env.encoded_payload
       end
     end
   end
