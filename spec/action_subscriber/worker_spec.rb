@@ -9,10 +9,8 @@ describe ::ActionSubscriber::Worker do
 
     let(:subscriber) { WorkerTester.new(env) }
 
-    before { env.stub(:subscriber).and_return(subscriber) }
-
-    it "calls consume event" do
-      subscriber.better_receive(:consume_event)
+    it "calls the middleware stack" do
+      ActionSubscriber.config.middleware.better_receive(:call).with(env)
       subject.perform(env)
     end
   end

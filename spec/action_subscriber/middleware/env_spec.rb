@@ -3,9 +3,21 @@ require 'spec_helper'
 describe ActionSubscriber::Middleware::Env do
   let(:header) { amqp_header(:events, 'app.user.created') }
   let(:encoded_payload) { 'encoded_payload' }
-  let(:subscriber_class) { UserSubscriber }
+  let(:subscriber) { UserSubscriber }
 
-  subject { described_class.new(subscriber_class, header, encoded_payload) }
+  subject { described_class.new(subscriber, header, encoded_payload) }
+
+  describe "#action" do
+    it "returns the action from the routing key" do
+      subject.action.should eq 'created'
+    end
+  end
+
+  describe "#content_type" do
+    it "returns the content_type from the header" do
+      subject.content_type.should eq header.content_type.to_s
+    end
+  end
 
   describe "#exchange" do
     it "returns the exchange from the header" do
@@ -28,12 +40,6 @@ describe ActionSubscriber::Middleware::Env do
   describe "#routing_key" do
     it "returns the routing key from the header" do
       subject.routing_key.should eq header.routing_key
-    end
-  end
-
-  describe "#subscriber" do
-    it "initializes a new subscriber" do
-      subject.subscriber.should be_instance_of subscriber_class
     end
   end
 end
