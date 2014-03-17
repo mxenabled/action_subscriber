@@ -5,8 +5,8 @@ describe ActionSubscriber::Middleware::Router do
 
   subject { described_class.new(app) }
 
-  it "consumes the event" do
-    env.subscriber.better_receive(:consume_event)
+  it "routes the event to the proper action" do
+    env.subscriber.any_instance.better_receive(env.action)
     subject.call(env)
   end
 end

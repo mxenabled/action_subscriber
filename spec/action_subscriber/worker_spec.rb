@@ -5,13 +5,12 @@ end
 
 describe ::ActionSubscriber::Worker do
   describe "perform" do
-    let(:env) { double(:env) }
-    let(:subscriber) { WorkerTester.new("header", "payload") }
+    include_context 'middleware env'
 
-    before { env.stub(:subscriber).and_return(subscriber) }
+    let(:subscriber) { WorkerTester.new(env) }
 
-    it "calls consume event" do
-      subscriber.better_receive(:consume_event)
+    it "calls the middleware stack" do
+      ActionSubscriber.config.middleware.better_receive(:call).with(env)
       subject.perform(env)
     end
   end
