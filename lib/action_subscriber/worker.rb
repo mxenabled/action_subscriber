@@ -4,8 +4,8 @@ module ActionSubscriber
   class Worker
     include ::Celluloid
 
-    def perform(subscriber)
-      ::ActionSubscriber.config.middleware.call(subscriber)
+    def perform(env)
+      ::ActionSubscriber.config.middleware.call(env)
     end
   end
 end

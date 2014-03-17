@@ -1,25 +1,26 @@
 module ActionSubscriber
   class Base
     extend ::ActionSubscriber::DSL
+    extend ::ActionSubscriber::Subscribable
     extend ::ActionSubscriber::Subscriber
-    include ::ActionSubscriber::Decoder
-    include ::ActionSubscriber::Router
 
     ##
     # Private Attributes
     #
     private
 
-    attr_reader :header, :raw_payload
+    attr_reader :env, :header, :payload, :raw_payload
 
     public
 
     ##
     # Constructor
     #
-    def initialize(header, raw_payload)
-      @header = header
-      @raw_payload = raw_payload
+    def initialize(env)
+      @env = env
+      @header = env.header
+      @payload = env.payload
+      @raw_payload = env.encoded_payload
     end
 
     ##

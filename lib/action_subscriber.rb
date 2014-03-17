@@ -7,12 +7,11 @@ require "thread"
 
 require "action_subscriber/version"
 
-require "action_subscriber/decoder"
 require "action_subscriber/dsl"
 require "action_subscriber/configuration"
 require "action_subscriber/middleware"
 require "action_subscriber/rabbit_connection"
-require "action_subscriber/router"
+require "action_subscriber/subscribable"
 require "action_subscriber/subscriber"
 require "action_subscriber/threadpool"
 require "action_subscriber/worker"
@@ -79,18 +78,10 @@ module ActionSubscriber
     alias_method :config, :configuration
   end
 
-  # Initialize config object.
-  config.middleware = ::Middleware::Builder.new do
-    use ActionSubscriber::Middleware::Router
-  end
+  # Initialize config object
+  config
 
   ::ActiveSupport.run_load_hooks(:action_subscriber, Base)
 end
 
 require "action_subscriber/railtie" if defined?(Rails)
-
-::ActiveSupport.on_load(:active_record) do
-  require "action_subscriber/middleware/active_record_connection"
-
-  ::ActionSubscriber.config.middleware.insert_before ::ActionSubscriber::Middleware::Router, ::ActionSubscriber::Middleware::ActiveRecordConnection
-end

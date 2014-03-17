@@ -9,7 +9,7 @@ TestSubscriber = Class.new(ActionSubscriber::Base) do
 end
 TestSubscriber.remote_application_name :bob
 
-describe ActionSubscriber::Router do
+describe ActionSubscriber::Subscribable do
   describe "allow_low_priority_methods?" do
     after do
       ::ActionSubscriber.configure { |config| config.allow_low_priority_methods = false }
