@@ -1,7 +1,7 @@
 require "active_support"
 require "active_support/core_ext"
 require "amqp"
-require "celluloid"
+require "lifeguard"
 require "middleware"
 require "thread"
 
@@ -15,7 +15,6 @@ require "action_subscriber/rabbit_connection"
 require "action_subscriber/router"
 require "action_subscriber/subscriber"
 require "action_subscriber/threadpool"
-require "action_subscriber/worker"
 require "action_subscriber/base"
 
 module ActionSubscriber

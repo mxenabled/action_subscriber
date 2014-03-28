@@ -4,7 +4,7 @@ module ActionSubscriber
     # Class Methods
     #
     def self.busy?
-      (pool.size == pool.busy_size)
+      (pool.pool_size == pool.busy_size)
     end
 
     def self.perform_async(*args)
@@ -12,7 +12,9 @@ module ActionSubscriber
     end
 
     def self.pool
-      @pool ||= ::ActionSubscriber::Worker.pool(:size => ::ActionSubscriber.config.threadpool_size)
+      @pool ||= ::Lifeguard::InfiniteThreadpool.new(
+        :pool_size => ::ActionSubscriber.config.threadpool_size
+      )
     end
 
     def self.ready?
@@ -20,7 +22,7 @@ module ActionSubscriber
     end
 
     def self.ready_size
-      ready_size = pool.size - pool.busy_size
+      ready_size = pool.pool_size - pool.busy_size
       return ready_size >= 0 ? ready_size : 0
     end
   end
