@@ -11,7 +11,9 @@ module ActionSubscriber
           queue.pop(queue_subscription_options) do |header, payload|
             if payload
               subscriber = self.new(header, payload)
-              ::ActionSubscriber::Threadpool.perform_async(subscriber)
+              ::ActionSubscriber::Threadpool.pool.async(subscriber) do |subscriber|
+                ::ActionSubscriber.config.middleware.call(subscriber)
+              end
             end
           end
         end
@@ -22,7 +24,9 @@ module ActionSubscriber
       queues.each do |queue|
         queue.subscribe(queue_subscription_options) do |header, payload|
           subscriber = self.new(header, payload)
-          ::ActionSubscriber::Threadpool.perform_async(subscriber)
+          ::ActionSubscriber::Threadpool.pool.async(subscriber) do |subscriber|
+            ::ActionSubscriber.config.middleware.call(subscriber)
+          end
         end
       end
     end

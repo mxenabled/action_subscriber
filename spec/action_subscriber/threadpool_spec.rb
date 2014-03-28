@@ -17,15 +17,6 @@ describe ::ActionSubscriber::Threadpool do
     end
   end
 
-  describe "perform_async" do
-  end
-
-  describe "pool" do
-    it "returns a worker pool" do
-      ::ActionSubscriber::Threadpool.pool.class.should eq Celluloid::PoolManager
-    end
-  end
-
   describe "ready?" do
     context "when the pool is busy" do
       it "returns false" do
