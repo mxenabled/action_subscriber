@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe ActionSubscriber::Middleware::Router do
-  include_context 'middleware env'
+  include_context 'action subscriber middleware env'
 
   subject { described_class.new(app) }
 

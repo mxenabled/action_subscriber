@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'action_subscriber/middleware/active_record/query_cache'
 
 describe ActionSubscriber::Middleware::ActiveRecord::QueryCache do
-  include_context 'middleware env'
+  include_context 'action subscriber middleware env'
 
   let(:connection) { double(:connection, :query_cache_enabled => true) }
 
@@ -17,7 +17,7 @@ describe ActionSubscriber::Middleware::ActiveRecord::QueryCache do
 
   subject { described_class.new(app) }
 
-  it_behaves_like 'a middleware'
+  it_behaves_like 'an action subscriber middleware'
 
   it "enables the query cache" do
     connection.should_receive(:enable_query_cache!)

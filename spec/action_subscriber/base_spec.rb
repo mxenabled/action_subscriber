@@ -2,7 +2,8 @@ require 'spec_helper'
 
 class TestObject < ActionSubscriber::Base
   exchange :events
-  def created(foo)
+
+  def created
   end
 end
 
