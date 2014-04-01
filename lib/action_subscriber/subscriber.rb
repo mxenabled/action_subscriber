@@ -23,7 +23,6 @@ module ActionSubscriber
     def auto_subscribe!
       queues.each do |queue|
         queue.subscribe(queue_subscription_options) do |header, encoded_payload|
-          # TODO: Initialize this in the router, at the end of the stack
           env = ::ActionSubscriber::Middleware::Env.new(self, header, encoded_payload)
           ::ActionSubscriber::Threadpool.pool.async(subscriber) do |subscriber|
             ::ActionSubscriber.config.middleware.call(subscriber)
