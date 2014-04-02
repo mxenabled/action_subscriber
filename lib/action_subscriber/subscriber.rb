@@ -11,8 +11,8 @@ module ActionSubscriber
           queue.pop(queue_subscription_options) do |header, encoded_payload|
             if encoded_payload
               env = ::ActionSubscriber::Middleware::Env.new(self, header, encoded_payload)
-              ::ActionSubscriber::Threadpool.pool.async(subscriber) do |subscriber|
-                ::ActionSubscriber.config.middleware.call(subscriber)
+              ::ActionSubscriber::Threadpool.pool.async(env) do |env|
+                ::ActionSubscriber.config.middleware.call(env)
               end
             end
           end
@@ -24,8 +24,8 @@ module ActionSubscriber
       queues.each do |queue|
         queue.subscribe(queue_subscription_options) do |header, encoded_payload|
           env = ::ActionSubscriber::Middleware::Env.new(self, header, encoded_payload)
-          ::ActionSubscriber::Threadpool.pool.async(subscriber) do |subscriber|
-            ::ActionSubscriber.config.middleware.call(subscriber)
+          ::ActionSubscriber::Threadpool.pool.async(env) do |env|
+            ::ActionSubscriber.config.middleware.call(env)
           end
         end
       end
