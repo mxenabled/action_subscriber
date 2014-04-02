@@ -46,10 +46,10 @@ module ActionSubscriber
     def mock_subscriber(opts = {})
       encoded_payload = opts.fetch(:encoded_payload) { double('encoded payload').as_null_object }
       header = opts.fetch(:header) { double('header').as_null_object }
-      payload = opts.fetch(:payload) { double('payload').as_null_object }
       subscriber_class = opts.fetch(:class) { described_class }
 
       env = Middleware::Env.new(subscriber_class, header, encoded_payload)
+      env.payload = opts.fetch(:payload) { double('payload').as_null_object }
 
       return subscriber_class.new(env)
     end
