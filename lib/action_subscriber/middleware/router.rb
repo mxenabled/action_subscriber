@@ -21,11 +21,6 @@ module ActionSubscriber
             action.call(env.payload)
           end
         end
-
-      # TODO: Extract error handling into a middleware
-      #
-      rescue => exception
-        ::ActionSubscriber.configuration.error_handler.call(exception)
       end
     end
   end
