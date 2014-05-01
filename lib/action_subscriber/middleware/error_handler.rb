@@ -8,7 +8,7 @@ module ActionSubscriber
       def call(env)
         @app.call(env)
       rescue => error
-        ::ActionSubscriber.configuration.error_handler.call(error)
+        ::ActionSubscriber.configuration.error_handler.call(error, env.to_h)
       end
     end
   end

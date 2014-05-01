@@ -39,6 +39,19 @@ module ActionSubscriber
       def routing_key
         method.try(:routing_key)
       end
+
+      def to_hash
+        {
+          :action => action,
+          :content_type => content_type,
+          :exchange => exchange,
+          :method => method,
+          :routing_key => routing_key,
+          :payload => payload
+        }
+      end
+      alias_method :to_h, :to_hash
+
     end
   end
 end
