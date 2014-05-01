@@ -18,7 +18,7 @@ module ActionSubscriber
         'text/plain' => lambda { |payload| payload.dup }
       }
       self.default_exchange = :events
-      self.error_handler = lambda { |error| raise }
+      self.error_handler = lambda { |error, env_hash| raise }
       self.heartbeat = 0
       self.timeout = 0.5
       self.host = 'localhost'

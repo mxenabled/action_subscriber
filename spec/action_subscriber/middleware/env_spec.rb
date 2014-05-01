@@ -42,4 +42,30 @@ describe ActionSubscriber::Middleware::Env do
       subject.routing_key.should eq header.routing_key
     end
   end
+
+  describe "#to_hash" do
+    it "includes the action" do
+      subject.to_hash.should have_key(:action)
+    end
+
+    it "includes the content_type" do
+      subject.to_hash.should have_key(:content_type)
+    end
+
+    it "includes the exchange" do
+      subject.to_hash.should have_key(:exchange)
+    end
+
+    it "includes the method" do
+      subject.to_hash.should have_key(:method)
+    end
+
+    it "includes the routing_key" do
+      subject.to_hash.should have_key(:routing_key)
+    end
+
+    it "includes the payload" do
+      subject.to_hash.should have_key(:payload)
+    end
+  end
 end
