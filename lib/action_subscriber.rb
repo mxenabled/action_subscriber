@@ -25,6 +25,7 @@ module ActionSubscriber
   # any waiting in the queue for us.
   #
   def self.auto_pop!
+    return if ::ActionSubscriber::Threadpool.busy?
     ::ActionSubscriber::Base.inherited_classes.each do |klass|
       klass.auto_pop!
     end
@@ -57,14 +58,12 @@ module ActionSubscriber
     end
   end
 
-  # Poll Rabbit for messages (ie. pounce mode)
   def self.start_queues
     ::ActionSubscriber::RabbitConnection.connect!
     setup_queues!
     print_subscriptions
   end
 
-  # Let Rabbit push messages to us (ie. prowl mode)
   def self.start_subscribers
     ::ActionSubscriber::RabbitConnection.connect!
     setup_queues!

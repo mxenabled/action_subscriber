@@ -6,14 +6,11 @@ module ActionSubscriber
       times_to_pop = [::ActionSubscriber::Threadpool.ready_size, ::ActionSubscriber.config.times_to_pop].min
       times_to_pop.times do
         queues.each do |queue|
-          next unless ::ActionSubscriber::Threadpool.ready?
-
-          queue.pop(queue_subscription_options) do |header, encoded_payload|
-            if encoded_payload
-              env = ::ActionSubscriber::Middleware::Env.new(self, header, encoded_payload)
-              ::ActionSubscriber::Threadpool.pool.async(env) do |env|
-                ::ActionSubscriber.config.middleware.call(env)
-              end
+          delivery_info, header, encoded_payload = queue.pop(queue_subscription_options)
+          if encoded_payload
+            env = ::ActionSubscriber::Middleware::Env.new(self, delivery_info, header, encoded_payload)
+            ::ActionSubscriber::Threadpool.pool.async(env) do |env|
+              ::ActionSubscriber.config.middleware.call(env)
             end
           end
         end
