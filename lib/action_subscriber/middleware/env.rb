@@ -5,12 +5,12 @@ module ActionSubscriber
 
       attr_reader :delivery_info,
                   :encoded_payload,
-                  :header,
+                  :message_properties,
                   :subscriber
 
-      def initialize(subscriber, delivery_info, header, encoded_payload)
+      def initialize(subscriber, delivery_info, message_properties, encoded_payload)
         @delivery_info = delivery_info
-        @header = header
+        @message_properties = message_properties
         @encoded_payload = encoded_payload
         @subscriber = subscriber
       end
@@ -23,19 +23,19 @@ module ActionSubscriber
       end
 
       def content_type
-        header.try(:content_type).to_s
+        message_properties.content_type.to_s
       end
 
       def exchange
-        delivery_info.try(:exchange)
+        delivery_info.exchange
       end
 
       def message_id
-        header.try(:message_id)
+        message_properties.message_id
       end
 
       def routing_key
-        delivery_info.try(:routing_key)
+        delivery_info.routing_key
       end
 
       def to_hash

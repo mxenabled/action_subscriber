@@ -6,29 +6,42 @@ module ActionSubscriber
       channel = double(:channel)
       channel.stub(:acknowledge)
       channel.stub(:reject)
+      channel.stub(:recoveries_counter).and_return(1)
       channel
     end
 
-    def amqp_header(exchange, routing_key, attributes = {})
-      method = amqp_method(exchange, routing_key)
-
-      AMQP::Header.new(amqp_channel, method, attributes)
+    # Expects a hash like
+    #   :content_type => "text/plain",
+    #   :headers => {
+    #     "custom_header" => true
+    #    }
+    def amqp_properties(properties = {})
+      Bunny::MessageProperties.new(properties)
     end
 
-    def amqp_method(exchange, routing_key)
-      double(:method,
-        :consumer_tag => "consumer.#{routing_key}-#{Time.now.to_i}",
-        :delivery_tag => 1,
-        :exchange     => exchange.to_s,
-        :redelivered  => false,
-        :routing_key  => routing_key
-      )
+    # Expects a hash like
+    #  :exchange => "events"
+    #  :routing_key => "app.user.created"
+    #  :redelivered => false
+    #  :delivery_tag => "dt1"
+    #  :consumer_tag => "ct1"
+    def amqp_delivery_info(routing_properties = {})
+      properties = routing_properties.merge(
+        :exchange => "events",
+        :routing_key => "app.user.created",
+        :redelivered => false,
+        :consumer_tag => "",
+        :delivery_tag => "")
+      consumer = double()
+      basic_deliver = double("basic_deliver",properties)
+      Bunny::DeliveryInfo.new(basic_deliver, :consumer, amqp_channel)
     end
 
     # Create a new subscriber instance. Available options are:
     #
     #  * :encoded_payload - the encoded payload object to pass into the instance.
-    #  * :header - the header object to pass into the instance.
+    #  * :delivery_info - the delivery_info object to pass into instance
+    #  * :message_properties - the message properties object to pass into the instance.
     #  * :payload - the payload object to pass to the instance.
     #  * :subscriber - the class constant corresponding to the subscriber. `described_class` is the default.
     #
@@ -45,10 +58,11 @@ module ActionSubscriber
     #
     def mock_subscriber(opts = {})
       encoded_payload = opts.fetch(:encoded_payload) { double('encoded payload').as_null_object }
-      header = opts.fetch(:header) { double('header').as_null_object }
+      delivery_info = opts.fetch(:delivery_info) { double('Bunny::DeliveryInfo') }
+      properties = opts.fetch(:message_properties) { double('Bunny::MessageProperties').as_null_object }
       subscriber_class = opts.fetch(:class) { described_class }
 
-      env = Middleware::Env.new(subscriber_class, header, encoded_payload)
+      env = ActionSubscriber::Middleware::Env.new(subscriber_class, delivery_info, properties, encoded_payload)
       env.payload = opts.fetch(:payload) { double('payload').as_null_object }
 
       return subscriber_class.new(env)
@@ -59,10 +73,11 @@ end
 RSpec.configure do |config|
   config.include ActionSubscriber::RSpec
 
-  shared_context 'action subscriber middleware env' do |attributes|
+  shared_context 'action subscriber middleware env' do
     let(:app) { Proc.new { |inner_env| inner_env } }
-    let(:env) { ActionSubscriber::Middleware::Env.new(UserSubscriber, header, '') }
-    let(:header) { amqp_header(:events, 'app.user.created', attributes || {}) }
+    let(:env) { ActionSubscriber::Middleware::Env.new(UserSubscriber, delivery_info, message_properties, '') }
+    let(:delivery_info) { amqp_delivery_info }
+    let(:message_properties) { amqp_properties }
   end
 
   shared_examples_for 'an action subscriber middleware' do

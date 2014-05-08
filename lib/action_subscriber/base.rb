@@ -9,7 +9,7 @@ module ActionSubscriber
     #
     private
 
-    attr_reader :env, :header, :payload, :raw_payload
+    attr_reader :env, :message_properties, :delivery_info, :payload, :raw_payload
 
     public
 
@@ -18,7 +18,8 @@ module ActionSubscriber
     #
     def initialize(env)
       @env = env
-      @header = env.header
+      @message_properties = env.message_properties
+      @delivery_info = env.delivery_info
       @payload = env.payload
       @raw_payload = env.encoded_payload
     end

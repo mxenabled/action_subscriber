@@ -1,8 +1,9 @@
 require 'spec_helper'
 
 describe ActionSubscriber::Middleware::Decoder do
-  include_context 'action subscriber middleware env', :content_type => 'application/foo'
+  include_context 'action subscriber middleware env'
 
+  let(:message_properties) { amqp_properties(:content_type => 'application/foo')}
   let(:encoded_payload) { env.encoded_payload }
 
   subject { described_class.new(app) }
