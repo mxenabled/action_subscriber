@@ -3,11 +3,13 @@ module ActionSubscriber
     class Env
       attr_accessor :payload
 
-      attr_reader :encoded_payload,
+      attr_reader :delivery_info,
+                  :encoded_payload,
                   :header,
                   :subscriber
 
-      def initialize(subscriber, header, encoded_payload)
+      def initialize(subscriber, delivery_info, header, encoded_payload)
+        @delivery_info = delivery_info
         @header = header
         @encoded_payload = encoded_payload
         @subscriber = subscriber
@@ -25,19 +27,15 @@ module ActionSubscriber
       end
 
       def exchange
-        header.try(:exchange)
+        delivery_info.try(:exchange)
       end
 
       def message_id
         header.try(:message_id)
       end
 
-      def method
-        header.try(:method)
-      end
-
       def routing_key
-        method.try(:routing_key)
+        delivery_info.try(:routing_key)
       end
 
       def to_hash
@@ -45,7 +43,6 @@ module ActionSubscriber
           :action => action,
           :content_type => content_type,
           :exchange => exchange,
-          :method => method,
           :routing_key => routing_key,
           :payload => payload
         }

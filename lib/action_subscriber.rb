@@ -1,6 +1,6 @@
 require "active_support"
 require "active_support/core_ext"
-require "amqp"
+require "bunny"
 require "lifeguard"
 require "middleware"
 require "thread"
@@ -35,7 +35,6 @@ module ActionSubscriber
   #
   def self.auto_subscribe!
     ::ActionSubscriber::Base.inherited_classes.each do |klass|
-      klass.setup_queues!
       klass.auto_subscribe!
     end
   end
@@ -58,14 +57,17 @@ module ActionSubscriber
     end
   end
 
+  # Poll Rabbit for messages (ie. pounce mode)
   def self.start_queues
     ::ActionSubscriber::RabbitConnection.connect!
     setup_queues!
     print_subscriptions
   end
 
+  # Let Rabbit push messages to us (ie. prowl mode)
   def self.start_subscribers
     ::ActionSubscriber::RabbitConnection.connect!
+    setup_queues!
     auto_subscribe!
     print_subscriptions
   end

@@ -1,13 +1,10 @@
 module ActionSubscriber
   module RabbitConnection
-    # Must be called inside an EM.run block
-    #
     def self.connect!
-      ::AMQP.connection = ::AMQP.connect(connection_options)
-
-      setup_recovery
-
-      return ::AMQP.connection
+      @connection = ::Bunny.new
+      @connection.start
+      # setup_recovery # TODO figure out how we want to handle recovery (provided by bunny automatically?)
+      connection
     end
 
     def self.connected?
@@ -15,7 +12,7 @@ module ActionSubscriber
     end
 
     def self.connection
-      ::AMQP.connection
+      @connection
     end
 
     def self.connection_options

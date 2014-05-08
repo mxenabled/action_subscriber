@@ -22,8 +22,8 @@ module ActionSubscriber
 
     def auto_subscribe!
       queues.each do |queue|
-        queue.subscribe(queue_subscription_options) do |header, encoded_payload|
-          env = ::ActionSubscriber::Middleware::Env.new(self, header, encoded_payload)
+        queue.subscribe(queue_subscription_options) do |delivery_info, header, encoded_payload|
+          env = ::ActionSubscriber::Middleware::Env.new(self, delivery_info, header, encoded_payload)
           ::ActionSubscriber::Threadpool.pool.async(env) do |env|
             ::ActionSubscriber.config.middleware.call(env)
           end
@@ -39,8 +39,8 @@ module ActionSubscriber
       queue_name = queue_name_for_method(method_name)
       routing_key_name = routing_key_name_for_method(method_name)
 
-      channel = ::ActionSubscriber::RabbitConnection.new_channel
-      exchange = channel.__send__('topic', exchange_name)
+      channel = ::ActionSubscriber::RabbitConnection.connection.create_channel
+      exchange = channel.topic(exchange_name)
       queue = channel.queue(queue_name)
       queue.bind(exchange, :routing_key => routing_key_name)
       return queue
