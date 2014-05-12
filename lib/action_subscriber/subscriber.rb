@@ -26,9 +26,9 @@ module ActionSubscriber
         queue.subscribe(queue_subscription_options) do |delivery_info, properties, encoded_payload|
           properties = {
             :acknowledger => nil,
-            :content_type => message_properties.content_type,
+            :content_type => properties.content_type,
             :exchange => delivery_info.exchange,
-            :message_id => message_properties.message_id,
+            :message_id => properties.message_id,
             :routing_key => delivery_info.routing_key,
           }
           env = ::ActionSubscriber::Middleware::Env.new(self, encoded_payload, properties)

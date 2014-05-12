@@ -9,7 +9,7 @@ module ActionSubscriber
     #
     private
 
-    attr_reader :env, :message_properties, :delivery_info, :payload, :raw_payload
+    attr_reader :env, :payload, :raw_payload
 
     public
 
