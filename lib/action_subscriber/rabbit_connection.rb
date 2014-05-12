@@ -1,8 +1,12 @@
 module ActionSubscriber
   module RabbitConnection
     def self.connect!
-      @connection = ::Bunny.new(connection_options)
-      @connection.start
+      if ::RUBY_PLATFORM == "java"
+        @connection = ::MarchHare.connect(connection_options)
+      else
+        @connection = ::Bunny.new(connection_options)
+        @connection.start
+      end
       connection
     end
 

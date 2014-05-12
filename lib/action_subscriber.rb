@@ -1,6 +1,10 @@
 require "active_support"
 require "active_support/core_ext"
-require "bunny"
+if ::RUBY_PLATFORM == "java"
+  require 'march_hare'
+else
+  require "bunny"
+end
 require "lifeguard"
 require "middleware"
 require "thread"
