@@ -3,15 +3,30 @@ module ActionSubscriber
     class Env
       attr_accessor :payload
 
-      attr_reader :delivery_info,
+      attr_reader :acknowledger,
+                  :content_type,
                   :encoded_payload,
-                  :message_properties,
+                  :exchange,
+                  :message_id,
+                  :routing_key,
                   :subscriber
 
-      def initialize(subscriber, delivery_info, message_properties, encoded_payload)
-        @delivery_info = delivery_info
-        @message_properties = message_properties
+      ##
+      # @param subscriber [Class] the class that will handle this message
+      # @param encoded_payload [String] the payload as it was received from RabbitMQ
+      # @param properties [Hash] that must contain the following keys (as symbols)
+      #                   :routing_key => String
+      #                   :exchange => String
+      #                   :content_type => String
+      #                   :message_id => String
+      #                   :acknowledger => Object (will be used to ack or reject a message when using manual acknowledgment)
+      def initialize(subscriber, encoded_payload, properties)
+        @acknowledger = properties.fetch(:acknowledger)
+        @content_type = properties.fetch(:content_type)
         @encoded_payload = encoded_payload
+        @exchange = properties.fetch(:exchange)
+        @message_id = properties.fetch(:message_id)
+        @routing_key = properties.fetch(:routing_key)
         @subscriber = subscriber
       end
 
@@ -20,22 +35,6 @@ module ActionSubscriber
       #
       def action
         routing_key.split('.').last.to_s
-      end
-
-      def content_type
-        message_properties.content_type.to_s
-      end
-
-      def exchange
-        delivery_info.exchange
-      end
-
-      def message_id
-        message_properties.message_id
-      end
-
-      def routing_key
-        delivery_info.routing_key
       end
 
       def to_hash
