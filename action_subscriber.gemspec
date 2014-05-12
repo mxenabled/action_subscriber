@@ -19,7 +19,13 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency 'activesupport', '>= 3.2'
-  spec.add_dependency 'bunny'
+
+  if ENV['PLATFORM'] == "java" || ::RUBY_PLATFORM == 'java'
+    spec.platform = "java"
+    spec.add_dependency 'march_hare'
+  else
+    spec.add_dependency 'bunny'
+  end
   spec.add_dependency 'lifeguard'
   spec.add_dependency 'middleware'
 

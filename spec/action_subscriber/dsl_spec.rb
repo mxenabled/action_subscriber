@@ -34,7 +34,7 @@ describe ::ActionSubscriber::DSL do
       before { TestDSL.exchange_names :foo, :bar }
 
       it "returns an array of exchange names" do
-        TestDSL.exchange_names.should eq([:foo, :bar])
+        TestDSL.exchange_names.should eq(["foo", "bar"])
       end
     end
 
