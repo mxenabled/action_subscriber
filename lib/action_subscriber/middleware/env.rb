@@ -15,11 +15,12 @@ module ActionSubscriber
       # @param subscriber [Class] the class that will handle this message
       # @param encoded_payload [String] the payload as it was received from RabbitMQ
       # @param properties [Hash] that must contain the following keys (as symbols)
-      #                   :routing_key => String
-      #                   :exchange => String
-      #                   :content_type => String
-      #                   :message_id => String
       #                   :acknowledger => Object (will be used to ack or reject a message when using manual acknowledgment)
+      #                   :content_type => String
+      #                   :exchange => String
+      #                   :message_id => String
+      #                   :routing_key => String
+      
       def initialize(subscriber, encoded_payload, properties)
         @acknowledger = properties.fetch(:acknowledger)
         @content_type = properties.fetch(:content_type)

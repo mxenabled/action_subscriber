@@ -2,47 +2,23 @@ require 'rspec'
 
 module ActionSubscriber
   module RSpec
-    def amqp_channel
-      channel = double(:channel)
-      channel.stub(:acknowledge)
-      channel.stub(:reject)
-      channel.stub(:recoveries_counter).and_return(1)
-      channel
-    end
-
-    # Expects a hash like
-    #   :content_type => "text/plain",
-    #   :headers => {
-    #     "custom_header" => true
-    #    }
-    def amqp_properties(properties = {})
-      Bunny::MessageProperties.new(properties)
-    end
-
-    # Expects a hash like
-    #  :exchange => "events"
-    #  :routing_key => "app.user.created"
-    #  :redelivered => false
-    #  :delivery_tag => "dt1"
-    #  :consumer_tag => "ct1"
-    def amqp_delivery_info(routing_properties = {})
-      properties = routing_properties.merge(
-        :exchange => "events",
-        :routing_key => "app.user.created",
-        :redelivered => false,
-        :consumer_tag => "",
-        :delivery_tag => "")
-      consumer = double()
-      basic_deliver = double("basic_deliver",properties)
-      Bunny::DeliveryInfo.new(basic_deliver, :consumer, amqp_channel)
-    end
+    PROPERTIES_DEFAULTS = {
+      :acknowledger => :message_acknowledger_stub,
+      :content_type => "text/plain",
+      :exchange => "events",
+      :message_id => "MSG-123",
+      :routing_key => "amigo.user.created",
+    }.freeze
 
     # Create a new subscriber instance. Available options are:
     #
+    #  * :acknowledger - the object that should receive ack/reject calls for this message (only useful for testing manual acknowledgment)
+    #  * :content_type - defaults to text/plain
     #  * :encoded_payload - the encoded payload object to pass into the instance.
-    #  * :delivery_info - the delivery_info object to pass into instance
-    #  * :message_properties - the message properties object to pass into the instance.
+    #  * :exchange - defaults to "events"
+    #  * :message_id - defaults to "MSG-123"
     #  * :payload - the payload object to pass to the instance.
+    #  * :routing_key - defaults to amigo.user.created
     #  * :subscriber - the class constant corresponding to the subscriber. `described_class` is the default.
     #
     # Example
@@ -58,11 +34,15 @@ module ActionSubscriber
     #
     def mock_subscriber(opts = {})
       encoded_payload = opts.fetch(:encoded_payload) { double('encoded payload').as_null_object }
-      delivery_info = opts.fetch(:delivery_info) { double('Bunny::DeliveryInfo') }
-      properties = opts.fetch(:message_properties) { double('Bunny::MessageProperties').as_null_object }
-      subscriber_class = opts.fetch(:class) { described_class }
+      subscriber_class = opts.fetch(:subscriber) { described_class }
+      properties = PROPERTIES_DEFAULTS.merge(opts.slice(:acknowledger,
+                                                        :content_type,
+                                                        :exchange,
+                                                        :message_id,
+                                                        :routing_key))
 
-      env = ActionSubscriber::Middleware::Env.new(subscriber_class, delivery_info, properties, encoded_payload)
+
+      env = ActionSubscriber::Middleware::Env.new(subscriber_class, encoded_payload, properties)
       env.payload = opts.fetch(:payload) { double('payload').as_null_object }
 
       return subscriber_class.new(env)
@@ -75,9 +55,14 @@ RSpec.configure do |config|
 
   shared_context 'action subscriber middleware env' do
     let(:app) { Proc.new { |inner_env| inner_env } }
-    let(:env) { ActionSubscriber::Middleware::Env.new(UserSubscriber, delivery_info, message_properties, '') }
-    let(:delivery_info) { amqp_delivery_info }
-    let(:message_properties) { amqp_properties }
+    let(:env) { ActionSubscriber::Middleware::Env.new(UserSubscriber, 'encoded payload', message_properties) }
+    let(:message_properties) {{
+      :acknowledger => double("Message Acknowledger"),
+      :content_type => "text/plain",
+      :exchange => "events",
+      :message_id => "MSG-123",
+      :routing_key => "amigo.user.created",
+    }}
   end
 
   shared_examples_for 'an action subscriber middleware' do

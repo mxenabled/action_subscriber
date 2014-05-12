@@ -18,8 +18,6 @@ module ActionSubscriber
     #
     def initialize(env)
       @env = env
-      @message_properties = env.message_properties
-      @delivery_info = env.delivery_info
       @payload = env.payload
       @raw_payload = env.encoded_payload
     end
