@@ -1,8 +1,13 @@
 module ActionSubscriber
   class Base
+    extend ::ActionSubscriber::DefaultRouting
     extend ::ActionSubscriber::DSL
     extend ::ActionSubscriber::Subscribable
-    extend ::ActionSubscriber::Subscriber
+    if ::RUBY_PLATFORM == "java"
+      extend ::ActionSubscriber::MarchHare::Subscriber
+    else
+      extend ::ActionSubscriber::Bunny::Subscriber
+    end
 
     ##
     # Private Attributes

@@ -11,12 +11,14 @@ require "thread"
 
 require "action_subscriber/version"
 
+require "action_subscriber/default_routing"
 require "action_subscriber/dsl"
 require "action_subscriber/configuration"
 require "action_subscriber/middleware"
 require "action_subscriber/rabbit_connection"
 require "action_subscriber/subscribable"
-require "action_subscriber/subscriber"
+require "action_subscriber/bunny/subscriber"
+require "action_subscriber/march_hare/subscriber"
 require "action_subscriber/threadpool"
 require "action_subscriber/base"
 
