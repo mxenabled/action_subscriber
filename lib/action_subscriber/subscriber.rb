@@ -7,12 +7,16 @@ module ActionSubscriber
       times_to_pop.times do
         queues.each do |queue|
           delivery_info, properties, encoded_payload = queue.pop(queue_subscription_options)
-          if encoded_payload
-            env = ::ActionSubscriber::Middleware::Env.new(self, delivery_info, properties, encoded_payload)
-            ::ActionSubscriber::Threadpool.pool.async(env) do |env|
-              ::ActionSubscriber.config.middleware.call(env)
-            end
-          end
+          next unless encoded_payload # empty queue
+          properties = {
+            :acknowledger => nil,
+            :content_type => properties[:content_type],
+            :exchange => delivery_info.exchange,
+            :message_id => nil,
+            :routing_key => delivery_info.routing_key,
+          }
+          env = ::ActionSubscriber::Middleware::Env.new(self, encoded_payload, properties)
+          enqueue_env(env)
         end
       end
     end
@@ -20,10 +24,15 @@ module ActionSubscriber
     def auto_subscribe!
       queues.each do |queue|
         queue.subscribe(queue_subscription_options) do |delivery_info, properties, encoded_payload|
-          env = ::ActionSubscriber::Middleware::Env.new(self, delivery_info, properties, encoded_payload)
-          ::ActionSubscriber::Threadpool.pool.async(env) do |env|
-            ::ActionSubscriber.config.middleware.call(env)
-          end
+          properties = {
+            :acknowledger => nil,
+            :content_type => message_properties.content_type,
+            :exchange => delivery_info.exchange,
+            :message_id => message_properties.message_id,
+            :routing_key => delivery_info.routing_key,
+          }
+          env = ::ActionSubscriber::Middleware::Env.new(self, encoded_payload, properties)
+          enqueue_env(env)
         end
       end
     end
@@ -48,6 +57,14 @@ module ActionSubscriber
         subscribable_methods.each do |method_name|
           queues << setup_queue!(method_name, exchange_name)
         end
+      end
+    end
+
+    private
+
+    def enqueue_env(env)
+      ::ActionSubscriber::Threadpool.pool.async(env) do |env|
+        ::ActionSubscriber.config.middleware.call(env)
       end
     end
   end
