@@ -20,6 +20,9 @@ module ActionSubscriber
             enqueue_env(env)
           end
         end
+
+      rescue ::MarchHare::ChannelAlreadyClosed => e
+        # The connection has gone down, we can just try again on the next pop
       end
 
       def auto_subscribe!
