@@ -19,8 +19,8 @@ module ActionSubscriber
       }
       self.default_exchange = "events"
       self.error_handler = lambda { |error, env_hash| raise }
-      self.heartbeat = 0
-      self.timeout = 0.5
+      self.heartbeat = 5
+      self.timeout = 30
       self.host = 'localhost'
       self.port = 5672
       self.times_to_pop = 8

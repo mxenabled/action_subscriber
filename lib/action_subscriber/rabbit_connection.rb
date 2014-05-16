@@ -1,10 +1,21 @@
 module ActionSubscriber
   module RabbitConnection
+    def self.bunny_connection_options
+      {
+        :heartbeat                 => ::ActionSubscriber.configuration.heartbeat,
+        :host                      => ::ActionSubscriber.configuration.host,
+        :port                      => ::ActionSubscriber.configuration.port,
+        :continuation_timeout      => ::ActionSubscriber.configuration.timeout * 1_000.0, #convert sec to ms
+        :automatically_recover     => true,
+        :network_recovery_interval => 1,
+      }
+    end
+
     def self.connect!
       if ::RUBY_PLATFORM == "java"
-        @connection = ::MarchHare.connect(connection_options)
+        @connection = ::MarchHare.connect(march_hare_connection_options)
       else
-        @connection = ::Bunny.new(connection_options)
+        @connection = ::Bunny.new(bunny_connection_options)
         @connection.start
       end
       connection
@@ -18,9 +29,9 @@ module ActionSubscriber
       @connection
     end
 
-    def self.connection_options
+    def self.march_hare_connection_options
       {
-        :heartbeat                 => ::ActionSubscriber.configuration.heartbeat,
+        :heartbeat_interval        => ::ActionSubscriber.configuration.heartbeat,
         :host                      => ::ActionSubscriber.configuration.host,
         :port                      => ::ActionSubscriber.configuration.port,
         :continuation_timeout      => ::ActionSubscriber.configuration.timeout * 1_000.0, #convert sec to ms
