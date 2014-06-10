@@ -1,60 +1,43 @@
 module ActionSubscriber
   module RabbitConnection
-    # Must be called inside an EM.run block
-    #
-    def self.connect!
-      ::AMQP.connection = ::AMQP.connect(connection_options)
-
-      setup_recovery
-
-      return ::AMQP.connection
-    end
-
-    def self.connected?
-      connection && ::AMQP.connection.connected?
-    end
-
-    def self.connection
-      ::AMQP.connection
-    end
-
-    def self.connection_options
+    def self.bunny_connection_options
       {
-        :heartbeat => ::ActionSubscriber.configuration.heartbeat,
-        :host      => ::ActionSubscriber.configuration.host,
-        :port      => ::ActionSubscriber.configuration.port,
-        :timeout   => ::ActionSubscriber.configuration.timeout
+        :heartbeat                 => ::ActionSubscriber.configuration.heartbeat,
+        :host                      => ::ActionSubscriber.configuration.host,
+        :port                      => ::ActionSubscriber.configuration.port,
+        :continuation_timeout      => ::ActionSubscriber.configuration.timeout * 1_000.0, #convert sec to ms
+        :automatically_recover     => true,
+        :network_recovery_interval => 1,
       }
     end
 
-    def self.new_channel
-      channel = ::AMQP::Channel.new(::AMQP.connection)
-      channel.auto_recovery = true
-      return channel
+    def self.connect!
+      if ::RUBY_PLATFORM == "java"
+        @connection = ::MarchHare.connect(march_hare_connection_options)
+      else
+        @connection = ::Bunny.new(bunny_connection_options)
+        @connection.start
+      end
+      connection
     end
 
-    def self.setup_recovery
-      # When the server fails to respond to a heartbeat, it is assumed
-      # to be dead. By closing the underlying EventMachine connection,
-      # a connection loss is triggered in AMQP .
-      self.connection.on_skipped_heartbeats do |session|
-        last_heartbeat = session.instance_variable_get(:@last_server_heartbeat)
-        last_heartbeat = "\"#{Time.now - last_heartbeat} seconds ago\"" if last_heartbeat
-        session.logger.info "[action_subscriber] closing rabbitmq connection heartbeat_interval=#{session.heartbeat_interval} last_heartbeat=#{last_heartbeat}"
+    def self.connected?
+      connection && connection.connected?
+    end
 
-        EventMachine.close_connection(session.signature, false)
-      end
+    def self.connection
+      @connection
+    end
 
-      # When the connection loss is triggered, we reconnect, which
-      # also runs the auto-recovery code
-      self.connection.on_tcp_connection_loss do |session, settings|
-        session.logger.info "[action_subscriber] connection lost, initiating recovery"
-        session.reconnect(false, 1)
-      end
-
-      connection.after_recovery do |session|
-        session.logger.info("[action_subscriber] connection recovered")
-      end
+    def self.march_hare_connection_options
+      {
+        :heartbeat_interval        => ::ActionSubscriber.configuration.heartbeat,
+        :host                      => ::ActionSubscriber.configuration.host,
+        :port                      => ::ActionSubscriber.configuration.port,
+        :continuation_timeout      => ::ActionSubscriber.configuration.timeout * 1_000.0, #convert sec to ms
+        :automatically_recover     => true,
+        :network_recovery_interval => 1,
+      }
     end
   end
 end

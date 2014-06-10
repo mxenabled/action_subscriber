@@ -1,13 +1,15 @@
 require 'spec_helper'
 
 describe ActionSubscriber::Middleware::Decoder do
-  include_context 'action subscriber middleware env', :content_type => 'application/foo'
+  include_context 'action subscriber middleware env'
 
   let(:encoded_payload) { env.encoded_payload }
 
   subject { described_class.new(app) }
 
   it_behaves_like 'an action subscriber middleware'
+
+  before { message_properties[:content_type] = "application/foo"}
 
   context "when the content type has an associated decoder" do
     let(:decoder) { { 'application/foo' => lambda { |_| payload } } }

@@ -4,7 +4,7 @@ ActionSubscriber is a DSL for for easily intergrating your Rails app with a Rabb
 
 Requirements
 -----------------
-I test on Ruby 1.9.3 and Jruby 1.7.x.  Ruby 1.8 is not supported.
+I test on Ruby 2.1.1 and Jruby 1.7.x.  Ruby 1.8 is not supported.
 
 Supported Message Types
 -----------------
@@ -45,9 +45,22 @@ First, create a subscriber the inherits from ActionSubscriber::Base
 
 Then, when your app starts us, you will need to load your subscriber code and then do
 
-    EventMachine.run do
-      ActionSubscriber.start_subscribers
-    end
+```ruby
+ActionSubscriber.start_subscribers
+while true
+  sleep 1.0
+end
+```
+
+or
+
+```ruby
+::ActionSubscriber.start_queues
+while true
+  ::ActionSubscriber.auto_pop!
+  sleep 1.0
+end
+```
 
 Any public methods on your subscriber will be registered as queues with rabbit with
 routing keys named intelligently.

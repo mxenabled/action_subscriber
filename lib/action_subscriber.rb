@@ -1,18 +1,24 @@
 require "active_support"
 require "active_support/core_ext"
-require "amqp"
+if ::RUBY_PLATFORM == "java"
+  require 'march_hare'
+else
+  require "bunny"
+end
 require "lifeguard"
 require "middleware"
 require "thread"
 
 require "action_subscriber/version"
 
+require "action_subscriber/default_routing"
 require "action_subscriber/dsl"
 require "action_subscriber/configuration"
 require "action_subscriber/middleware"
 require "action_subscriber/rabbit_connection"
 require "action_subscriber/subscribable"
-require "action_subscriber/subscriber"
+require "action_subscriber/bunny/subscriber"
+require "action_subscriber/march_hare/subscriber"
 require "action_subscriber/threadpool"
 require "action_subscriber/base"
 
@@ -25,6 +31,7 @@ module ActionSubscriber
   # any waiting in the queue for us.
   #
   def self.auto_pop!
+    return if ::ActionSubscriber::Threadpool.busy?
     ::ActionSubscriber::Base.inherited_classes.each do |klass|
       klass.auto_pop!
     end
@@ -35,7 +42,6 @@ module ActionSubscriber
   #
   def self.auto_subscribe!
     ::ActionSubscriber::Base.inherited_classes.each do |klass|
-      klass.setup_queues!
       klass.auto_subscribe!
     end
   end
@@ -66,6 +72,7 @@ module ActionSubscriber
 
   def self.start_subscribers
     ::ActionSubscriber::RabbitConnection.connect!
+    setup_queues!
     auto_subscribe!
     print_subscriptions
   end

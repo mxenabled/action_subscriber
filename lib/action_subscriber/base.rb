@@ -1,15 +1,20 @@
 module ActionSubscriber
   class Base
+    extend ::ActionSubscriber::DefaultRouting
     extend ::ActionSubscriber::DSL
     extend ::ActionSubscriber::Subscribable
-    extend ::ActionSubscriber::Subscriber
+    if ::RUBY_PLATFORM == "java"
+      extend ::ActionSubscriber::MarchHare::Subscriber
+    else
+      extend ::ActionSubscriber::Bunny::Subscriber
+    end
 
     ##
     # Private Attributes
     #
     private
 
-    attr_reader :env, :header, :payload, :raw_payload
+    attr_reader :env, :payload, :raw_payload
 
     public
 
@@ -18,7 +23,6 @@ module ActionSubscriber
     #
     def initialize(env)
       @env = env
-      @header = env.header
       @payload = env.payload
       @raw_payload = env.encoded_payload
     end

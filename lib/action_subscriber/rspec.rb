@@ -2,34 +2,23 @@ require 'rspec'
 
 module ActionSubscriber
   module RSpec
-    def amqp_channel
-      channel = double(:channel)
-      channel.stub(:acknowledge)
-      channel.stub(:reject)
-      channel
-    end
-
-    def amqp_header(exchange, routing_key, attributes = {})
-      method = amqp_method(exchange, routing_key)
-
-      AMQP::Header.new(amqp_channel, method, attributes)
-    end
-
-    def amqp_method(exchange, routing_key)
-      double(:method,
-        :consumer_tag => "consumer.#{routing_key}-#{Time.now.to_i}",
-        :delivery_tag => 1,
-        :exchange     => exchange.to_s,
-        :redelivered  => false,
-        :routing_key  => routing_key
-      )
-    end
+    PROPERTIES_DEFAULTS = {
+      :acknowledger => :message_acknowledger_stub,
+      :content_type => "text/plain",
+      :exchange => "events",
+      :message_id => "MSG-123",
+      :routing_key => "amigo.user.created",
+    }.freeze
 
     # Create a new subscriber instance. Available options are:
     #
+    #  * :acknowledger - the object that should receive ack/reject calls for this message (only useful for testing manual acknowledgment)
+    #  * :content_type - defaults to text/plain
     #  * :encoded_payload - the encoded payload object to pass into the instance.
-    #  * :header - the header object to pass into the instance.
+    #  * :exchange - defaults to "events"
+    #  * :message_id - defaults to "MSG-123"
     #  * :payload - the payload object to pass to the instance.
+    #  * :routing_key - defaults to amigo.user.created
     #  * :subscriber - the class constant corresponding to the subscriber. `described_class` is the default.
     #
     # Example
@@ -45,10 +34,15 @@ module ActionSubscriber
     #
     def mock_subscriber(opts = {})
       encoded_payload = opts.fetch(:encoded_payload) { double('encoded payload').as_null_object }
-      header = opts.fetch(:header) { double('header').as_null_object }
-      subscriber_class = opts.fetch(:class) { described_class }
+      subscriber_class = opts.fetch(:subscriber) { described_class }
+      properties = PROPERTIES_DEFAULTS.merge(opts.slice(:acknowledger,
+                                                        :content_type,
+                                                        :exchange,
+                                                        :message_id,
+                                                        :routing_key))
 
-      env = Middleware::Env.new(subscriber_class, header, encoded_payload)
+
+      env = ActionSubscriber::Middleware::Env.new(subscriber_class, encoded_payload, properties)
       env.payload = opts.fetch(:payload) { double('payload').as_null_object }
 
       return subscriber_class.new(env)
@@ -59,10 +53,16 @@ end
 RSpec.configure do |config|
   config.include ActionSubscriber::RSpec
 
-  shared_context 'action subscriber middleware env' do |attributes|
+  shared_context 'action subscriber middleware env' do
     let(:app) { Proc.new { |inner_env| inner_env } }
-    let(:env) { ActionSubscriber::Middleware::Env.new(UserSubscriber, header, '') }
-    let(:header) { amqp_header(:events, 'app.user.created', attributes || {}) }
+    let(:env) { ActionSubscriber::Middleware::Env.new(UserSubscriber, 'encoded payload', message_properties) }
+    let(:message_properties) {{
+      :acknowledger => double("Message Acknowledger"),
+      :content_type => "text/plain",
+      :exchange => "events",
+      :message_id => "MSG-123",
+      :routing_key => "amigo.user.created",
+    }}
   end
 
   shared_examples_for 'an action subscriber middleware' do

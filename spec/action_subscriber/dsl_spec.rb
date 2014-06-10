@@ -34,7 +34,7 @@ describe ::ActionSubscriber::DSL do
       before { TestDSL.exchange_names :foo, :bar }
 
       it "returns an array of exchange names" do
-        TestDSL.exchange_names.should eq([:foo, :bar])
+        TestDSL.exchange_names.should eq(["foo", "bar"])
       end
     end
 
@@ -42,7 +42,7 @@ describe ::ActionSubscriber::DSL do
       before { TestDSL.instance_variable_set(:@_exchange_names, nil) }
 
       it "returns the default exchange" do
-        TestDSL.exchange_names.should eq([:events])
+        TestDSL.exchange_names.should eq(["events"])
       end
     end
   end
@@ -75,7 +75,7 @@ describe ::ActionSubscriber::DSL do
 
   describe "routing_key_for" do
     before { TestDSL.routing_key_for(:created, "app.user.created") }
-    
+
     it "adds the method name to the routing key names collection" do
       TestDSL.routing_key_names.should eq({:created => "app.user.created"})
     end

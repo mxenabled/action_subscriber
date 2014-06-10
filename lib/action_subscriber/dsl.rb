@@ -12,7 +12,7 @@ module ActionSubscriber
     #
     def exchange_names(*names)
       @_exchange_names ||= []
-      @_exchange_names += names.flatten
+      @_exchange_names += names.flatten.map(&:to_s)
 
       if @_exchange_names.empty?
         return [ ::ActionSubscriber.config.default_exchange ]
