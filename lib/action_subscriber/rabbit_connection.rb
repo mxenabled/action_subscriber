@@ -2,12 +2,13 @@ module ActionSubscriber
   module RabbitConnection
     def self.bunny_connection_options
       {
-        :heartbeat                 => ::ActionSubscriber.configuration.heartbeat,
-        :host                      => ::ActionSubscriber.configuration.host,
-        :port                      => ::ActionSubscriber.configuration.port,
-        :continuation_timeout      => ::ActionSubscriber.configuration.timeout * 1_000.0, #convert sec to ms
-        :automatically_recover     => true,
-        :network_recovery_interval => 1,
+        :heartbeat                     => ::ActionSubscriber.configuration.heartbeat,
+        :host                          => ::ActionSubscriber.configuration.host,
+        :port                          => ::ActionSubscriber.configuration.port,
+        :continuation_timeout          => ::ActionSubscriber.configuration.timeout * 1_000.0, #convert sec to ms
+        :automatically_recover         => true,
+        :network_recovery_interval     => 1,
+        :recover_from_connection_close => true,
       }
     end
 
@@ -31,12 +32,12 @@ module ActionSubscriber
 
     def self.march_hare_connection_options
       {
-        :heartbeat_interval        => ::ActionSubscriber.configuration.heartbeat,
-        :host                      => ::ActionSubscriber.configuration.host,
-        :port                      => ::ActionSubscriber.configuration.port,
-        :continuation_timeout      => ::ActionSubscriber.configuration.timeout * 1_000.0, #convert sec to ms
-        :automatically_recover     => true,
-        :network_recovery_interval => 1,
+        :heartbeat_interval            => ::ActionSubscriber.configuration.heartbeat,
+        :host                          => ::ActionSubscriber.configuration.host,
+        :port                          => ::ActionSubscriber.configuration.port,
+        :continuation_timeout          => ::ActionSubscriber.configuration.timeout * 1_000.0, #convert sec to ms
+        :automatically_recover         => true,
+        :network_recovery_interval     => 1,
       }
     end
   end
