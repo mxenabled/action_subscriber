@@ -32,12 +32,12 @@ module ActionSubscriber
 
     def self.march_hare_connection_options
       {
-        :heartbeat_interval            => ::ActionSubscriber.configuration.heartbeat,
-        :host                          => ::ActionSubscriber.configuration.host,
-        :port                          => ::ActionSubscriber.configuration.port,
-        :continuation_timeout          => ::ActionSubscriber.configuration.timeout * 1_000.0, #convert sec to ms
-        :automatically_recover         => true,
-        :network_recovery_interval     => 1,
+        :heartbeat_interval        => ::ActionSubscriber.configuration.heartbeat,
+        :host                      => ::ActionSubscriber.configuration.host,
+        :port                      => ::ActionSubscriber.configuration.port,
+        :continuation_timeout      => ::ActionSubscriber.configuration.timeout * 1_000.0, #convert sec to ms
+        :automatically_recover     => true,
+        :network_recovery_interval => 1,
       }
     end
   end
