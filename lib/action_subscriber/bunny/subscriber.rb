@@ -9,6 +9,7 @@ module ActionSubscriber
           queues.each do |queue|
             delivery_info, properties, encoded_payload = queue.pop(queue_subscription_options)
             next unless encoded_payload # empty queue
+            ::ActiveSupport::Notifications.instrument "popped_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
               :acknowledger => nil,
               :content_type => properties[:content_type],
@@ -25,6 +26,7 @@ module ActionSubscriber
       def auto_subscribe!
         queues.each do |queue|
           queue.subscribe(queue_subscription_options) do |delivery_info, properties, encoded_payload|
+            ::ActiveSupport::Notifications.instrument "received_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
               :acknowledger => nil,
               :content_type => properties.content_type,
@@ -42,7 +44,9 @@ module ActionSubscriber
 
       def enqueue_env(env)
         ::ActionSubscriber::Threadpool.pool.async(env) do |env|
-          ::ActionSubscriber.config.middleware.call(env)
+          ::ActiveSupport::Notifications.instrument "process_event.action_subscriber", :subscriber => env.subscriber.to_s, :routing_key => env.routing_key do
+            ::ActionSubscriber.config.middleware.call(env)
+          end
         end
       end
     end
