@@ -1,3 +1,2 @@
 --colour
 --order rand
---require rspec/pride --format RSpec::Pride

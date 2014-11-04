@@ -1,6 +1,6 @@
 class UserSubscriber < ActionSubscriber::Base
   exchange :events
 
-  def created(payload)
+  def created
   end
 end

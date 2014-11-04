@@ -11,11 +11,11 @@ describe ActionSubscriber::Middleware::ErrorHandler do
   let(:error) { ::RuntimeError.new("Boom!") }
 
   context "when an exception occurs" do
-    before { app.stub(:call).and_raise(error) }
+    before { allow(app).to receive(:call).and_raise(error) }
 
     it "calls the exception handler" do
       handler = ::ActionSubscriber.configuration.error_handler
-      handler.better_receive(:call).with(error, env.to_h)
+      expect(handler).to receive(:call).with(error, env.to_h)
 
       subject.call(env)
     end
