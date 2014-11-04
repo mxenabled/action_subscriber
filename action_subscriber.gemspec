@@ -22,9 +22,9 @@ Gem::Specification.new do |spec|
 
   if ENV['PLATFORM'] == "java" || ::RUBY_PLATFORM == 'java'
     spec.platform = "java"
-    spec.add_dependency 'march_hare', '>= 2.2.0'
+    spec.add_dependency 'march_hare', '>= 2.7.0'
   else
-    spec.add_dependency 'bunny'
+    spec.add_dependency 'bunny', '>= 1.5.0'
   end
   spec.add_dependency 'lifeguard'
   spec.add_dependency 'middleware'
