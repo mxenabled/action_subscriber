@@ -2,17 +2,17 @@ require 'spec_helper'
 
 describe ::ActionSubscriber::Configuration do
   describe "default values" do
-    its(:allow_low_priority_methods) { should be_false }
-    its(:default_exchange) { should eq("events") }
-    its(:host) { should eq('localhost') }
-    its(:port) { should eq(5672) }
-    its(:threadpool_size) { should eq(8) }
+    specify { expect(subject.allow_low_priority_methods).to eq(false) }
+    specify { expect(subject.default_exchange).to eq("events") }
+    specify { expect(subject.host).to eq("localhost") }
+    specify { expect(subject.port).to eq(5672) }
+    specify { expect(subject.threadpool_size).to eq(8) }
   end
 
   describe "add_decoder" do
     it "add the decoder to the registry" do
       subject.add_decoder({"application/protobuf" => lambda { |payload| "foo"} })
-      subject.decoder.should include("application/protobuf")
+      expect(subject.decoder).to include("application/protobuf")
     end
 
     it 'raises an error when decoder does not have arity of 1' do

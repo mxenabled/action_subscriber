@@ -22,19 +22,17 @@ Gem::Specification.new do |spec|
 
   if ENV['PLATFORM'] == "java" || ::RUBY_PLATFORM == 'java'
     spec.platform = "java"
-    spec.add_dependency 'march_hare', '>= 2.2.0'
+    spec.add_dependency 'march_hare', '>= 2.7.0'
   else
-    spec.add_dependency 'bunny'
+    spec.add_dependency 'bunny', '>= 1.5.0'
   end
   spec.add_dependency 'lifeguard'
   spec.add_dependency 'middleware'
 
   spec.add_development_dependency "activerecord", ">= 3.2"
-  spec.add_development_dependency "better_receive"
-  spec.add_development_dependency "bundler"
+  spec.add_development_dependency "bundler", ">= 1.6"
   spec.add_development_dependency "pry-nav"
-  spec.add_development_dependency "rspec"
-  spec.add_development_dependency "rspec-pride"
+  spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "rake"
   spec.add_development_dependency "simplecov"
   spec.add_development_dependency "special_delivery"

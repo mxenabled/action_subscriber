@@ -10,13 +10,13 @@ describe ::ActionSubscriber::DSL do
       before { TestDSL.acknowledge_messages! }
 
       it "acknoledges messages" do
-        TestDSL.acknowledge_messages?.should be_true
+        expect(TestDSL.acknowledge_messages?).to eq(true)
       end
 
       let(:expected_hash) {{ :ack => true }}
 
       it "returns expected queue subscription options" do
-        TestDSL.queue_subscription_options.should eq expected_hash
+        expect(TestDSL.queue_subscription_options).to eq expected_hash
       end
     end
 
@@ -24,7 +24,7 @@ describe ::ActionSubscriber::DSL do
       before { TestDSL.instance_variable_set(:@_acknowledge_messages, nil) }
 
       it "does not acknowledge messages" do
-        TestDSL.acknowledge_messages?.should be_false
+        expect(TestDSL.acknowledge_messages?).to eq(false)
       end
     end
   end
@@ -34,7 +34,7 @@ describe ::ActionSubscriber::DSL do
       before { TestDSL.exchange_names :foo, :bar }
 
       it "returns an array of exchange names" do
-        TestDSL.exchange_names.should eq(["foo", "bar"])
+        expect(TestDSL.exchange_names).to eq(["foo", "bar"])
       end
     end
 
@@ -42,7 +42,7 @@ describe ::ActionSubscriber::DSL do
       before { TestDSL.instance_variable_set(:@_exchange_names, nil) }
 
       it "returns the default exchange" do
-        TestDSL.exchange_names.should eq(["events"])
+        expect(TestDSL.exchange_names).to eq(["events"])
       end
     end
   end
@@ -51,7 +51,7 @@ describe ::ActionSubscriber::DSL do
     before { TestDSL.queue_for(:created, "my_app.app.user.created") }
 
     it "adds the method and queue name to the queue names collection" do
-      TestDSL.queue_names.should eq({:created => "my_app.app.user.created" })
+      expect(TestDSL.queue_names).to eq({:created => "my_app.app.user.created" })
     end
   end
 
@@ -60,7 +60,7 @@ describe ::ActionSubscriber::DSL do
       before { TestDSL.remote_application_name "app" }
 
       it "returns the remote application name" do
-        TestDSL.remote_application_name.should eq("app")
+        expect(TestDSL.remote_application_name).to eq("app")
       end
     end
 
@@ -68,7 +68,7 @@ describe ::ActionSubscriber::DSL do
       before { TestDSL.instance_variable_set(:@_remote_application_name, nil) }
 
       it "returns nil" do
-        TestDSL.remote_application_name.should be_nil
+        expect(TestDSL.remote_application_name).to be_nil
       end
     end
   end
@@ -77,7 +77,7 @@ describe ::ActionSubscriber::DSL do
     before { TestDSL.routing_key_for(:created, "app.user.created") }
 
     it "adds the method name to the routing key names collection" do
-      TestDSL.routing_key_names.should eq({:created => "app.user.created"})
+      expect(TestDSL.routing_key_names).to eq({:created => "app.user.created"})
     end
   end
 

@@ -4,15 +4,15 @@ describe ::ActionSubscriber::Threadpool do
   describe "busy?" do
     context "when the workers are busy" do
       it "returns true" do
-        ::ActionSubscriber::Threadpool.pool.better_stub(:busy_size).and_return(8)
-        ::ActionSubscriber::Threadpool.busy?.should be_true
+        allow(::ActionSubscriber::Threadpool.pool).to receive(:busy_size).and_return(8)
+        expect(::ActionSubscriber::Threadpool.busy?).to eq(true)
       end
     end
 
     context "when there are idle workers" do
       it "returns false" do
-        ::ActionSubscriber::Threadpool.pool.better_stub(:busy_size).and_return(1)
-        ::ActionSubscriber::Threadpool.busy?.should be_false
+        allow(::ActionSubscriber::Threadpool.pool).to receive(:busy_size).and_return(1)
+        expect(::ActionSubscriber::Threadpool.busy?).to eq(false)
       end
     end
   end
@@ -20,15 +20,15 @@ describe ::ActionSubscriber::Threadpool do
   describe "ready?" do
     context "when the pool is busy" do
       it "returns false" do
-        ::ActionSubscriber::Threadpool.better_stub(:busy?).and_return true
-        ::ActionSubscriber::Threadpool.ready?.should be_false
+        allow(::ActionSubscriber::Threadpool).to receive(:busy?).and_return true
+        expect(::ActionSubscriber::Threadpool.ready?).to eq(false)
       end
     end
 
     context "when the pool is not busy" do
       it "returns true" do
-        ::ActionSubscriber::Threadpool.better_stub(:busy?).and_return false
-        ::ActionSubscriber::Threadpool.ready?.should be_true
+        allow(::ActionSubscriber::Threadpool).to receive(:busy?).and_return false
+        expect(::ActionSubscriber::Threadpool.ready?).to eq(true)
       end
     end
   end

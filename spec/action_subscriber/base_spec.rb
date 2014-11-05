@@ -11,7 +11,7 @@ describe ActionSubscriber::Base do
   describe "inherited" do
     context "when a class has inherited from action subscriber base" do
       it "adds the class to the intherited classes collection" do
-        described_class.inherited_classes.should include(TestObject)
+        expect(described_class.inherited_classes).to include(TestObject)
       end
     end
   end

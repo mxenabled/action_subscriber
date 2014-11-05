@@ -15,31 +15,31 @@ describe ActionSubscriber::Middleware::Env do
 
   subject { described_class.new(subscriber, encoded_payload, properties) }
 
-  its(:action){ should eq 'created' }
-  its(:content_type){ should eq(properties[:content_type]) }
-  its(:exchange){ should eq(properties[:exchange]) }
-  its(:message_id){ should eq(properties[:message_id]) }
-  its(:routing_key){ should eq(properties[:routing_key]) }
+  specify { expect(subject.action).to eq("created") }
+  specify { expect(subject.content_type).to eq(properties[:content_type]) }
+  specify { expect(subject.exchange).to eq(properties[:exchange]) }
+  specify { expect(subject.message_id).to eq(properties[:message_id]) }
+  specify { expect(subject.routing_key).to eq(properties[:routing_key]) }
 
   describe "#to_hash" do
     it "includes the action" do
-      subject.to_hash.should have_key(:action)
+      expect(subject.to_hash).to have_key(:action)
     end
 
     it "includes the content_type" do
-      subject.to_hash.should have_key(:content_type)
+      expect(subject.to_hash).to have_key(:content_type)
     end
 
     it "includes the exchange" do
-      subject.to_hash.should have_key(:exchange)
+      expect(subject.to_hash).to have_key(:exchange)
     end
 
     it "includes the routing_key" do
-      subject.to_hash.should have_key(:routing_key)
+      expect(subject.to_hash).to have_key(:routing_key)
     end
 
     it "includes the payload" do
-      subject.to_hash.should have_key(:payload)
+      expect(subject.to_hash).to have_key(:payload)
     end
   end
 end

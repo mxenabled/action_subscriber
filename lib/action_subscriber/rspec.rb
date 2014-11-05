@@ -71,7 +71,7 @@ RSpec.configure do |config|
     subject { described_class.new(app) }
 
     it "calls the stack" do
-      app.better_receive(:call).with(env)
+      expect(app).to receive(:call).with(env)
       subject.call(env)
     end
   end
