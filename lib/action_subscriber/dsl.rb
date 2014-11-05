@@ -1,9 +1,5 @@
 module ActionSubscriber
   module DSL
-    def acknowledge_messages!
-      @_acknowledge_messages = true
-    end
-
     def acknowledge_messages?
       !!@_acknowledge_messages
     end
@@ -21,6 +17,11 @@ module ActionSubscriber
       end
     end
     alias_method :exchange, :exchange_names
+
+    def manual_acknowledgement!
+      @_acknowledge_messages = true
+    end
+
 
     # Explicitly set the name of a queue for the given method route
     #
