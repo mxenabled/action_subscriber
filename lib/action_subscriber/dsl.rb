@@ -1,7 +1,25 @@
 module ActionSubscriber
   module DSL
+    def at_least_once!
+      @_acknowledge_messages = true
+      @_acknowledge_messages_after_processing = true
+    end
+
+    def at_most_once!
+      @_acknowledge_messages = true
+      @_acknowledge_messages_before_processing = true
+    end
+
     def acknowledge_messages?
       !!@_acknowledge_messages
+    end
+
+    def acknowledge_messages_after_processing?
+      !!@_acknowledge_messages_after_processing
+    end
+
+    def acknowledge_messages_before_processing?
+      !!@_acknowledge_messages_before_processing
     end
 
     # Explicitly set the name of the exchange
@@ -22,6 +40,9 @@ module ActionSubscriber
       @_acknowledge_messages = true
     end
 
+    def no_acknowledgement!
+      @_acknowledge_messages = false 
+    end 
 
     # Explicitly set the name of a queue for the given method route
     #
