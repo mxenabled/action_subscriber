@@ -36,5 +36,7 @@ describe "A Basic Subscriber using Push API", :integration => true do
 
     expect(subscriber::BOOKED_MESSAGES).to eq(["Ohai Booked"])
     expect(subscriber::CANCELLED_MESSAGES).to eq(["Ohai Cancelled"])
+
+    connection.close
   end
 end
