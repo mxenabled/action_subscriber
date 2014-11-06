@@ -16,8 +16,8 @@ class UserSubscriber < ActionSubscriber::Base
   # With the routing key:
   #   bob.user.created
   #
-  def created(user)
-    send_email(user)
+  def created
+    send_email(payload)
   end
 
   private

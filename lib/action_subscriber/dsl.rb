@@ -41,8 +41,8 @@ module ActionSubscriber
     end
 
     def no_acknowledgement!
-      @_acknowledge_messages = false 
-    end 
+      @_acknowledge_messages = false
+    end
 
     # Explicitly set the name of a queue for the given method route
     #
