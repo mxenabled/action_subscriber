@@ -9,4 +9,23 @@ describe ActionSubscriber::Middleware::Router do
     allow_any_instance_of(env.subscriber).to receive(env.action)
     subject.call(env)
   end
+
+  it "acknowledges messages after processing if the subscriber flag is set" do
+    allow(env.subscriber).to receive(:acknowledge_messages_after_processing?).and_return(true)
+    expect(env).to receive(:acknowledge)
+    subject.call(env)
+  end
+
+  it "acknowledges messages before processing if the subscriber flag is set" do
+    allow(env.subscriber).to receive(:acknowledge_messages_before_processing?).and_return(true)
+    expect(env).to receive(:acknowledge)
+    subject.call(env)
+  end
+
+  it "rejects a message if it had an error while processing and re-raises the error" do
+    allow_any_instance_of(env.subscriber).to receive(env.action) { raise RuntimeError.new("Database FAIL") }
+    expect(env).to_not receive(:acknowledge)
+    expect(env).to receive(:reject)
+    expect{subject.call(env)}.to raise_error(RuntimeError)
+  end
 end
