@@ -21,11 +21,4 @@ describe ActionSubscriber::Middleware::Router do
     expect(env).to receive(:acknowledge)
     subject.call(env)
   end
-
-  it "rejects a message if it had an error while processing and re-raises the error" do
-    allow_any_instance_of(env.subscriber).to receive(env.action) { raise RuntimeError.new("Database FAIL") }
-    expect(env).to_not receive(:acknowledge)
-    expect(env).to receive(:reject)
-    expect{subject.call(env)}.to raise_error(RuntimeError)
-  end
 end
