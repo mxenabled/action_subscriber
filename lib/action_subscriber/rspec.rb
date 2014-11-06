@@ -2,9 +2,20 @@ require 'rspec'
 
 module ActionSubscriber
   module RSpec
+    class FakeChannel # A class that quacks like a RabbitMQ Channel
+      def ack(delivery_tag, acknowledge_multiple)
+        true
+      end
+
+      def reject(delivery_tag, requeue_message)
+        true
+      end
+    end
+
     PROPERTIES_DEFAULTS = {
-      :acknowledger => :message_acknowledger_stub,
+      :channel => FakeChannel.new,
       :content_type => "text/plain",
+      :delivery_tag => "XYZ",
       :exchange => "events",
       :message_id => "MSG-123",
       :routing_key => "amigo.user.created",
@@ -35,8 +46,9 @@ module ActionSubscriber
     def mock_subscriber(opts = {})
       encoded_payload = opts.fetch(:encoded_payload) { double('encoded payload').as_null_object }
       subscriber_class = opts.fetch(:subscriber) { described_class }
-      properties = PROPERTIES_DEFAULTS.merge(opts.slice(:acknowledger,
+      properties = PROPERTIES_DEFAULTS.merge(opts.slice(:channel,
                                                         :content_type,
+                                                        :delivery_tag,
                                                         :exchange,
                                                         :message_id,
                                                         :routing_key))
@@ -50,15 +62,16 @@ module ActionSubscriber
   end
 end
 
-RSpec.configure do |config|
+::RSpec.configure do |config|
   config.include ActionSubscriber::RSpec
 
   shared_context 'action subscriber middleware env' do
     let(:app) { Proc.new { |inner_env| inner_env } }
     let(:env) { ActionSubscriber::Middleware::Env.new(UserSubscriber, 'encoded payload', message_properties) }
     let(:message_properties) {{
-      :acknowledger => double("Message Acknowledger"),
+      :channel => ::ActionSubscriber::RSpec::FakeChannel.new,
       :content_type => "text/plain",
+      :delivery_tag => "XYZ",
       :exchange => "events",
       :message_id => "MSG-123",
       :routing_key => "amigo.user.created",

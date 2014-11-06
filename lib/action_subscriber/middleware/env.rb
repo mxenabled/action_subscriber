@@ -3,8 +3,7 @@ module ActionSubscriber
     class Env
       attr_accessor :payload
 
-      attr_reader :acknowledger,
-                  :content_type,
+      attr_reader :content_type,
                   :encoded_payload,
                   :exchange,
                   :message_id,
@@ -15,15 +14,17 @@ module ActionSubscriber
       # @param subscriber [Class] the class that will handle this message
       # @param encoded_payload [String] the payload as it was received from RabbitMQ
       # @param properties [Hash] that must contain the following keys (as symbols)
-      #                   :acknowledger => Object (will be used to ack or reject a message when using manual acknowledgment)
-      #                   :content_type => String
-      #                   :exchange => String
-      #                   :message_id => String
-      #                   :routing_key => String
+      #         :channel => RabbitMQ channel for doing acknowledgement
+      #         :content_type => String
+      #         :delivery_tag => String (the message identifier to send back to rabbitmq for acknowledgement)
+      #         :exchange => String
+      #         :message_id => String
+      #         :routing_key => String
       
       def initialize(subscriber, encoded_payload, properties)
-        @acknowledger = properties.fetch(:acknowledger)
+        @channel = properties.fetch(:channel)
         @content_type = properties.fetch(:content_type)
+        @delivery_tag = properties.fetch(:delivery_tag)
         @encoded_payload = encoded_payload
         @exchange = properties.fetch(:exchange)
         @message_id = properties.fetch(:message_id)
@@ -31,11 +32,21 @@ module ActionSubscriber
         @subscriber = subscriber
       end
 
+      def acknowledge
+        acknowledge_multiple_messages = false
+        @channel.ack(@delivery_tag, acknowledge_multiple_messages)
+      end
+
       # Return the last element of the routing key to indicate which action
       # to route the payload to
       #
       def action
         routing_key.split('.').last.to_s
+      end
+
+      def reject
+        requeue_message = true
+        @channel.reject(@delivery_tag, requeue_message)
       end
 
       def to_hash

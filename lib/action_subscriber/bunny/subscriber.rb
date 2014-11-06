@@ -11,8 +11,9 @@ module ActionSubscriber
             next unless encoded_payload # empty queue
             ::ActiveSupport::Notifications.instrument "popped_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
-              :acknowledger => nil,
+              :channel => queue.channel,
               :content_type => properties[:content_type],
+              :delivery_tag => delivery_info.delivery_tag,
               :exchange => delivery_info.exchange,
               :message_id => nil,
               :routing_key => delivery_info.routing_key,
@@ -28,8 +29,9 @@ module ActionSubscriber
           queue.subscribe(queue_subscription_options) do |delivery_info, properties, encoded_payload|
             ::ActiveSupport::Notifications.instrument "received_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
-              :acknowledger => nil,
+              :channel => queue.channel,
               :content_type => properties.content_type,
+              :delivery_tag => delivery_info.delivery_tag,
               :exchange => delivery_info.exchange,
               :message_id => properties.message_id,
               :routing_key => delivery_info.routing_key,

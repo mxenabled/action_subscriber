@@ -1,11 +1,12 @@
 require 'spec_helper'
 
 describe ActionSubscriber::Middleware::Env do
-  let(:acknowledger) { double("acknowledger") }
+  let(:channel) { double("channel") }
   let(:encoded_payload) { 'encoded_payload' }
   let(:properties){ {
-    :acknowledger => acknowledger,
+    :channel => channel,
     :content_type => "application/json",
+    :delivery_tag => "XYZ",
     :encoded_payload => encoded_payload,
     :exchange => "events",
     :message_id => "MSG-1234",
@@ -20,6 +21,20 @@ describe ActionSubscriber::Middleware::Env do
   specify { expect(subject.exchange).to eq(properties[:exchange]) }
   specify { expect(subject.message_id).to eq(properties[:message_id]) }
   specify { expect(subject.routing_key).to eq(properties[:routing_key]) }
+
+  describe "#acknowledge" do
+    it "sends an acknowledgement to rabbitmq" do
+      expect(channel).to receive(:ack).with(properties[:delivery_tag], false)
+      subject.acknowledge
+    end
+  end
+
+  describe "#reject" do
+    it "sends an rejection to rabbitmq" do
+      expect(channel).to receive(:reject).with(properties[:delivery_tag], true)
+      subject.reject
+    end
+  end
 
   describe "#to_hash" do
     it "includes the action" do
