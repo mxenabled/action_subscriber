@@ -13,7 +13,7 @@ describe ::ActionSubscriber::DSL do
         expect(TestDSL.acknowledge_messages?).to eq(true)
       end
 
-      let(:expected_hash) {{ :ack => true }}
+      let(:expected_hash) {{ :manual_ack => true }}
 
       it "returns expected queue subscription options" do
         expect(TestDSL.queue_subscription_options).to eq expected_hash
