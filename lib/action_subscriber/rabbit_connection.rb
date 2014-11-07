@@ -1,25 +1,20 @@
+require 'thread'
+
 module ActionSubscriber
   module RabbitConnection
-    def self.bunny_connection_options
-      {
-        :heartbeat                     => ::ActionSubscriber.configuration.heartbeat,
-        :host                          => ::ActionSubscriber.configuration.host,
-        :port                          => ::ActionSubscriber.configuration.port,
-        :continuation_timeout          => ::ActionSubscriber.configuration.timeout * 1_000.0, #convert sec to ms
-        :automatically_recover         => true,
-        :network_recovery_interval     => 1,
-        :recover_from_connection_close => true,
-      }
-    end
+    CONNECTION_MUTEX = ::Mutex.new
 
     def self.connect!
-      if ::RUBY_PLATFORM == "java"
-        @connection = ::MarchHare.connect(march_hare_connection_options)
-      else
-        @connection = ::Bunny.new(bunny_connection_options)
-        @connection.start
+      CONNECTION_MUTEX.synchronize do
+        return @connection if @connection
+        if ::RUBY_PLATFORM == "java"
+          @connection = ::MarchHare.connect(connection_options)
+        else
+          @connection = ::Bunny.new(connection_options)
+          @connection.start
+        end
+        @connection
       end
-      connection
     end
 
     def self.connected?
@@ -27,17 +22,18 @@ module ActionSubscriber
     end
 
     def self.connection
-      @connection
+      connect!
     end
 
-    def self.march_hare_connection_options
+    def self.connection_options
       {
-        :heartbeat_interval        => ::ActionSubscriber.configuration.heartbeat,
-        :host                      => ::ActionSubscriber.configuration.host,
-        :port                      => ::ActionSubscriber.configuration.port,
-        :continuation_timeout      => ::ActionSubscriber.configuration.timeout * 1_000.0, #convert sec to ms
-        :automatically_recover     => true,
-        :network_recovery_interval => 1,
+        :heartbeat                     => ::ActionSubscriber.configuration.heartbeat,
+        :hosts                         => ::ActionSubscriber.configuration.hosts,
+        :port                          => ::ActionSubscriber.configuration.port,
+        :continuation_timeout          => ::ActionSubscriber.configuration.timeout * 1_000.0, #convert sec to ms
+        :automatically_recover         => true,
+        :network_recovery_interval     => 1,
+        :recover_from_connection_close => true,
       }
     end
   end
