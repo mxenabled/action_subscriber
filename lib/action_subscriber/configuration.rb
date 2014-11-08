@@ -9,6 +9,7 @@ module ActionSubscriber
                   :host,
                   :hosts,
                   :port,
+                  :prefetch,
                   :times_to_pop,
                   :threadpool_size
 
@@ -25,6 +26,7 @@ module ActionSubscriber
       self.host = 'localhost'
       self.hosts = []
       self.port = 5672
+      self.prefetch = 200
       self.times_to_pop = 8
       self.threadpool_size = 8
     end

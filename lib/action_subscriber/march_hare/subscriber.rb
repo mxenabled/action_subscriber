@@ -29,6 +29,7 @@ module ActionSubscriber
 
       def auto_subscribe!
         queues.each do |queue|
+          queue.channel.prefetch = ::ActionSubscriber.config.prefetch if acknowledge_messages?
           queue.subscribe(queue_subscription_options) do |header, encoded_payload|
             ::ActiveSupport::Notifications.instrument "received_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
