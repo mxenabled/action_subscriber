@@ -11,11 +11,6 @@ Supported Message Types
 ActionSubscriber support JSON and plain text out of the box, but you can easily
 add support for any custom message type.
 
-Installation
------------------
-
-    gem install action_subscriber
-
 Example
 -----------------
 A subscriber is set up by creating a class that inherits from ActionSubscriber::Base.
@@ -39,7 +34,7 @@ observers the ActionSubscriber DSL should make you feel right at home!
 
 First, create a subscriber the inherits from ActionSubscriber::Base
 
-Then, when your app starts us, you will need to load your subscriber code and then do
+Then, when your app starts up, you will need to load your subscriber code and then do
 
 ```ruby
 ActionSubscriber.start_subscribers
@@ -79,10 +74,29 @@ Other configuration options include :
 
 * config.allow_low_priority_methods - subscribe to queues for methods suffixed with "_low"
 * config.default_exchange - set the default exchange that your queues will use, using the default RabbitMQ exchange is not recommended
+* config.hosts - an array of hostnames in your cluster
 * config.times_to_pop - when using RabbitMQ's pull API, the number of messages we will grab each time we pool the broker
 * config.threadpool_size - set the number of threads availiable to action_subscriber
 * config.error_handler - handle error like you want to handle them!
 * config.add_decoder - add a custom decoder for a custom content type
+
+Message Acknowledgment
+----------------------
+### no_acknolwedgement!
+
+This mode is the default. Rabbit is told to not expect any message acknowledgements so messages will be lost if an error occurs.
+
+### manual_acknowledgement!
+
+This mode leaves it up to the subscriber to handle acknowledging or rejecting messages. In your subscriber you can just call <code>acknowledge</code> or <code>reject</code>.
+
+### at_most_once!
+
+Rabbit is told to expect message acknowledgements, but sending the acknowledgement is left up to ActionSubscriber. We send the acknowledgement right before calling your subscriber.
+
+### at_least_once!
+
+Rabbit is told to expect message acknowledgements, but sending the acknowledgement is left up to ActionSubscriber. We send the acknowledgement right after calling your subscriber. If an error is raised by your subscriber we reject the message instead of acknowledging it. Rejected messages go back to rabbit and will be re-delivered.
 
 Testing
 -----------------
