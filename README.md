@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/moneydesktop/action_subscriber.svg)](https://travis-ci.org/moneydesktop/action_subscriber)
 
+[![Code Climate](https://codeclimate.com/github/moneydesktop/action_subscriber/badges/gpa.svg)](https://codeclimate.com/github/moneydesktop/action_subscriber)
+
 ActionSubscriber
 =================
 ActionSubscriber is a DSL for for easily intergrating your Rails app with a RabbitMQ messaging server.
