@@ -8,6 +8,7 @@ module ActionSubscriber
       def call(env)
         @app.call(env)
       rescue => error
+        env.reject if env.subscriber.acknowledge_messages_after_processing?
         ::ActionSubscriber.configuration.error_handler.call(error, env.to_h)
       end
     end

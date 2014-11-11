@@ -11,8 +11,9 @@ module ActionSubscriber
             next unless encoded_payload
             ::ActiveSupport::Notifications.instrument "popped_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
-              :acknowledger => header,
+              :channel => queue.channel,
               :content_type => header.content_type,
+              :delivery_tag => header.delivery_tag,
               :exchange => header.exchange,
               :message_id => header.message_id,
               :routing_key => header.routing_key,
@@ -28,11 +29,13 @@ module ActionSubscriber
 
       def auto_subscribe!
         queues.each do |queue|
+          queue.channel.prefetch = ::ActionSubscriber.config.prefetch if acknowledge_messages?
           queue.subscribe(queue_subscription_options) do |header, encoded_payload|
             ::ActiveSupport::Notifications.instrument "received_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
-              :acknowledger => header,
+              :channel => queue.channel,
               :content_type => header.content_type,
+              :delivery_tag => header.delivery_tag,
               :exchange => header.exchange,
               :message_id => header.message_id,
               :routing_key => header.routing_key,

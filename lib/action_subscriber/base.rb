@@ -66,5 +66,18 @@ module ActionSubscriber
     class << self
       alias_method :subscribers, :inherited_classes
     end
+
+    ##
+    # Private Instance Methods
+    #
+    private
+
+    def acknowledge
+      env.acknowledge
+    end
+
+    def reject
+      env.reject
+    end
   end
 end
