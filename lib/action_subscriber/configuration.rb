@@ -7,6 +7,7 @@ module ActionSubscriber
                   :heartbeat,
                   :timeout,
                   :host,
+                  :hosts,
                   :port,
                   :times_to_pop,
                   :threadpool_size
@@ -20,8 +21,9 @@ module ActionSubscriber
       self.default_exchange = "events"
       self.error_handler = lambda { |error, env_hash| raise }
       self.heartbeat = 5
-      self.timeout = 30
+      self.timeout = 1
       self.host = 'localhost'
+      self.hosts = []
       self.port = 5672
       self.times_to_pop = 8
       self.threadpool_size = 8
@@ -38,6 +40,11 @@ module ActionSubscriber
       end
 
       self.decoder.merge!(decoders)
+    end
+
+    def hosts
+      return @hosts if @hosts.size > 0
+      [ host ]
     end
 
     def middleware
