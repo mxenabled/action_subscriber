@@ -8,6 +8,7 @@ end
 require "lifeguard"
 require "middleware"
 require "thread"
+require "virtus"
 
 require "action_subscriber/version"
 
@@ -16,7 +17,9 @@ require "action_subscriber/dsl"
 require "action_subscriber/configuration"
 require "action_subscriber/middleware"
 require "action_subscriber/rabbit_connection"
+require "action_subscriber/route"
 require "action_subscriber/subscribable"
+require "action_subscriber/subscription_set"
 require "action_subscriber/bunny/subscriber"
 require "action_subscriber/march_hare/subscriber"
 require "action_subscriber/threadpool"

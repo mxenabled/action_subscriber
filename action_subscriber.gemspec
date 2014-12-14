@@ -28,6 +28,7 @@ Gem::Specification.new do |spec|
   end
   spec.add_dependency 'lifeguard'
   spec.add_dependency 'middleware'
+  spec.add_dependency 'virtus', '~> 1.0'
 
   spec.add_development_dependency "activerecord", ">= 3.2"
   spec.add_development_dependency "bundler", ">= 1.6"
