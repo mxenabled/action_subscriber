@@ -12,6 +12,7 @@ require "virtus"
 
 require "action_subscriber/version"
 
+require "action_subscriber/default_router"
 require "action_subscriber/default_routing"
 require "action_subscriber/dsl"
 require "action_subscriber/configuration"
