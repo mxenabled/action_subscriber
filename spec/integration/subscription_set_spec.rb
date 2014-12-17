@@ -1,10 +1,6 @@
 require 'spec_helper'
 
-class DogSubscriber
-  def initialize(env)
-    @env = env
-  end
-
+class DogSubscriber < ::ActionSubscriber::Base
   def created
     $messages << @env.payload
   end
