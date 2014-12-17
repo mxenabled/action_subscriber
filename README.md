@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/moneydesktop/action_subscriber.svg)](https://travis-ci.org/moneydesktop/action_subscriber)
+[![Build Status](https://travis-ci.org/moneydesktop/action_subscriber.svg?branch=master)](https://travis-ci.org/moneydesktop/action_subscriber)
 
 [![Code Climate](https://codeclimate.com/github/moneydesktop/action_subscriber/badges/gpa.svg)](https://codeclimate.com/github/moneydesktop/action_subscriber)
 
