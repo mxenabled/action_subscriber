@@ -6,7 +6,6 @@ class DogSubscriber
   end
 
   def created
-    puts "created: #{@env.payload}"
     $messages << @env.payload
   end
 end
@@ -23,12 +22,8 @@ describe ActionSubscriber::SubscriptionSet, :integration => true do
   }
   let(:routes) { [route] }
 
-  subject { described_class.new(routes) }
-
-  before { $messages = Set.new }
-
   it "sets up subscriptions which can be cleanly shut down" do
-    subject.start
+    @subscription_set.start
 
     connection = ActionSubscriber::RabbitConnection.new_connection
     channel = connection.channel
@@ -36,10 +31,8 @@ describe ActionSubscriber::SubscriptionSet, :integration => true do
     exchange.publish("Dog Created", :routing_key => route.routing_key)
     exchange.publish("Another Dog Created", :routing_key => route.routing_key)
 
-    sleep 1.0
+    sleep 0.1
 
     expect($messages).to eq(Set.new(["Dog Created", "Another Dog Created"]))
-
-    subject.stop
   end
 end

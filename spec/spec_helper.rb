@@ -23,4 +23,12 @@ RSpec.configure do |config|
   config.mock_with :rspec do |mocks|
     mocks.verify_partial_doubles = true
   end
+
+  config.before(:each, :integration => true) do |example|
+    $messages = Set.new
+    @subscription_set = ActionSubscriber::SubscriptionSet.new(routes)
+  end
+  config.after(:example, :integration => true) do
+    @subscription_set.stop
+  end
 end
