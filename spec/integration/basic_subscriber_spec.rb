@@ -24,12 +24,12 @@ describe "A Basic Subscriber using Push API", :integration => true do
     @subscription_set.start
 
     connection = ActionSubscriber::RabbitConnection.new_connection
-    channel = connection.channel
+    channel = connection.create_channel
     exchange = channel.topic("events")
     exchange.publish("Ohai Booked", :routing_key => "greg.basic_push.booked")
     exchange.publish("Ohai Cancelled", :routing_key => "basic.cancelled")
-
     sleep 0.1
+    connection.close
 
     expect($messages).to eq(Set.new([
       [:booked, "Ohai Booked"],

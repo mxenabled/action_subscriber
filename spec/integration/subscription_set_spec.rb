@@ -22,12 +22,12 @@ describe ActionSubscriber::SubscriptionSet, :integration => true do
     @subscription_set.start
 
     connection = ActionSubscriber::RabbitConnection.new_connection
-    channel = connection.channel
+    channel = connection.create_channel
     exchange = channel.topic(route.exchange)
     exchange.publish("Dog Created", :routing_key => route.routing_key)
     exchange.publish("Another Dog Created", :routing_key => route.routing_key)
-
     sleep 0.1
+    connection.close
 
     expect($messages).to eq(Set.new(["Dog Created", "Another Dog Created"]))
   end
