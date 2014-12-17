@@ -7,3 +7,5 @@ rvm:
  - jruby-head
 services:
  - rabbitmq
+sudo: false
+cache: bundler
