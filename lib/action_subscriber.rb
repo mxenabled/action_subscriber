@@ -22,7 +22,6 @@ require "action_subscriber/subscribable"
 require "action_subscriber/subscriber/bunny"
 require "action_subscriber/subscriber/march_hare"
 require "action_subscriber/subscription_set"
-require "action_subscriber/threadpool"
 require "action_subscriber/base"
 
 module ActionSubscriber
