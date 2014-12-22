@@ -27,6 +27,12 @@ module ActionSubscriber
 
   private
 
+    def pool
+      @pool ||= ::Lifeguard::InfiniteThreadpool.new(
+        :pool_size => ::ActionSubscriber.config.threadpool_size
+      )
+    end
+
     def setup_channel(route)
       channel = connection.create_channel
       channel.prefetch(route.prefetch) if route.acknowledge_messages?

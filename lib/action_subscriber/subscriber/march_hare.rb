@@ -15,7 +15,7 @@ module ActionSubscriber
 
           env = Middleware::Env.new(route.subscriber, encoded_payload, properties)
 
-          Threadpool.pool.async(env) do |env|
+          pool.async(env) do |env|
             ActionSubscriber.config.middleware.call(env)
           end
         end
