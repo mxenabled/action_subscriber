@@ -1,6 +1,12 @@
 module ActionSubscriber
   module Subscriber
     module Bunny
+      def setup_channel(route)
+        channel = connection.create_channel
+        channel.prefetch(route.prefetch) if route.acknowledge_messages?
+        channel
+      end
+
       def subscribe_to(route, queue)
         options = { :manual_ack => route.acknowledge_messages? }
         queue.subscribe(options) do |delivery_info, properties, encoded_payload|

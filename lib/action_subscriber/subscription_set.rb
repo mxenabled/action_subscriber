@@ -33,12 +33,6 @@ module ActionSubscriber
       )
     end
 
-    def setup_channel(route)
-      channel = connection.create_channel
-      channel.prefetch(route.prefetch) if route.acknowledge_messages?
-      channel
-    end
-
     def setup_queue(route, channel)
       exchange = channel.topic(route.exchange)
       queue = channel.queue(route.queue)
