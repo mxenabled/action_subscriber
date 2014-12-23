@@ -22,7 +22,7 @@ module ActionSubscriber
           env = Middleware::Env.new(route.subscriber, encoded_payload, properties)
 
           pool.async(env) do |env|
-            ActionSubscriber.config.middleware.call(env)
+            route.middleware_stack.call(env)
           end
         end
       end

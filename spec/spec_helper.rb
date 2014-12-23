@@ -21,6 +21,10 @@ RSpec.configure do |config|
   config.before(:each, :integration => true) do |example|
     $messages = Set.new
     @subscription_set = ActionSubscriber::SubscriptionSet.new(routes)
+    channel = @subscription_set.connection.create_channel
+    routes.each do |route|
+      channel.queue_purge(route.queue)
+    end
   end
   config.after(:example, :integration => true) do
     @subscription_set.stop

@@ -14,17 +14,14 @@ describe ActionSubscriber::DefaultRouter do
 
       it "generates a list of routes, skips private methods" do
         routes = subject.routes_for_class(SheepSubscriber)
-        expect(routes.first).to eq(
-          ActionSubscriber::Route.new(
-            :action => :born,
-            :acknowledge_messages => false,
-            :exchange => "events",
-            :prefetch => ::ActionSubscriber.configuration.prefetch,
-            :queue => "alice.sheep.born",
-            :routing_key => "sheep.born",
-            :subscriber => SheepSubscriber,
-          )
-        )
+        expect(routes.first.action).to eq :born
+        expect(routes.first.acknowledge_messages).to eq false
+        expect(routes.first.exchange).to eq "events"
+        expect(routes.first.middleware_stack).to be_a ::Middleware::Builder
+        expect(routes.first.prefetch).to eq ::ActionSubscriber.configuration.prefetch
+        expect(routes.first.queue).to eq "alice.sheep.born"
+        expect(routes.first.routing_key).to eq "sheep.born"
+        expect(routes.first.subscriber).to eq SheepSubscriber
         expect(routes.size).to eq(1)
       end
     end
@@ -69,7 +66,9 @@ describe ActionSubscriber::DefaultRouter do
         expect(routes.first.prefetch).to eq(::ActionSubscriber.configuration.prefetch)
       end
 
-      it "adds the at_most_once middleware to its stack"
+      it "adds the at_most_once middleware to its stack" do
+        expect(routes.first.middleware_stack.delete(::ActionSubscriber::Middleware::AtMostOnce)).not_to eq nil
+      end
     end
 
     context "at_least_once!" do
@@ -89,7 +88,9 @@ describe ActionSubscriber::DefaultRouter do
         expect(routes.first.prefetch).to eq(::ActionSubscriber.configuration.prefetch)
       end
 
-      it "adds the at_least_once middleware to its stack"
+      it "adds the at_least_once middleware to its stack" do
+        expect(routes.first.middleware_stack.delete(::ActionSubscriber::Middleware::AtLeastOnce)).not_to eq nil
+      end
     end
   end
 end
