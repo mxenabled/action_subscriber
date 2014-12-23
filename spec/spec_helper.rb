@@ -23,7 +23,7 @@ RSpec.configure do |config|
     @subscription_set = ActionSubscriber::SubscriptionSet.new(routes)
     channel = @subscription_set.connection.create_channel
     routes.each do |route|
-      channel.queue_purge(route.queue)
+      channel.queue_purge(route.queue) rescue nil
     end
   end
   config.after(:example, :integration => true) do
