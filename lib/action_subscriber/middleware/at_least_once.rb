@@ -1,14 +1,16 @@
 module ActionSubscriber
   module Middleware
-    class ErrorHandler
+    class AtLeastOnce
       def initialize(app)
         @app = app
       end
 
       def call(env)
         @app.call(env)
+        env.acknowledge
       rescue => error
-        ::ActionSubscriber.configuration.error_handler.call(error, env.to_h)
+        env.reject
+        raise error
       end
     end
   end

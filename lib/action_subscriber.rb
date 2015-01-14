@@ -8,43 +8,26 @@ end
 require "lifeguard"
 require "middleware"
 require "thread"
+require "virtus"
 
 require "action_subscriber/version"
 
-require "action_subscriber/default_routing"
+require "action_subscriber/default_router"
 require "action_subscriber/dsl"
 require "action_subscriber/configuration"
 require "action_subscriber/middleware"
 require "action_subscriber/rabbit_connection"
+require "action_subscriber/route"
 require "action_subscriber/subscribable"
-require "action_subscriber/bunny/subscriber"
-require "action_subscriber/march_hare/subscriber"
-require "action_subscriber/threadpool"
+require "action_subscriber/subscriber/bunny"
+require "action_subscriber/subscriber/march_hare"
+require "action_subscriber/subscription_set"
 require "action_subscriber/base"
 
 module ActionSubscriber
   ##
   # Public Class Methods
   #
-
-  # Loop over all subscribers and pull messages if there are
-  # any waiting in the queue for us.
-  #
-  def self.auto_pop!
-    return if ::ActionSubscriber::Threadpool.busy?
-    ::ActionSubscriber::Base.inherited_classes.each do |klass|
-      klass.auto_pop!
-    end
-  end
-
-  # Loop over all subscribers and register each as
-  # a subscriber.
-  #
-  def self.auto_subscribe!
-    ::ActionSubscriber::Base.inherited_classes.each do |klass|
-      klass.auto_subscribe!
-    end
-  end
 
   def self.configuration
     @configuration ||= ::ActionSubscriber::Configuration.new
@@ -58,23 +41,13 @@ module ActionSubscriber
     ::ActionSubscriber::Base.print_subscriptions
   end
 
-  def self.setup_queues!
-    ::ActionSubscriber::Base.inherited_classes.each do |klass|
-      klass.setup_queues!
-    end
-  end
-
-  def self.start_queues
-    ::ActionSubscriber::RabbitConnection.connect!
-    setup_queues!
-    print_subscriptions
-  end
-
   def self.start_subscribers
-    ::ActionSubscriber::RabbitConnection.connect!
-    setup_queues!
-    auto_subscribe!
-    print_subscriptions
+    routes = ::ActionSubscriber::Base.inherited_classes.map do |klass|
+      ActionSubscriber::DefaultRouter.routes_for_class(klass)
+    end.flatten
+    subscription_set = ActionSubscriber::SubscriptionSet.new(routes)
+    subscription_set.start
+    subscription_set
   end
 
   ##

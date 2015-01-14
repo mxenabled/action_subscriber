@@ -7,13 +7,7 @@ module ActionSubscriber
     def self.connect!
       CONNECTION_MUTEX.synchronize do
         return @connection if @connection
-        if ::RUBY_PLATFORM == "java"
-          @connection = ::MarchHare.connect(connection_options)
-        else
-          @connection = ::Bunny.new(connection_options)
-          @connection.start
-        end
-        @connection
+        @connection = new_connection
       end
     end
 
@@ -35,6 +29,16 @@ module ActionSubscriber
         :network_recovery_interval     => 1,
         :recover_from_connection_close => true,
       }
+    end
+
+    def self.new_connection
+        if ::RUBY_PLATFORM == "java"
+          ::MarchHare.connect(connection_options)
+        else
+          connection = ::Bunny.new(connection_options)
+          connection.start
+          connection
+        end
     end
   end
 end
