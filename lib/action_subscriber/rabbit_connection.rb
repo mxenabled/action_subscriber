@@ -36,5 +36,15 @@ module ActionSubscriber
         :recover_from_connection_close => true,
       }
     end
+
+    def self.disconnect!
+      CONNECTION_MUTEX.synchronize do
+        if @connection && @connection.connected?
+          @connection.close
+        end
+
+        @connection = nil
+      end
+    end
   end
 end
