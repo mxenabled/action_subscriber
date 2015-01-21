@@ -36,12 +36,11 @@ describe "A Basic Subscriber", :integration => true do
 
   context "ActionSubscriber.auto_subscribe!" do
     it "routes messages to the right place" do
+      ::ActionSubscriber.auto_subscribe!
       channel = connection.create_channel
       exchange = channel.topic("events")
       exchange.publish("Ohai Booked", :routing_key => "greg.basic_push.booked")
       exchange.publish("Ohai Cancelled", :routing_key => "basic.cancelled")
-
-      ::ActionSubscriber.auto_subscribe!
       sleep 0.1
 
       expect($messages).to eq(Set.new(["Ohai Booked", "Ohai Cancelled"]))
