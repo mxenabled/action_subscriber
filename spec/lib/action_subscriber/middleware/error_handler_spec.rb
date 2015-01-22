@@ -1,4 +1,3 @@
-require 'spec_helper'
 require 'action_subscriber/middleware/error_handler'
 
 describe ActionSubscriber::Middleware::ErrorHandler do

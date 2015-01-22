@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 TestSubscriber = Class.new(ActionSubscriber::Base) do
   def updated
   end

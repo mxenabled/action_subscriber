@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 class TestObject < ActionSubscriber::Base
   exchange :events
 

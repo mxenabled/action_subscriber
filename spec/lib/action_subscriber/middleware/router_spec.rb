@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe ActionSubscriber::Middleware::Router do
   include_context 'action subscriber middleware env'
 

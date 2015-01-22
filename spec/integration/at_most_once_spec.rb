@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 class PokemonSubscriber < ActionSubscriber::Base
   at_most_once!
 

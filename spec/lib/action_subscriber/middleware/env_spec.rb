@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe ActionSubscriber::Middleware::Env do
   let(:channel) { double("channel") }
   let(:encoded_payload) { 'encoded_payload' }

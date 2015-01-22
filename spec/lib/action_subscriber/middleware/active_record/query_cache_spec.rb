@@ -1,4 +1,3 @@
-require 'spec_helper'
 require 'action_subscriber/middleware/active_record/query_cache'
 
 describe ActionSubscriber::Middleware::ActiveRecord::QueryCache do

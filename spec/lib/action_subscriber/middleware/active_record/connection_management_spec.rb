@@ -1,4 +1,3 @@
-require 'spec_helper'
 require 'action_subscriber/middleware/active_record/connection_management'
 
 describe ActionSubscriber::Middleware::ActiveRecord::ConnectionManagement do

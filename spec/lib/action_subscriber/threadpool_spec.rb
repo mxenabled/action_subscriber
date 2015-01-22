@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe ::ActionSubscriber::Threadpool do
   describe "busy?" do
     context "when the workers are busy" do
