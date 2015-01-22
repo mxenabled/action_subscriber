@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 class BasicPushSubscriber < ActionSubscriber::Base
   publisher :greg
 

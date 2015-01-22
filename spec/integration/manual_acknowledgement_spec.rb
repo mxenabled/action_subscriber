@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 class BaconSubscriber < ActionSubscriber::Base
   manual_acknowledgement!
 

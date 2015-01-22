@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe ::ActionSubscriber::Configuration do
   describe "default values" do
     specify { expect(subject.allow_low_priority_methods).to eq(false) }

@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 class GorbyPuffSubscriber < ActionSubscriber::Base
   at_least_once!
 

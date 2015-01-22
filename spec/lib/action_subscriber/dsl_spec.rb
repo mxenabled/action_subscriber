@@ -1,5 +1,3 @@
-require 'spec_helper'
-
 describe ::ActionSubscriber::DSL do
   let(:subscriber) { Object.new }
   before { subscriber.extend(::ActionSubscriber::DSL) }
