@@ -27,6 +27,7 @@ describe "A Basic Subscriber", :integration => true do
       exchange = channel.topic("events")
       exchange.publish("Ohai Booked", :routing_key => "greg.basic_push.booked")
       exchange.publish("Ohai Cancelled", :routing_key => "basic.cancelled")
+      sleep 0.1
 
       ::ActionSubscriber.auto_pop!
 
