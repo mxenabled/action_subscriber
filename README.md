@@ -70,19 +70,21 @@ ActionSubscriber needs to know how to connect to your rabbit server to start get
 In an initializer, you can set the host and the port like this :
 
     ActionSubscriber::Configuration.configure do |config|
-      config.host = "my rabbit host"
+      config.hosts = ["rabbit1", "rabbit2", "rabbit3"]
       config.port = 5672
     end
 
 Other configuration options include :
 
+* config.add_decoder - add a custom decoder for a custom content type
 * config.allow_low_priority_methods - subscribe to queues for methods suffixed with "_low"
 * config.default_exchange - set the default exchange that your queues will use, using the default RabbitMQ exchange is not recommended
-* config.hosts - an array of hostnames in your cluster
-* config.times_to_pop - when using RabbitMQ's pull API, the number of messages we will grab each time we pool the broker
-* config.threadpool_size - set the number of threads availiable to action_subscriber
 * config.error_handler - handle error like you want to handle them!
-* config.add_decoder - add a custom decoder for a custom content type
+* config.heartbeat - number of seconds between hearbeats (default 5) [see bunny documentation for more details](http://rubybunny.info/articles/connecting.html)
+* config.hosts - an array of hostnames in your cluster
+* config.threadpool_size - set the number of threads availiable to action_subscriber
+* config.timeout - how many seconds to allow rabbit to respond before timing out
+* config.times_to_pop - when using RabbitMQ's pull API, the number of messages we will grab each time we pool the broker
 
 Message Acknowledgment
 ----------------------
