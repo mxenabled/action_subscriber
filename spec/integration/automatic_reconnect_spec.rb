@@ -38,5 +38,6 @@ describe "Automatically reconnect on connection failure", :integration => true, 
       sleep 0.1
       break if connection.open?
     end
+    sleep 0.2
   end
 end
