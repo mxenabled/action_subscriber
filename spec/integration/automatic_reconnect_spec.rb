@@ -19,7 +19,8 @@ describe "Automatically reconnect on connection failure", :integration => true, 
     sleep 0.1
 
     close_all_connections!
-    sleep 5.0
+    sleep_until_reconnected
+
     exchange.publish("Second", :routing_key => "gus.spoke")
     sleep 0.1
 
@@ -29,6 +30,13 @@ describe "Automatically reconnect on connection failure", :integration => true, 
   def close_all_connections!
     http_client.list_connections.each do |conn_info|
       http_client.close_connection(conn_info.name)
+    end
+  end
+
+  def sleep_until_reconnected
+    100.times do
+      sleep 0.1
+      break if connection.open?
     end
   end
 end
