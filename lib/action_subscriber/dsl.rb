@@ -22,6 +22,14 @@ module ActionSubscriber
       !!@_acknowledge_messages_before_processing
     end
 
+    def around_filter(filter_method)
+      around_filters << filter_method
+    end
+
+    def around_filters
+      @_around_filters ||= []
+    end
+
     # Explicitly set the name of the exchange
     #
     def exchange_names(*names)
@@ -78,6 +86,16 @@ module ActionSubscriber
 
     def routing_key_names
       @_routing_key_names ||= {}
+    end
+
+    def run_action_with_filters(env, action)
+      subscriber_instance = self.new(env)
+      final_block = ->{ subscriber_instance.public_send(action) }
+
+      first_proc = around_filters.reverse.reduce(final_block) do |block, filter|
+        ->{ subscriber_instance.send(filter, &block) }
+      end
+      first_proc.call
     end
   end
 end
