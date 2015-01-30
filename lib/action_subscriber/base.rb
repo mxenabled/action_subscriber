@@ -76,6 +76,19 @@ module ActionSubscriber
       env.acknowledge
     end
 
+    def _at_least_once_filter
+      yield
+      acknowledge
+    rescue => error
+      reject
+      raise error
+    end
+
+    def _at_most_once_filter
+      acknowledge
+      yield
+    end
+
     def reject
       env.reject
     end

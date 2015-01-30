@@ -2,24 +2,16 @@ module ActionSubscriber
   module DSL
     def at_least_once!
       @_acknowledge_messages = true
-      @_acknowledge_messages_after_processing = true
+      around_filter :_at_least_once_filter
     end
 
     def at_most_once!
       @_acknowledge_messages = true
-      @_acknowledge_messages_before_processing = true
+      around_filter :_at_most_once_filter
     end
 
     def acknowledge_messages?
       !!@_acknowledge_messages
-    end
-
-    def acknowledge_messages_after_processing?
-      !!@_acknowledge_messages_after_processing
-    end
-
-    def acknowledge_messages_before_processing?
-      !!@_acknowledge_messages_before_processing
     end
 
     def around_filter(filter_method)

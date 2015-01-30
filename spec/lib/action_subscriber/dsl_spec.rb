@@ -13,14 +13,6 @@ describe ::ActionSubscriber::DSL do
       it "returns expected queue subscription options" do
         expect(subscriber.queue_subscription_options).to eq( :manual_ack => true )
       end
-
-      it "does not acknowledge messages after processing them" do
-        expect(subscriber.acknowledge_messages_after_processing?).to eq(false)
-      end
-
-      it "does not acknowledge messages before processing them" do
-        expect(subscriber.acknowledge_messages_before_processing?).to eq(false)
-      end
     end
 
     context "when at_most_once! is set" do
@@ -28,14 +20,6 @@ describe ::ActionSubscriber::DSL do
 
       it "acknowledges messages" do
         expect(subscriber.acknowledge_messages?).to eq(true)
-      end
-
-      it "acknowledges messages before processing them" do
-        expect(subscriber.acknowledge_messages_before_processing?).to eq(true)
-      end
-
-      it "does not acknowledge messages after processing them" do
-        expect(subscriber.acknowledge_messages_after_processing?).to eq(false)
       end
     end
 
@@ -45,14 +29,6 @@ describe ::ActionSubscriber::DSL do
       it "acknowledges messages" do
         expect(subscriber.acknowledge_messages?).to eq(true)
       end
-
-      it "does not acknowledge messages before processing them" do
-        expect(subscriber.acknowledge_messages_before_processing?).to eq(false)
-      end
-
-      it "acknowledges messages after processing them" do
-        expect(subscriber.acknowledge_messages_after_processing?).to eq(true)
-      end
     end
 
     context "when no_acknowledgement! is set" do
@@ -61,27 +37,11 @@ describe ::ActionSubscriber::DSL do
       it "does not acknowledge messages" do
         expect(subscriber.acknowledge_messages?).to eq(false)
       end
-
-      it "does not acknowledge messages after processing them" do
-        expect(subscriber.acknowledge_messages_after_processing?).to eq(false)
-      end
-
-      it "does not acknowledge messages before processing them" do
-        expect(subscriber.acknowledge_messages_before_processing?).to eq(false)
-      end
     end
 
     context "default" do
       it "does not acknowledge messages" do
         expect(subscriber.acknowledge_messages?).to eq(false)
-      end
-
-      it "does not acknowledge messages after processing them" do
-        expect(subscriber.acknowledge_messages_after_processing?).to eq(false)
-      end
-
-      it "does not acknowledge messages before processing them" do
-        expect(subscriber.acknowledge_messages_before_processing?).to eq(false)
       end
     end
   end
