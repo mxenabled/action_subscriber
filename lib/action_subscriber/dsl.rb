@@ -90,10 +90,10 @@ module ActionSubscriber
 
     def run_action_with_filters(env, action)
       subscriber_instance = self.new(env)
-      final_block = ->{ subscriber_instance.public_send(action) }
+      final_block = Proc.new { subscriber_instance.public_send(action) }
 
       first_proc = around_filters.reverse.reduce(final_block) do |block, filter|
-        ->{ subscriber_instance.send(filter, &block) }
+        Proc.new { subscriber_instance.send(filter, &block) }
       end
       first_proc.call
     end
