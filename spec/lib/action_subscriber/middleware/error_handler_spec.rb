@@ -18,17 +18,5 @@ describe ActionSubscriber::Middleware::ErrorHandler do
 
       subject.call(env)
     end
-
-    context "when the subscriber was expecting to acknowledge the message" do
-      before { allow(env.subscriber).to receive(:acknowledge_messages_after_processing?).and_return(true) }
-
-      it "calls the exception handler and rejects the message" do
-        handler = ::ActionSubscriber.configuration.error_handler
-        expect(handler).to receive(:call).with(error, env.to_h)
-        expect(env).to receive(:reject).with(no_args)
-
-        subject.call(env)
-      end
-    end
   end
 end

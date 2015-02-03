@@ -2,24 +2,24 @@ module ActionSubscriber
   module DSL
     def at_least_once!
       @_acknowledge_messages = true
-      @_acknowledge_messages_after_processing = true
+      around_filter :_at_least_once_filter
     end
 
     def at_most_once!
       @_acknowledge_messages = true
-      @_acknowledge_messages_before_processing = true
+      around_filter :_at_most_once_filter
     end
 
     def acknowledge_messages?
       !!@_acknowledge_messages
     end
 
-    def acknowledge_messages_after_processing?
-      !!@_acknowledge_messages_after_processing
+    def around_filter(filter_method)
+      around_filters << filter_method
     end
 
-    def acknowledge_messages_before_processing?
-      !!@_acknowledge_messages_before_processing
+    def around_filters
+      @_around_filters ||= []
     end
 
     # Explicitly set the name of the exchange
@@ -78,6 +78,16 @@ module ActionSubscriber
 
     def routing_key_names
       @_routing_key_names ||= {}
+    end
+
+    def run_action_with_filters(env, action)
+      subscriber_instance = self.new(env)
+      final_block = Proc.new { subscriber_instance.public_send(action) }
+
+      first_proc = around_filters.reverse.reduce(final_block) do |block, filter|
+        Proc.new { subscriber_instance.send(filter, &block) }
+      end
+      first_proc.call
     end
   end
 end
