@@ -3,6 +3,7 @@ module ActionSubscriber
     def at_least_once!
       @_acknowledge_messages = true
       around_filter :_at_least_once_filter
+      ActionSubscriber::DeadLetterExchange.setup_retries_queue
     end
 
     def at_most_once!

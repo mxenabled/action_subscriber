@@ -37,6 +37,7 @@ module ActionSubscriber
               :content_type => header.content_type,
               :delivery_tag => header.delivery_tag,
               :exchange => header.exchange,
+              :headers => header.properties,
               :message_id => header.message_id,
               :routing_key => header.routing_key,
             }

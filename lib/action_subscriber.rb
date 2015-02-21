@@ -11,6 +11,7 @@ require "thread"
 
 require "action_subscriber/version"
 
+require "action_subscriber/dead_letter_exchange"
 require "action_subscriber/default_routing"
 require "action_subscriber/dsl"
 require "action_subscriber/configuration"

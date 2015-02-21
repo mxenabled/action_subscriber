@@ -6,6 +6,7 @@ module ActionSubscriber
       attr_reader :content_type,
                   :encoded_payload,
                   :exchange,
+                  :headers,
                   :message_id,
                   :routing_key,
                   :subscriber
@@ -18,6 +19,7 @@ module ActionSubscriber
       #         :content_type => String
       #         :delivery_tag => String (the message identifier to send back to rabbitmq for acknowledgement)
       #         :exchange => String
+      #         :headers => Hash or nil
       #         :message_id => String
       #         :routing_key => String
       
@@ -27,6 +29,7 @@ module ActionSubscriber
         @delivery_tag = properties.fetch(:delivery_tag)
         @encoded_payload = encoded_payload
         @exchange = properties.fetch(:exchange)
+        @headers = properties.fetch(:headers)
         @message_id = properties.fetch(:message_id)
         @routing_key = properties.fetch(:routing_key)
         @subscriber = subscriber
