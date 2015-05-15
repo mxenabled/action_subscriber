@@ -4,6 +4,8 @@
 
 ActionSubscriber
 =================
+
+[![Join the chat at https://gitter.im/moneydesktop/action_subscriber](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/moneydesktop/action_subscriber?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ActionSubscriber is a DSL for for easily intergrating your Rails app with a RabbitMQ messaging server.
 
 Requirements
