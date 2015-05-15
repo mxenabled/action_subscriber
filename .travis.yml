@@ -6,7 +6,12 @@ rvm:
  - 2.2
  - jruby
  - jruby-head
+ - rbx-2
 services:
  - rabbitmq
 sudo: false
 cache: bundler
+matrix:
+  allow_failures:
+    - rvm: jruby-head
+    - rvm: rbx-2
