@@ -17,6 +17,7 @@ require "action_subscriber/configuration"
 require "action_subscriber/middleware"
 require "action_subscriber/rabbit_connection"
 require "action_subscriber/subscribable"
+require "action_subscriber/publishable"
 require "action_subscriber/bunny/subscriber"
 require "action_subscriber/march_hare/subscriber"
 require "action_subscriber/threadpool"
@@ -91,3 +92,4 @@ module ActionSubscriber
 end
 
 require "action_subscriber/railtie" if defined?(Rails)
+require "babou"
