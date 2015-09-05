@@ -4,7 +4,7 @@ require 'active_support'
 require 'active_support/core_ext'
 require 'thor'
 
-module Babou
+module ActionSubscriber
   class CLI < ::Thor
     class_option :app, :default => "./config/environment.rb"
     class_option :mode
@@ -79,4 +79,4 @@ trap(:USR2) {
   CONFIG
 }
 
-::Babou::CLI.start(ARGV)
+::ActionSubscriber::CLI.start(ARGV)
