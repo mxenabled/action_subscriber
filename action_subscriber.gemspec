@@ -14,7 +14,8 @@ Gem::Specification.new do |spec|
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
-  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  spec.executables   = ['action_subscriber']
+
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
@@ -28,6 +29,7 @@ Gem::Specification.new do |spec|
   end
   spec.add_dependency 'lifeguard'
   spec.add_dependency 'middleware'
+  spec.add_dependency 'thor', '> 0.17' 
 
   spec.add_development_dependency "activerecord", ">= 3.2"
   spec.add_development_dependency "bundler", ">= 1.6"
