@@ -2,26 +2,26 @@ require 'thread'
 
 module ActionSubscriber
   module RabbitConnection
-    CONNECTION_MUTEX = ::Mutex.new
+    SUBSCRIBER_CONNECTION_MUTEX = ::Mutex.new
 
-    def self.connected?
-      connection.try(:connected?)
+    def self.subscriber_connected?
+      subscriber_connection.try(:connected?)
     end
 
-    def self.connection
-      CONNECTION_MUTEX.synchronize do
-        return @connection if @connection
-        @connection = create_connection
+    def self.subscriber_connection
+      SUBSCRIBER_CONNECTION_MUTEX.synchronize do
+        return @subscriber_connection if @subscriber_connection
+        @subscriber_connection = create_connection
       end
     end
 
-    def self.disconnect!
-      CONNECTION_MUTEX.synchronize do
-        if @connection && @connection.connected?
-          @connection.close
+    def self.subscriber_disconnect!
+      SUBSCRIBER_CONNECTION_MUTEX.synchronize do
+        if @subscriber_connection && @subscriber_connection.connected?
+          @subscriber_connection.close
         end
 
-        @connection = nil
+        @subscriber_connection = nil
       end
     end
 

@@ -8,7 +8,7 @@ module ActionSubscriber
       queue_name = queue_name_for_method(method_name)
       routing_key_name = routing_key_name_for_method(method_name)
 
-      channel = ::ActionSubscriber::RabbitConnection.connection.create_channel
+      channel = connection.create_channel
       exchange = channel.topic(exchange_name)
       queue = channel.queue(queue_name)
       queue.bind(exchange, :routing_key => routing_key_name)

@@ -20,11 +20,11 @@ RSpec.configure do |config|
 
   config.before(:each, :integration => true) do
     $messages = Set.new
-    ::ActionSubscriber::RabbitConnection.connection
+    ::ActionSubscriber::RabbitConnection.subscriber_connection
     ::ActionSubscriber.setup_queues!
   end
   config.after(:each, :integration => true) do
-    ::ActionSubscriber::RabbitConnection.disconnect!
+    ::ActionSubscriber::RabbitConnection.subscriber_disconnect!
     ::ActionSubscriber::Base.inherited_classes.each do |klass|
       klass.instance_variable_set("@_queues", nil)
     end
