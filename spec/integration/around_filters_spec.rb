@@ -31,8 +31,9 @@ describe "subscriber filters", :integration => true do
     channel = connection.create_channel
     exchange = channel.topic("events")
     exchange.publish("hEY Guyz!", :routing_key => "insta.first")
-    sleep 0.1
 
-    expect($messages).to eq [:whisper_before, :yell_before, "hEY Guyz!", :yell_after, :whisper_after]
+    verify_expectation_within(1.0) do
+      expect($messages).to eq [:whisper_before, :yell_before, "hEY Guyz!", :yell_after, :whisper_after]
+    end
   end
 end

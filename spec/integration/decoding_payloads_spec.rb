@@ -18,12 +18,13 @@ describe "Payload Decoding", :integration => true do
     channel = connection.create_channel
     exchange = channel.topic("events")
     exchange.publish(json_string, :routing_key => "twitter.tweet", :content_type => "application/json")
-    sleep 0.1
 
-    expect($messages).to eq Set.new([{
-      :decoded => JSON.parse(json_string),
-      :raw => json_string,
-    }])
+    verify_expectation_within(2.0) do
+      expect($messages).to eq Set.new([{
+        :decoded => JSON.parse(json_string),
+        :raw => json_string,
+      }])
+    end
   end
 
   context "Custom Decoder" do
@@ -37,12 +38,13 @@ describe "Payload Decoding", :integration => true do
       channel = connection.create_channel
       exchange = channel.topic("events")
       exchange.publish(json_string, :routing_key => "twitter.tweet", :content_type => content_type)
-      sleep 0.1
 
-      expect($messages).to eq Set.new([{
-        :decoded => :foo,
-        :raw => json_string,
-      }])
+      verify_expectation_within(2.0) do
+        expect($messages).to eq Set.new([{
+          :decoded => :foo,
+          :raw => json_string,
+        }])
+      end
     end
   end
 end

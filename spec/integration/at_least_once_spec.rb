@@ -16,8 +16,9 @@ describe "at_least_once! mode", :integration => true do
     channel = connection.create_channel
     exchange = channel.topic("events")
     exchange.publish("GrumpFace", :routing_key => "gorby_puff.grumpy")
-    sleep 0.1
 
-    expect($messages).to eq Set.new(["GrumpFace::0","GrumpFace::1","GrumpFace::2"])
+    verify_expectation_within(1.0) do
+      expect($messages).to eq Set.new(["GrumpFace::0","GrumpFace::1","GrumpFace::2"])
+    end
   end
 end
