@@ -1,0 +1,82 @@
+#!/usr/bin/env ruby
+
+require 'active_support'
+require 'active_support/core_ext'
+require 'thor'
+
+module ActionSubscriber
+  class CLI < ::Thor
+    class_option :app, :default => "./config/environment.rb"
+    class_option :mode
+    class_option :host
+    class_option :hosts
+    class_option :pop_interval, :type => :numeric, :desc => "how long to wait between asking for messages (in milliseconds)"
+    class_option :port, :type => :numeric
+    class_option :threadpool_size, :type => :numeric
+    class_option :times_to_pop, :type => :numeric, :desc => "how many messages to get from each queue each time we ask rabbit"
+
+    desc "start", "Start the babou subscription server"
+    long_desc <<-BABOUDESC.strip_heredoc
+      Babou is a simple subscriber server to manage event subscriptions in a separate process.
+    BABOUDESC
+
+    def start
+      require options[:app]
+      require 'babou'
+
+      $0 = "babou server #{object_id}"
+      puts "Desperate for something to play with..."
+
+      ::Babou.configure_from_yaml_and_cli(options)
+      ::Babou.configure_action_subscriber
+
+      case ::Babou.config.mode
+      when /prowl/i then
+        ::Babou.prowl
+      when /pounce/i then
+        ::Babou.pounce
+      end
+    end
+  end
+
+  [:INT, :QUIT, :TERM].each do |signal|
+    trap(signal) do
+      require 'babou'
+
+      puts "Down Babou! ... down!"
+      puts "ROAAAAAARRRRRRRR!!!!!!"
+      wait_loops = 0
+      ::Babou.stop_server!
+
+      # Going to wait until the thread pool drains or we wait for 1000 seconds
+      # Only waiting for shut down in pounce mode
+      if ::Babou.pounce?
+        while ::ActionSubscriber::Threadpool.pool.busy_size > 0 && wait_loops < 1000
+          Thread.pass
+          wait_loops = wait_loops + 1
+          sleep 1
+        end
+      end
+
+      exit 0
+    end
+  end
+end
+
+trap(:TTIN) {
+  require 'babou'
+
+  ::ActionSubscriber.print_subscriptions
+}
+
+trap(:USR2) {
+  require 'babou'
+
+  puts <<-CONFIG.strip_heredoc
+  I'm Babou ... check out my stats
+    Pool Size: #{ ::ActionSubscriber.config.threadpool_size }
+    Ready Size: #{ ::ActionSubscriber::Threadpool.ready_size }
+  CONFIG
+}
+
+::ActionSubscriber::CLI.start(ARGV)
