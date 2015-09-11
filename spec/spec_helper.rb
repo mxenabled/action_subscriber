@@ -20,7 +20,7 @@ RSpec.configure do |config|
 
   config.before(:each, :integration => true) do
     $messages = Set.new
-    ::ActionSubscriber::RabbitConnection.connect!
+    ::ActionSubscriber::RabbitConnection.connection
     ::ActionSubscriber.setup_queues!
   end
   config.after(:each, :integration => true) do
