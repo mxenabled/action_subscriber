@@ -16,8 +16,9 @@ describe "at_most_once! mode", :integration => true do
     channel = connection.create_channel
     exchange = channel.topic("events")
     exchange.publish("All Pokemon have been caught", :routing_key => "pokemon.caught_em_all")
-    sleep 0.1
 
-    expect($messages.size).to eq 1
+    verify_expectation_within(1.0) do
+      expect($messages.size).to eq 1
+    end
   end
 end

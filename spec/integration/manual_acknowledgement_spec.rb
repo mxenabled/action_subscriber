@@ -20,8 +20,9 @@ describe "Manual Message Acknowledgment", :integration => true do
     channel = connection.create_channel
     exchange = channel.topic("events")
     exchange.publish("BACON!", :routing_key => "bacon.served")
-    sleep 0.1
 
-    expect($messages).to eq(Set.new(["BACON!::0", "BACON!::1", "BACON!::2"]))
+    verify_expectation_within(2.0) do
+      expect($messages).to eq(Set.new(["BACON!::0", "BACON!::1", "BACON!::2"]))
+    end
   end
 end
