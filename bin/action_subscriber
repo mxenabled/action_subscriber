@@ -22,19 +22,19 @@ module ActionSubscriber
 
     def start
       require options[:app]
-      require 'babou'
+      require 'action_subscriber/babou'
 
       $0 = "babou server #{object_id}"
       puts "Desperate for something to play with..."
 
-      ::Babou.configure_from_yaml_and_cli(options)
-      ::Babou.configure_action_subscriber
+      ::ActionSubscriber::Babou.configure_from_yaml_and_cli(options)
+      ::ActionSubscriber::Babou.configure_action_subscriber
 
-      case ::Babou.config.mode
+      case ::ActionSubscriber::Babou.config.mode
       when /prowl/i then
-        ::Babou.prowl
+        ::ActionSubscriber::Babou.prowl
       when /pounce/i then
-        ::Babou.pounce
+        ::ActionSubscriber::Babou.pounce
       end
     end
   end
@@ -64,13 +64,13 @@ module ActionSubscriber
 end
 
 trap(:TTIN) {
-  require 'babou'
+  require 'action_subscriber/babou'
 
   ::ActionSubscriber.print_subscriptions
 }
 
 trap(:USR2) {
-  require 'babou'
+  require 'action_subscriber/babou'
 
   puts <<-CONFIG.strip_heredoc
   I'm Babou ... check out my stats
