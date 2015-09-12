@@ -21,10 +21,13 @@ describe "Automatically reconnect on connection failure", :integration => true, 
     end
 
     close_all_connections!
-    verify_expectation_within(10.0) do
+    sleep 5.0
+    verify_expectation_within(5.0) do
       expect(connection).to be_open
     end
 
+    channel = connection.create_channel
+    exchange = channel.topic("events")
     exchange.publish("Second", :routing_key => "gus.spoke")
     verify_expectation_within(5.0) do
       expect($messages).to eq(Set.new(["First", "Second"]))
