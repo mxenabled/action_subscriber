@@ -21,6 +21,7 @@ module ActionSubscriber
       :heartbeat => 5,
       :host => 'localhost',
       :hosts => [],
+      :mode => 'subscribe',
       :pop_interval => 100, # in milliseconds
       :port => 5672,
       :prefetch => 200,

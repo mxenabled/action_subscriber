@@ -22,16 +22,17 @@ module ActionSubscriber
       @pounce_mode = true
       reload_active_record
       load_subscribers unless subscribers_loaded?
+      sleep_time = ::ActionSubscriber.configuration.pop_interval.to_i / 1000.0
 
       ::ActionSubscriber.start_queues
-      puts "\nBabou is about to pounce on a rabbit!\n"
+      puts "\nAction Subscriber is popping messages every #{sleep_time} seconds.\n"
 
       # How often do we want the timer checking for new pops
       # since we included an eager popper we decreased the
       # default check interval to 100ms
       while true
         ::ActionSubscriber.auto_pop! unless shutting_down?
-        sleep ::Babou.config.pop_interval.to_i / 1000.0
+        sleep sleep_time 
         break if shutting_down?
       end
     end
@@ -46,7 +47,7 @@ module ActionSubscriber
       load_subscribers unless subscribers_loaded?
 
       ::ActionSubscriber.start_subscribers
-      puts "\nBabou is prowling for rabbits!\n"
+      puts "\nAction Subscriber connected\n"
 
       while true
         sleep 1.0 #just hang around waiting for messages
