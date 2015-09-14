@@ -30,6 +30,28 @@ module ActionSubscriber
       :times_to_pop => 8
     }
 
+    ##
+    # Class Methods
+    #
+    def self.configure_from_yaml_and_cli(cli_options = {})
+      env = ENV["RAILS_ENV"] || ENV["RACK_ENV"] || ENV["APP_ENV"] || "development"
+
+      yaml_config = {}
+      absolute_config_path = ::File.expand_path(::File.join("config", "action_subscriber.yml"))
+      if ::File.exists?(absolute_config_path)
+        yaml_config = ::YAML.load_file(babou_absolute_config_path, :safe => true)[env]
+      end
+
+      ::ActionSubscriber::Configuration::DEFAULTS.each_pair do |key, value|
+        setting = cli_options[key] || yaml_config[key.to_s]
+        ::ActionSubscriber.config.__send__("#{key}=", setting) if setting
+      end
+    end
+
+    ##
+    # Instance Methods
+    #
+
     def initialize
       self.decoder = {
         'application/json' => lambda { |payload| JSON.parse(payload) },

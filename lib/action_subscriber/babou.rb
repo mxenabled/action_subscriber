@@ -3,20 +3,6 @@ module ActionSubscriber
     ##
     # Class Methods
     #
-    def self.configure_from_yaml_and_cli(cli_options = {})
-      env = ENV["RAILS_ENV"] || ENV["RACK_ENV"] || ENV["APP_ENV"] || "development"
-
-      yaml_config = {}
-      babou_absolute_config_path = ::File.expand_path(::File.join("config", "babou.yml"))
-      if ::File.exists?(babou_absolute_config_path)
-        yaml_config = ::YAML.load_file(babou_absolute_config_path, :safe => true)[env]
-      end
-
-      ::ActionSubscriber::Configuration::DEFAULTS.each_pair do |key, value|
-        setting = cli_options[key] || yaml_config[key.to_s]
-        ::ActionSubscriber.config.__send__("#{key}=", setting) if setting
-      end
-    end
 
     def self.auto_pop!
       @pounce_mode = true

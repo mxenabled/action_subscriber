@@ -27,7 +27,8 @@ module ActionSubscriber
       $0 = "babou server #{object_id}"
       puts "Desperate for something to play with..."
 
-      ::ActionSubscriber::Babou.configure_from_yaml_and_cli(options)
+      ::ActionSubscriber::Configuration.configure_from_yaml_and_cli(options)
+
       case ::ActionSubscriber.configuration.mode
       when /pop/i then
         ::ActionSubscriber::Babou.auto_pop!
