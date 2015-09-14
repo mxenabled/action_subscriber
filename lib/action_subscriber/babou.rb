@@ -3,20 +3,6 @@ module ActionSubscriber
     ##
     # Class Methods
     #
-    def self.configure_action_subscriber
-      ::ActionSubscriber.configure do |config|
-        config.hosts = ::ActionSubscriber::Babou.config.hosts
-        config.port = ::ActionSubscriber::Babou.config.port.to_i
-        config.allow_low_priority_methods = ENV.key?("SUBSCRIBER_LOW")
-        config.threadpool_size = ::ActionSubscriber::Babou.config.threadpool_size.to_i
-        config.times_to_pop = ::ActionSubscriber::Babou.config.times_to_pop.to_i
-      end
-    end
-
-    def self.configure
-      yield(configuration) if block_given?
-    end
-
     def self.configure_from_yaml_and_cli(cli_options = {})
       env = ENV["RAILS_ENV"] || ENV["RACK_ENV"] || ENV["APP_ENV"] || "development"
 
@@ -26,20 +12,13 @@ module ActionSubscriber
         yaml_config = ::YAML.load_file(babou_absolute_config_path, :safe => true)[env]
       end
 
-      ::ActionSubscriber::Babou::Configuration::DEFAULTS.each_pair do |key, value|
+      ::ActionSubscriber::Configuration::DEFAULTS.each_pair do |key, value|
         setting = cli_options[key] || yaml_config[key.to_s]
-        self.config.__send__("#{key}=", setting) if setting
+        ::ActionSubscriber.config.__send__("#{key}=", setting) if setting
       end
     end
 
-    def self.configuration
-      @configuration ||= ::ActionSubscriber::Babou::Configuration.new
-    end
-    class << self
-      alias_method :config, :configuration
-    end
-
-    def self.pounce
+    def self.auto_pop!
       @pounce_mode = true
       reload_active_record
       load_subscribers unless subscribers_loaded?
@@ -61,7 +40,7 @@ module ActionSubscriber
       !!@pounce_mode
     end
 
-    def self.prowl
+    def self.start_subscribers
       @prowl_mode = true
       reload_active_record
       load_subscribers unless subscribers_loaded?
