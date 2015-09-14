@@ -25,11 +25,11 @@ describe "A Basic Subscriber", :integration => true do
       exchange = channel.topic("events")
       exchange.publish("Ohai Booked", :routing_key => "greg.basic_push.booked")
       exchange.publish("Ohai Cancelled", :routing_key => "basic.cancelled")
-      sleep 0.1
 
-      ::ActionSubscriber.auto_pop!
-
-      expect($messages).to eq(Set.new(["Ohai Booked", "Ohai Cancelled"]))
+      verify_expectation_within(2.0) do
+        ::ActionSubscriber.auto_pop!
+        expect($messages).to eq(Set.new(["Ohai Booked", "Ohai Cancelled"]))
+      end
     end
   end
 
@@ -40,9 +40,10 @@ describe "A Basic Subscriber", :integration => true do
       exchange = channel.topic("events")
       exchange.publish("Ohai Booked", :routing_key => "greg.basic_push.booked")
       exchange.publish("Ohai Cancelled", :routing_key => "basic.cancelled")
-      sleep 0.1
 
-      expect($messages).to eq(Set.new(["Ohai Booked", "Ohai Cancelled"]))
+      verify_expectation_within(2.0) do
+        expect($messages).to eq(Set.new(["Ohai Booked", "Ohai Cancelled"]))
+      end
     end
   end
 end
