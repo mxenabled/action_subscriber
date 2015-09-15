@@ -65,13 +65,13 @@ module ActionSubscriber
   end
 
   def self.start_queues
-    ::ActionSubscriber::RabbitConnection.connect!
+    ::ActionSubscriber::RabbitConnection.subscriber_connection
     setup_queues!
     print_subscriptions
   end
 
   def self.start_subscribers
-    ::ActionSubscriber::RabbitConnection.connect!
+    ::ActionSubscriber::RabbitConnection.subscriber_connection
     setup_queues!
     auto_subscribe!
     print_subscriptions
