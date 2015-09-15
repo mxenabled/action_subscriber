@@ -5,7 +5,7 @@ module ActionSubscriber
     #
 
     def self.auto_pop!
-      @pounce_mode = true
+      @pop_mode = true
       reload_active_record
       load_subscribers unless subscribers_loaded?
       sleep_time = ::ActionSubscriber.configuration.pop_interval.to_i / 1000.0
@@ -23,8 +23,8 @@ module ActionSubscriber
       end
     end
 
-    def self.pounce?
-      !!@pounce_mode
+    def self.pop?
+      !!@pop_mode
     end
 
     def self.start_subscribers

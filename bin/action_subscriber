@@ -15,19 +15,19 @@ module ActionSubscriber
     class_option :threadpool_size, :type => :numeric
     class_option :times_to_pop, :type => :numeric, :desc => "how many messages to get from each queue each time we ask rabbit"
 
-    desc "start", "Start the babou subscription server"
+    desc "start", "Start the action subscriber subscription server"
     long_desc <<-BABOUDESC.strip_heredoc
-      Babou is a simple subscriber server to manage event subscriptions in a separate process.
+      Action Subscriber contains a simple subscriber server to manage event subscriptions in a separate process.
     BABOUDESC
 
     def start
       require options[:app]
-      require 'action_subscriber/babou'
 
-      $0 = "babou server #{object_id}"
-      puts "Desperate for something to play with..."
+      $0 = "Action Subscriber server #{object_id}"
+      puts "Loading configuration..."
 
       ::ActionSubscriber::Configuration.configure_from_yaml_and_cli(options)
+      puts "Starting server..."
 
       case ::ActionSubscriber.configuration.mode
       when /pop/i then
@@ -40,16 +40,13 @@ module ActionSubscriber
 
   [:INT, :QUIT, :TERM].each do |signal|
     trap(signal) do
-      require 'babou'
-
-      puts "Down Babou! ... down!"
-      puts "ROAAAAAARRRRRRRR!!!!!!"
+      puts "Stopping server..."
       wait_loops = 0
-      ::Babou.stop_server!
+      ::ActionSubscriber::Babou.stop_server!
 
       # Going to wait until the thread pool drains or we wait for 1000 seconds
-      # Only waiting for shut down in pounce mode
-      if ::Babou.pounce?
+      # Only waiting for shut down in pop mode
+      if ::ActionSubscriber::Babou.pop?
         while ::ActionSubscriber::Threadpool.pool.busy_size > 0 && wait_loops < 1000
           Thread.pass
           wait_loops = wait_loops + 1
@@ -63,16 +60,12 @@ module ActionSubscriber
 end
 
 trap(:TTIN) {
-  require 'action_subscriber/babou'
-
   ::ActionSubscriber.print_subscriptions
 }
 
 trap(:USR2) {
-  require 'action_subscriber/babou'
-
   puts <<-CONFIG.strip_heredoc
-  I'm Babou ... check out my stats
+  Action Subscriber Stats
     Pool Size: #{ ::ActionSubscriber.config.threadpool_size }
     Ready Size: #{ ::ActionSubscriber::Threadpool.ready_size }
   CONFIG
