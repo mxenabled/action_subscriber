@@ -21,10 +21,8 @@ describe "A Basic Subscriber", :integration => true do
 
   context "ActionSubscriber.auto_pop!" do
     it "routes messages to the right place" do
-      channel = connection.create_channel
-      exchange = channel.topic("events")
-      exchange.publish("Ohai Booked", :routing_key => "greg.basic_push.booked")
-      exchange.publish("Ohai Cancelled", :routing_key => "basic.cancelled")
+      ::ActionSubscriber::Publisher.publish("greg.basic_push.booked", "Ohai Booked", "events")
+      ::ActionSubscriber::Publisher.publish("basic.cancelled", "Ohai Cancelled", "events")
 
       verify_expectation_within(2.0) do
         ::ActionSubscriber.auto_pop!
