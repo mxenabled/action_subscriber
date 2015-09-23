@@ -11,11 +11,12 @@ module ActionSubscriber
                   :pop_interval,
                   :port,
                   :prefetch,
+                  :publisher_confirms,
                   :threadpool_size,
                   :timeout,
                   :times_to_pop
 
-    DEFAULTS = { 
+    DEFAULTS = {
       :allow_low_priority_methods => false,
       :default_exchange => 'events',
       :heartbeat => 5,
@@ -25,6 +26,7 @@ module ActionSubscriber
       :pop_interval => 100, # in milliseconds
       :port => 5672,
       :prefetch => 200,
+      :publisher_confirms => false,
       :threadpool_size => 8,
       :timeout => 1,
       :times_to_pop => 8
@@ -51,7 +53,6 @@ module ActionSubscriber
     ##
     # Instance Methods
     #
-
     def initialize
       self.decoder = {
         'application/json' => lambda { |payload| JSON.parse(payload) },
