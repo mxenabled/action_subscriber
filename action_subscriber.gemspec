@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email                 = ["brianastien@gmail.com","liveh2o@gmail.com","brandonsdewitt@gmail.com","quixoten@gmail.com","michael@riesd.com"]
   spec.description           = %q{ActionSubscriber is a DSL that allows a rails app to consume messages from a RabbitMQ broker.}
   spec.summary               = %q{ActionSubscriber is a DSL that allows a rails app to consume messages from a RabbitMQ broker.}
-  spec.homepage              = "https://github.com/moneydesktop/action_subscriber"
+  spec.homepage              = "https://github.com/mxenabled/action_subscriber"
   spec.license               = "MIT"
 
   spec.files                 = `git ls-files`.split($/)

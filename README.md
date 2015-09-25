@@ -1,7 +1,7 @@
-[![Build Status](https://travis-ci.org/moneydesktop/action_subscriber.svg?branch=master)](https://travis-ci.org/moneydesktop/action_subscriber)
-[![Code Climate](https://codeclimate.com/github/moneydesktop/action_subscriber/badges/gpa.svg)](https://codeclimate.com/github/moneydesktop/action_subscriber)
-[![Dependency Status](https://gemnasium.com/moneydesktop/action_subscriber.svg)](https://gemnasium.com/moneydesktop/action_subscriber)
-[![Join the chat at https://gitter.im/moneydesktop/action_subscriber](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/moneydesktop/action_subscriber?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/mxenabled/action_subscriber.svg?branch=master)](https://travis-ci.org/mxenabled/action_subscriber)
+[![Code Climate](https://codeclimate.com/github/mxenabled/action_subscriber/badges/gpa.svg)](https://codeclimate.com/github/mxenabled/action_subscriber)
+[![Dependency Status](https://gemnasium.com/mxenabled/action_subscriber.svg)](https://gemnasium.com/mxenabled/action_subscriber)
+[![Join the chat at https://gitter.im/mxenabled/action_subscriber](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mxenabled/action_subscriber?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ActionSubscriber
 =================
@@ -9,7 +9,9 @@ ActionSubscriber is a DSL for for easily intergrating your Rails app with a Rabb
 
 Requirements
 -----------------
-I test on Ruby 2.1.1 and Jruby 1.7.x.  Ruby 1.8 is not supported.
+I test on Ruby 2.2.1 and Jruby 9.x.  MRI 1.9 and jRuby 1.7 are still supported.
+
+If you want to use MRI 1.9 you will need to lock down the `amq-protocol` and `bunny` gems to `< 2.0` since they both require ruby 2.0+.
 
 Supported Message Types
 -----------------
