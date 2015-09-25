@@ -5,30 +5,64 @@ module ActionSubscriber
                   :default_exchange,
                   :error_handler,
                   :heartbeat,
-                  :timeout,
                   :host,
                   :hosts,
+                  :mode,
+                  :pop_interval,
                   :port,
                   :prefetch,
-                  :times_to_pop,
-                  :threadpool_size
+                  :threadpool_size,
+                  :timeout,
+                  :times_to_pop
+
+    DEFAULTS = { 
+      :allow_low_priority_methods => false,
+      :default_exchange => 'events',
+      :heartbeat => 5,
+      :host => 'localhost',
+      :hosts => [],
+      :mode => 'subscribe',
+      :pop_interval => 100, # in milliseconds
+      :port => 5672,
+      :prefetch => 200,
+      :threadpool_size => 8,
+      :timeout => 1,
+      :times_to_pop => 8
+    }
+
+    ##
+    # Class Methods
+    #
+    def self.configure_from_yaml_and_cli(cli_options = {})
+      env = ENV["RAILS_ENV"] || ENV["RACK_ENV"] || ENV["APP_ENV"] || "development"
+
+      yaml_config = {}
+      absolute_config_path = ::File.expand_path(::File.join("config", "action_subscriber.yml"))
+      if ::File.exists?(absolute_config_path)
+        yaml_config = ::YAML.load_file(absolute_config_path, :safe => true)[env]
+      end
+
+      ::ActionSubscriber::Configuration::DEFAULTS.each_pair do |key, value|
+        setting = cli_options[key] || yaml_config[key.to_s]
+        ::ActionSubscriber.config.__send__("#{key}=", setting) if setting
+      end
+    end
+
+    ##
+    # Instance Methods
+    #
 
     def initialize
-      self.allow_low_priority_methods = false
       self.decoder = {
         'application/json' => lambda { |payload| JSON.parse(payload) },
         'text/plain' => lambda { |payload| payload.dup }
       }
-      self.default_exchange = "events"
+
       self.error_handler = lambda { |error, env_hash| raise }
-      self.heartbeat = 5
-      self.timeout = 1
-      self.host = 'localhost'
-      self.hosts = []
-      self.port = 5672
-      self.prefetch = 200
-      self.times_to_pop = 8
-      self.threadpool_size = 8
+
+      DEFAULTS.each_pair do |key, value|
+        self.__send__("#{key}=", value)
+      end
     end
 
     ##

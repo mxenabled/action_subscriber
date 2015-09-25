@@ -19,6 +19,7 @@ require "action_subscriber/rabbit_connection"
 require "action_subscriber/subscribable"
 require "action_subscriber/bunny/subscriber"
 require "action_subscriber/march_hare/subscriber"
+require "action_subscriber/babou"
 require "action_subscriber/threadpool"
 require "action_subscriber/base"
 
