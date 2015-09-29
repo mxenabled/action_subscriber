@@ -20,6 +20,7 @@ require "action_subscriber/subscribable"
 require "action_subscriber/bunny/subscriber"
 require "action_subscriber/march_hare/subscriber"
 require "action_subscriber/babou"
+require "action_subscriber/publisher"
 require "action_subscriber/threadpool"
 require "action_subscriber/base"
 
@@ -92,3 +93,7 @@ module ActionSubscriber
 end
 
 require "action_subscriber/railtie" if defined?(Rails)
+
+at_exit do
+  ::ActionSubscriber::RabbitConnection.publisher_disconnect!
+end
