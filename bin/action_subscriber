@@ -1,11 +1,11 @@
 #!/usr/bin/env ruby
 
-require 'active_support'
-require 'active_support/core_ext'
 require 'thor'
+require 'action_subscriber'
 
 module ActionSubscriber
   class CLI < ::Thor
+    class_option :allow_low_priority_methods, :type => :boolean, :desc => "subscribe to low priority queues in addition to the normal queues", :default => false
     class_option :app, :default => "./config/environment.rb"
     class_option :mode
     class_option :host
