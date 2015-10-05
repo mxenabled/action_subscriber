@@ -1,7 +1,8 @@
 #!/usr/bin/env ruby
 
+require 'active_support'
+require 'active_support/core_ext'
 require 'thor'
-require 'action_subscriber'
 
 module ActionSubscriber
   class CLI < ::Thor
