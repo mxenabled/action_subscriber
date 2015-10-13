@@ -74,17 +74,37 @@ module ActionSubscriber
       end
     end
 
-    def self.stop_server!
+    def self.shutting_down?
+      !!@shutting_down
+    end
+
+    def self.stop_receving_messages!
       @shutting_down = true
       ::Thread.new do
         ::ActionSubscriber::Base.inherited_classes.each do |subscriber|
           subscriber.cancel_consumers!
+          puts "finished cancelling consumers"
         end
       end.join
     end
 
-    def self.shutting_down?
-      !!@shutting_down
+    def self.stop_server!
+      puts "Stopping server..."
+      wait_loops = 0
+      ::ActionSubscriber::Babou.stop_receving_messages!
+
+      # Going to wait until the thread pool drains or we wait for 1000 seconds
+      # Only waiting for shut down in pop mode
+      while ::ActionSubscriber::Threadpool.pool.busy_size > 0 && wait_loops < 1000
+        puts "waiting for threadpool to empty (#{::ActionSubscriber::Threadpool.pool.busy_size})"
+        Thread.pass
+        wait_loops = wait_loops + 1
+        puts "incremented wait_loops"
+        sleep 1
+        puts "done sleeping, let's check again"
+      end
+
+      puts "threadpool empty. Shutting down"
     end
 
     def self.subscribers_loaded?
