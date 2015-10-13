@@ -47,12 +47,10 @@ module ActionSubscriber
 
       # Going to wait until the thread pool drains or we wait for 1000 seconds
       # Only waiting for shut down in pop mode
-      if ::ActionSubscriber::Babou.pop?
-        while ::ActionSubscriber::Threadpool.pool.busy_size > 0 && wait_loops < 1000
-          Thread.pass
-          wait_loops = wait_loops + 1
-          sleep 1
-        end
+      while ::ActionSubscriber::Threadpool.pool.busy_size > 0 && wait_loops < 1000
+        Thread.pass
+        wait_loops = wait_loops + 1
+        sleep 1
       end
 
       exit 0

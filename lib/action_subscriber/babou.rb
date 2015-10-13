@@ -18,7 +18,7 @@ module ActionSubscriber
       # default check interval to 100ms
       while true
         ::ActionSubscriber.auto_pop! unless shutting_down?
-        sleep sleep_time 
+        sleep sleep_time
         break if shutting_down?
       end
     end
@@ -76,6 +76,11 @@ module ActionSubscriber
 
     def self.stop_server!
       @shutting_down = true
+      ::Thread.new do
+        ::ActionSubscriber::Base.inherited_classes.each do |subscriber|
+          subscriber.cancel_consumers!
+        end
+      end.join
     end
 
     def self.shutting_down?
