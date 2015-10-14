@@ -41,14 +41,9 @@ module ActionSubscriber
   end
 
   if ::RUBY_PLATFORM == "java"
-    require "java"
-    class ShutdownHook
-      include java.lang.Runnable
-      def run
-        ::ActionSubscriber::Babou.stop_server!
-      end
+    at_exit do
+      ::ActionSubscriber::Babou.stop_server!
     end
-    java.lang.Runtime.getRuntime.addShutdownHook(java.lang.Thread.new(ShutdownHook.new))
   else
     [:INT, :QUIT, :TERM].each do |signal|
       trap(signal) do

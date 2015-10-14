@@ -99,9 +99,7 @@ module ActionSubscriber
         puts "waiting for threadpool to empty (#{::ActionSubscriber::Threadpool.pool.busy_size})"
         Thread.pass
         wait_loops = wait_loops + 1
-        puts "incremented wait_loops"
         sleep 1
-        puts "done sleeping, let's check again"
       end
 
       puts "threadpool empty. Shutting down"
