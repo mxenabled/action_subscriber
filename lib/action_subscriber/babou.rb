@@ -94,7 +94,6 @@ module ActionSubscriber
       ::ActionSubscriber::Babou.stop_receving_messages!
 
       # Going to wait until the thread pool drains or we wait for 1000 seconds
-      # Only waiting for shut down in pop mode
       while ::ActionSubscriber::Threadpool.pool.busy_size > 0 && wait_loops < 1000
         puts "waiting for threadpool to empty (#{::ActionSubscriber::Threadpool.pool.busy_size})"
         Thread.pass
