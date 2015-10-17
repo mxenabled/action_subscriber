@@ -1,9 +1,7 @@
 module ActionSubscriber
   module MessageRetry
     def self.redeliver_message_with_backoff(env)
-      puts "going to re-deliver #{env.payload}"
       ttl = calculate_ttl(env)
-      puts "ttl = #{ttl}"
       return unless ttl
       with_exchange(env, ttl) do |exchange|
         exchange.publish(env.encoded_payload,
@@ -12,7 +10,6 @@ module ActionSubscriber
           :expiration => ttl
         )
       end
-      puts "DONE!"
     end
 
     # Private Implementation
