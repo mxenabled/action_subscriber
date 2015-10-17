@@ -17,6 +17,7 @@ module ActionSubscriber
       :content_type => "text/plain",
       :delivery_tag => "XYZ",
       :exchange => "events",
+      :headers => {},
       :message_id => "MSG-123",
       :routing_key => "amigo.user.created",
     }.freeze
@@ -73,6 +74,7 @@ end
       :content_type => "text/plain",
       :delivery_tag => "XYZ",
       :exchange => "events",
+      :headers => {},
       :message_id => "MSG-123",
       :routing_key => "amigo.user.created",
     }}

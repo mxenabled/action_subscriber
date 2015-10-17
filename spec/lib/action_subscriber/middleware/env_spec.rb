@@ -7,6 +7,7 @@ describe ActionSubscriber::Middleware::Env do
     :delivery_tag => "XYZ",
     :encoded_payload => encoded_payload,
     :exchange => "events",
+    :headers => {},
     :message_id => "MSG-1234",
     :routing_key => "amigo.user.created",
   } }

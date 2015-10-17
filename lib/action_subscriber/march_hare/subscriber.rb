@@ -20,6 +20,7 @@ module ActionSubscriber
               :content_type => header.content_type,
               :delivery_tag => header.delivery_tag,
               :exchange => header.exchange,
+              :headers => header.headers,
               :message_id => header.message_id,
               :routing_key => header.routing_key,
             }
@@ -42,6 +43,7 @@ module ActionSubscriber
               :content_type => header.content_type,
               :delivery_tag => header.delivery_tag,
               :exchange => header.exchange,
+              :headers => header.headers,
               :message_id => header.message_id,
               :routing_key => header.routing_key,
             }
