@@ -80,7 +80,8 @@ module ActionSubscriber
       yield
       acknowledge
     rescue => error
-      reject
+      ::ActionSubscriber::MessageRetry.redeliver_message_with_backoff(env)
+      acknowledge
       raise error
     end
 
