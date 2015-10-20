@@ -21,13 +21,14 @@ module ActionSubscriber
     end
 
     def self.with_exchange(env, ttl)
-      retry_name = "#{env.exchange}_retry_#{ttl}"
+      exchange_retry_name = "#{env.exchange}_retry_#{ttl}"
+      queue_retry_name = "#{env.queue}_retry_#{ttl}"
       channel = RabbitConnection.subscriber_connection.create_channel
       begin
         channel.confirm_select
-        exchange = channel.topic(retry_name)
-        queue = channel.queue(retry_name, :arguments => {"x-dead-letter-exchange" => env.exchange})
-        queue.bind(exchange, :routing_key => "#")
+        exchange = channel.topic(exchange_retry_name)
+        queue = channel.queue(queue_retry_name, :arguments => {"x-dead-letter-exchange" => env.exchange})
+        queue.bind(exchange, :routing_key => env.routing_key)
         yield(exchange)
         channel.wait_for_confirms
       ensure
