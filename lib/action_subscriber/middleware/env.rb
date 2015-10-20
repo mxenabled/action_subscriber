@@ -9,6 +9,7 @@ module ActionSubscriber
                   :headers,
                   :message_id,
                   :routing_key,
+                  :queue,
                   :subscriber
 
       ##
@@ -30,6 +31,7 @@ module ActionSubscriber
         @exchange = properties.fetch(:exchange)
         @headers = properties.fetch(:headers) || {}
         @message_id = properties.fetch(:message_id)
+        @queue = properties.fetch(:queue)
         @routing_key = properties.fetch(:routing_key)
         @subscriber = subscriber
       end

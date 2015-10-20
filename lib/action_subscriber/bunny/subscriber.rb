@@ -27,6 +27,7 @@ module ActionSubscriber
               :headers => properties.headers,
               :message_id => nil,
               :routing_key => delivery_info.routing_key,
+              :queue => queue.name,
             }
             env = ::ActionSubscriber::Middleware::Env.new(self, encoded_payload, properties)
             enqueue_env(env)
@@ -49,6 +50,7 @@ module ActionSubscriber
               :headers => properties.headers,
               :message_id => properties.message_id,
               :routing_key => delivery_info.routing_key,
+              :queue => queue.name,
             }
             env = ::ActionSubscriber::Middleware::Env.new(self, encoded_payload, properties)
             enqueue_env(env)

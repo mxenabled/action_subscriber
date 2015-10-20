@@ -23,6 +23,7 @@ module ActionSubscriber
               :headers => _normalized_headers(metadata),
               :message_id => metadata.message_id,
               :routing_key => metadata.routing_key,
+              :queue => queue.name,
             }
             env = ::ActionSubscriber::Middleware::Env.new(self, encoded_payload, properties)
             enqueue_env(env)
@@ -46,6 +47,7 @@ module ActionSubscriber
               :headers => _normalized_headers(metadata),
               :message_id => metadata.message_id,
               :routing_key => metadata.routing_key,
+              :queue => queue.name,
             }
             env = ::ActionSubscriber::Middleware::Env.new(self, encoded_payload, properties)
             enqueue_env(env)
