@@ -15,7 +15,7 @@ module ActionSubscriber
     # Private Implementation
     def self.calculate_ttl(env)
       death = env.headers.fetch("x-death", [{"original-expiration" => "20"}]).first
-      next_ttl = death["original-expiration"].to_s.to_i * 5
+      next_ttl = death["original-expiration"].to_i * 5
       return false if next_ttl > 86_400_000
       next_ttl
     end

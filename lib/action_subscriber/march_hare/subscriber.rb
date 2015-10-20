@@ -12,17 +12,17 @@ module ActionSubscriber
         times_to_pop = [::ActionSubscriber::Threadpool.ready_size, ::ActionSubscriber.config.times_to_pop].min
         times_to_pop.times do
           queues.each do |queue|
-            header, encoded_payload = queue.pop(queue_subscription_options)
+            metadata, encoded_payload = queue.pop(queue_subscription_options)
             next unless encoded_payload
             ::ActiveSupport::Notifications.instrument "popped_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
               :channel => queue.channel,
-              :content_type => header.content_type,
-              :delivery_tag => header.delivery_tag,
-              :exchange => header.exchange,
-              :headers => header.headers,
-              :message_id => header.message_id,
-              :routing_key => header.routing_key,
+              :content_type => metadata.content_type,
+              :delivery_tag => metadata.delivery_tag,
+              :exchange => metadata.exchange,
+              :headers => _normalized_headers(metadata),
+              :message_id => metadata.message_id,
+              :routing_key => metadata.routing_key,
             }
             env = ::ActionSubscriber::Middleware::Env.new(self, encoded_payload, properties)
             enqueue_env(env)
@@ -36,16 +36,16 @@ module ActionSubscriber
       def auto_subscribe!
         queues.each do |queue|
           queue.channel.prefetch = ::ActionSubscriber.config.prefetch if acknowledge_messages?
-          consumer = queue.subscribe(queue_subscription_options) do |header, encoded_payload|
+          consumer = queue.subscribe(queue_subscription_options) do |metadata, encoded_payload|
             ::ActiveSupport::Notifications.instrument "received_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
               :channel => queue.channel,
-              :content_type => header.content_type,
-              :delivery_tag => header.delivery_tag,
-              :exchange => header.exchange,
-              :headers => header.headers,
-              :message_id => header.message_id,
-              :routing_key => header.routing_key,
+              :content_type => metadata.content_type,
+              :delivery_tag => metadata.delivery_tag,
+              :exchange => metadata.exchange,
+              :headers => _normalized_headers(metadata),
+              :message_id => metadata.message_id,
+              :routing_key => metadata.routing_key,
             }
             env = ::ActionSubscriber::Middleware::Env.new(self, encoded_payload, properties)
             enqueue_env(env)
@@ -66,6 +66,13 @@ module ActionSubscriber
           ::ActiveSupport::Notifications.instrument "process_event.action_subscriber", :subscriber => env.subscriber.to_s, :routing_key => env.routing_key do
             ::ActionSubscriber.config.middleware.call(env)
           end
+        end
+      end
+
+      def _normalized_headers(metadata)
+        return {} unless metadata.headers
+        metadata.headers.each_with_object({}) do |(header,value), hash|
+          hash[header] = value.to_s
         end
       end
     end
