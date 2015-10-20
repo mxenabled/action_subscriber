@@ -10,6 +10,7 @@ describe ActionSubscriber::Middleware::Env do
     :headers => {},
     :message_id => "MSG-1234",
     :routing_key => "amigo.user.created",
+    :queue => "test.amigo.user.created",
   } }
   let(:subscriber) { UserSubscriber }
 
@@ -18,8 +19,10 @@ describe ActionSubscriber::Middleware::Env do
   specify { expect(subject.action).to eq("created") }
   specify { expect(subject.content_type).to eq(properties[:content_type]) }
   specify { expect(subject.exchange).to eq(properties[:exchange]) }
+  specify { expect(subject.headers).to eq(properties[:headers]) }
   specify { expect(subject.message_id).to eq(properties[:message_id]) }
   specify { expect(subject.routing_key).to eq(properties[:routing_key]) }
+  specify { expect(subject.queue).to eq(properties[:queue]) }
 
   describe "#acknowledge" do
     it "sends an acknowledgement to rabbitmq" do

@@ -20,6 +20,7 @@ module ActionSubscriber
       :headers => {},
       :message_id => "MSG-123",
       :routing_key => "amigo.user.created",
+      :queue => "test.amigo.user.created",
     }.freeze
 
     # Create a new subscriber instance. Available options are:
@@ -77,6 +78,7 @@ end
       :headers => {},
       :message_id => "MSG-123",
       :routing_key => "amigo.user.created",
+      :queue => "test.amigo.user.created",
     }}
   end
 
