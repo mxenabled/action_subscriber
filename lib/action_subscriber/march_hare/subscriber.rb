@@ -1,6 +1,11 @@
 module ActionSubscriber
   module MarchHare
     module Subscriber
+      def cancel_consumers!
+        puts "cancelling consumers for #{self}"
+        march_hare_consumers.each(&:cancel)
+      end
+
       def auto_pop!
         # Because threadpools can be large we want to cap the number
         # of times we will pop each time we poll the broker
@@ -30,7 +35,7 @@ module ActionSubscriber
       def auto_subscribe!
         queues.each do |queue|
           queue.channel.prefetch = ::ActionSubscriber.config.prefetch if acknowledge_messages?
-          queue.subscribe(queue_subscription_options) do |header, encoded_payload|
+          consumer = queue.subscribe(queue_subscription_options) do |header, encoded_payload|
             ::ActiveSupport::Notifications.instrument "received_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
               :channel => queue.channel,
@@ -43,7 +48,13 @@ module ActionSubscriber
             env = ::ActionSubscriber::Middleware::Env.new(self, encoded_payload, properties)
             enqueue_env(env)
           end
+
+          march_hare_consumers << consumer
         end
+      end
+
+      def march_hare_consumers
+        @march_hare_consumers ||= []
       end
 
       private
