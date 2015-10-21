@@ -11,6 +11,7 @@ module ActionSubscriber
     class_option :mode
     class_option :host
     class_option :hosts
+    class_option :prefetch, :type => :numeric, :desc => "how many messages to hold in the local queue in subscribe mode"
     class_option :pop_interval, :type => :numeric, :desc => "how long to wait between asking for messages (in milliseconds)"
     class_option :port, :type => :numeric
     class_option :threadpool_size, :type => :numeric
@@ -41,23 +42,16 @@ module ActionSubscriber
     end
   end
 
-  [:INT, :QUIT, :TERM].each do |signal|
-    trap(signal) do
-      puts "Stopping server..."
-      wait_loops = 0
+  if ::RUBY_PLATFORM == "java"
+    at_exit do
       ::ActionSubscriber::Babou.stop_server!
-
-      # Going to wait until the thread pool drains or we wait for 1000 seconds
-      # Only waiting for shut down in pop mode
-      if ::ActionSubscriber::Babou.pop?
-        while ::ActionSubscriber::Threadpool.pool.busy_size > 0 && wait_loops < 1000
-          Thread.pass
-          wait_loops = wait_loops + 1
-          sleep 1
-        end
+    end
+  else
+    [:INT, :QUIT, :TERM].each do |signal|
+      trap(signal) do
+        ::ActionSubscriber::Babou.stop_server!
+        exit 0
       end
-
-      exit 0
     end
   end
 end

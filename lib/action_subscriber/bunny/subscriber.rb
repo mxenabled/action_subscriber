@@ -1,6 +1,15 @@
 module ActionSubscriber
   module Bunny
     module Subscriber
+      def bunny_consumers
+        @bunny_consumers ||= []
+      end
+
+      def cancel_consumers!
+        puts "cancelling consumers for #{self}"
+        bunny_consumers.each(&:cancel)
+      end
+
       def auto_pop!
         # Because threadpools can be large we want to cap the number
         # of times we will pop each time we poll the broker
@@ -26,8 +35,10 @@ module ActionSubscriber
 
       def auto_subscribe!
         queues.each do |queue|
-          queue.channel.prefetch(::ActionSubscriber.config.prefetch) if acknowledge_messages?
-          queue.subscribe(queue_subscription_options) do |delivery_info, properties, encoded_payload|
+          channel = queue.channel
+          channel.prefetch(::ActionSubscriber.config.prefetch) if acknowledge_messages?
+          consumer = ::Bunny::Consumer.new(channel, queue, channel.generate_consumer_tag, !acknowledge_messages?)
+          consumer.on_delivery do |delivery_info, properties, encoded_payload|
             ::ActiveSupport::Notifications.instrument "received_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
               :channel => queue.channel,
@@ -40,6 +51,8 @@ module ActionSubscriber
             env = ::ActionSubscriber::Middleware::Env.new(self, encoded_payload, properties)
             enqueue_env(env)
           end
+          bunny_consumers << consumer
+          queue.subscribe_with(consumer)
         end
       end
 
