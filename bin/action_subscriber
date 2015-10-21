@@ -36,6 +36,8 @@ module ActionSubscriber
         ::ActionSubscriber::Babou.auto_pop!
       when /subscribe/i then
         ::ActionSubscriber::Babou.start_subscribers
+      else
+        fail "ActionSubscriber.configuration.mode must be 'pop' or 'subscribe'.  Currently set to '#{::ActionSubscriber.configuration.mode}'"
       end
     end
   end
