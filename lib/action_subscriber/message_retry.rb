@@ -14,10 +14,22 @@ module ActionSubscriber
 
     # Private Implementation
     def self.calculate_ttl(env)
-      death = env.headers.fetch("x-death", [{"original-expiration" => "20"}]).first
-      next_ttl = death["original-expiration"].to_i * 5
+      last_ttl = get_last_ttl_or_default(env.headers["x-death"], 20)
+      next_ttl = last_ttl * 5
       return false if next_ttl > 86_400_000
       next_ttl
+    end
+
+    def self.get_last_ttl_or_default(x_death, default)
+      return default unless x_death
+      x_death = parse_x_death(x_death) if x_death.is_a?(String)
+      x_death.map{|death| death["original-expiration"].to_i}.max
+    end
+
+    def self.parse_x_death(x_death)
+      x_death.scan(/\{([^}]+)\}/).map(&:first).map do |str|
+        str.scan(/([a-z\-]+)=([0-9a-z\-_.]+)/).to_h
+      end
     end
 
     def self.with_exchange(env, ttl)
