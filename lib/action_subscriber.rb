@@ -80,6 +80,10 @@ module ActionSubscriber
     print_subscriptions
   end
 
+  def self.stop_subscribers!
+    @route_set.cancel_consumers! if @route_set
+  end
+
   ##
   # Class aliases
   #
