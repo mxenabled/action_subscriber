@@ -22,6 +22,8 @@ require "action_subscriber/bunny/subscriber"
 require "action_subscriber/march_hare/subscriber"
 require "action_subscriber/babou"
 require "action_subscriber/publisher"
+require "action_subscriber/route"
+require "action_subscriber/route_set"
 require "action_subscriber/threadpool"
 require "action_subscriber/base"
 
@@ -35,18 +37,14 @@ module ActionSubscriber
   #
   def self.auto_pop!
     return if ::ActionSubscriber::Threadpool.busy?
-    ::ActionSubscriber::Base.inherited_classes.each do |klass|
-      klass.auto_pop!
-    end
+    @route_set.auto_pop!
   end
 
   # Loop over all subscribers and register each as
   # a subscriber.
   #
   def self.auto_subscribe!
-    ::ActionSubscriber::Base.inherited_classes.each do |klass|
-      klass.auto_subscribe!
-    end
+    @route_set.auto_subscribe!
   end
 
   def self.configuration
@@ -62,8 +60,10 @@ module ActionSubscriber
   end
 
   def self.setup_queues!
-    ::ActionSubscriber::Base.inherited_classes.each do |klass|
-      klass.setup_queues!
+    @route_set ||= begin
+      route_set = RouteSet.new(routes)
+      route_set.setup_queues!
+      route_set
     end
   end
 
@@ -91,6 +91,17 @@ module ActionSubscriber
   config
 
   ::ActiveSupport.run_load_hooks(:action_subscriber, Base)
+
+  ##
+  # Private Implementation
+  #
+  def self.routes
+    ::ActionSubscriber::Base.inherited_classes.flat_map do |klass|
+      klass.routes
+    end
+  end
+  private_class_method :routes
+
 end
 
 require "action_subscriber/railtie" if defined?(Rails)
