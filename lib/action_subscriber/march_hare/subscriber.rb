@@ -2,7 +2,6 @@ module ActionSubscriber
   module MarchHare
     module Subscriber
       def cancel_consumers!
-        puts "cancelling consumers for #{self}"
         march_hare_consumers.each(&:cancel)
       end
 
@@ -11,8 +10,8 @@ module ActionSubscriber
         # of times we will pop each time we poll the broker
         times_to_pop = [::ActionSubscriber::Threadpool.ready_size, ::ActionSubscriber.config.times_to_pop].min
         times_to_pop.times do
-          queues.each do |queue|
-            metadata, encoded_payload = queue.pop(queue_subscription_options)
+          queues.each do |route,queue|
+            metadata, encoded_payload = queue.pop(route.queue_subscription_options)
             next unless encoded_payload
             ::ActiveSupport::Notifications.instrument "popped_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
@@ -25,7 +24,7 @@ module ActionSubscriber
               :routing_key => metadata.routing_key,
               :queue => queue.name,
             }
-            env = ::ActionSubscriber::Middleware::Env.new(self, encoded_payload, properties)
+            env = ::ActionSubscriber::Middleware::Env.new(route.subscriber, encoded_payload, properties)
             enqueue_env(env)
           end
         end
@@ -35,9 +34,9 @@ module ActionSubscriber
       end
 
       def auto_subscribe!
-        queues.each do |queue|
-          queue.channel.prefetch = ::ActionSubscriber.config.prefetch if acknowledge_messages?
-          consumer = queue.subscribe(queue_subscription_options) do |metadata, encoded_payload|
+        queues.each do |route,queue|
+          queue.channel.prefetch = ::ActionSubscriber.config.prefetch if route.acknowledgements?
+          consumer = queue.subscribe(route.queue_subscription_options) do |metadata, encoded_payload|
             ::ActiveSupport::Notifications.instrument "received_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
               :channel => queue.channel,
@@ -49,7 +48,7 @@ module ActionSubscriber
               :routing_key => metadata.routing_key,
               :queue => queue.name,
             }
-            env = ::ActionSubscriber::Middleware::Env.new(self, encoded_payload, properties)
+            env = ::ActionSubscriber::Middleware::Env.new(route.subscriber, encoded_payload, properties)
             enqueue_env(env)
           end
 

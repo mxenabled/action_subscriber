@@ -6,7 +6,6 @@ module ActionSubscriber
       end
 
       def cancel_consumers!
-        puts "cancelling consumers for #{self}"
         bunny_consumers.each(&:cancel)
       end
 
@@ -15,8 +14,8 @@ module ActionSubscriber
         # of times we will pop each time we poll the broker
         times_to_pop = [::ActionSubscriber::Threadpool.ready_size, ::ActionSubscriber.config.times_to_pop].min
         times_to_pop.times do
-          queues.each do |queue|
-            delivery_info, properties, encoded_payload = queue.pop(queue_subscription_options)
+          queues.each do |route, queue|
+            delivery_info, properties, encoded_payload = queue.pop(route.queue_subscription_options)
             next unless encoded_payload # empty queue
             ::ActiveSupport::Notifications.instrument "popped_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
@@ -29,17 +28,17 @@ module ActionSubscriber
               :routing_key => delivery_info.routing_key,
               :queue => queue.name,
             }
-            env = ::ActionSubscriber::Middleware::Env.new(self, encoded_payload, properties)
+            env = ::ActionSubscriber::Middleware::Env.new(route.subscriber, encoded_payload, properties)
             enqueue_env(env)
           end
         end
       end
 
       def auto_subscribe!
-        queues.each do |queue|
+        queues.each do |route, queue|
           channel = queue.channel
-          channel.prefetch(::ActionSubscriber.config.prefetch) if acknowledge_messages?
-          consumer = ::Bunny::Consumer.new(channel, queue, channel.generate_consumer_tag, !acknowledge_messages?)
+          channel.prefetch(::ActionSubscriber.config.prefetch) if route.acknowledgements?
+          consumer = ::Bunny::Consumer.new(channel, queue, channel.generate_consumer_tag, !route.acknowledgements?)
           consumer.on_delivery do |delivery_info, properties, encoded_payload|
             ::ActiveSupport::Notifications.instrument "received_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
@@ -52,7 +51,7 @@ module ActionSubscriber
               :routing_key => delivery_info.routing_key,
               :queue => queue.name,
             }
-            env = ::ActionSubscriber::Middleware::Env.new(self, encoded_payload, properties)
+            env = ::ActionSubscriber::Middleware::Env.new(route.subscriber, encoded_payload, properties)
             enqueue_env(env)
           end
           bunny_consumers << consumer
