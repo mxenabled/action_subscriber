@@ -9,10 +9,6 @@ describe ::ActionSubscriber::DSL do
       it "acknowledges messages" do
         expect(subscriber.acknowledge_messages?).to eq(true)
       end
-
-      it "returns expected queue subscription options" do
-        expect(subscriber.queue_subscription_options).to eq( :manual_ack => true )
-      end
     end
 
     context "when at_most_once! is set" do

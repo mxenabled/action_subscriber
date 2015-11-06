@@ -3,11 +3,6 @@ module ActionSubscriber
     extend ::ActionSubscriber::DefaultRouting
     extend ::ActionSubscriber::DSL
     extend ::ActionSubscriber::Subscribable
-    if ::RUBY_PLATFORM == "java"
-      extend ::ActionSubscriber::MarchHare::Subscriber
-    else
-      extend ::ActionSubscriber::Bunny::Subscriber
-    end
 
     ##
     # Private Attributes
