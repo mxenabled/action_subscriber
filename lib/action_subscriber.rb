@@ -37,14 +37,14 @@ module ActionSubscriber
   #
   def self.auto_pop!
     return if ::ActionSubscriber::Threadpool.busy?
-    @route_set.auto_pop!
+    route_set.auto_pop!
   end
 
   # Loop over all subscribers and register each as
   # a subscriber.
   #
   def self.auto_subscribe!
-    @route_set.auto_subscribe!
+    route_set.auto_subscribe!
   end
 
   def self.configuration
@@ -60,11 +60,7 @@ module ActionSubscriber
   end
 
   def self.setup_queues!
-    @route_set ||= begin
-      route_set = RouteSet.new(routes)
-      route_set.setup_queues!
-      route_set
-    end
+    route_set.setup_queues!
   end
 
   def self.start_queues
@@ -81,7 +77,7 @@ module ActionSubscriber
   end
 
   def self.stop_subscribers!
-    @route_set.cancel_consumers! if @route_set
+    route_set.cancel_consumers
   end
 
   ##
@@ -99,6 +95,11 @@ module ActionSubscriber
   ##
   # Private Implementation
   #
+  def self.route_set
+    @route_set ||= RouteSet.new(routes)
+  end
+  private_class_method :route_set
+
   def self.routes
     ::ActionSubscriber::Base.inherited_classes.flat_map do |klass|
       klass.routes
