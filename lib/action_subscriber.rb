@@ -77,7 +77,7 @@ module ActionSubscriber
   end
 
   def self.stop_subscribers!
-    route_set.cancel_consumers
+    route_set.cancel_consumers!
   end
 
   ##

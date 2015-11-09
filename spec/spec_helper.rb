@@ -24,6 +24,7 @@ RSpec.configure do |config|
     ::ActionSubscriber.setup_queues!
   end
   config.after(:each, :integration => true) do
+    ::ActionSubscriber.stop_subscribers!
     ::ActionSubscriber::RabbitConnection.subscriber_disconnect!
     ::ActionSubscriber.instance_variable_set("@route_set", nil)
   end
