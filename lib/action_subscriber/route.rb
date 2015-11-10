@@ -10,7 +10,7 @@ module ActionSubscriber
     def initialize(attributes)
       @acknowledgements = attributes.fetch(:acknowledgements)
       @action = attributes.fetch(:action)
-      @exchange = attributes.fetch(:exchange)
+      @exchange = attributes.fetch(:exchange).to_s
       @routing_key = attributes.fetch(:routing_key)
       @subscriber = attributes.fetch(:subscriber)
       @queue = attributes.fetch(:queue)
