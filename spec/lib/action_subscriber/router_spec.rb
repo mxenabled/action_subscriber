@@ -1,7 +1,7 @@
 describe ActionSubscriber::Router do
-  it "can specify basic routes" do
-    class FakeSubscriber; end
+  class FakeSubscriber; end
 
+  it "can specify basic routes" do
     routes = described_class.draw_routes do
       route FakeSubscriber, :foo
     end
@@ -15,8 +15,6 @@ describe ActionSubscriber::Router do
   end
 
   it "can specify a publisher" do
-    class FakeSubscriber; end
-
     routes = described_class.draw_routes do
       route FakeSubscriber, :bluff, :publisher => :amigo
     end
@@ -30,8 +28,6 @@ describe ActionSubscriber::Router do
   end
 
   it "can specify an exchange" do
-    class FakeSubscriber; end
-
     routes = described_class.draw_routes do
       route FakeSubscriber, :crashed, :exchange => :actions
     end
@@ -45,8 +41,6 @@ describe ActionSubscriber::Router do
   end
 
   it "can specify acknowledgements" do
-    class FakeSubscriber; end
-
     routes = described_class.draw_routes do
       route FakeSubscriber, :foo, :acknowledgements => true
     end
@@ -60,8 +54,6 @@ describe ActionSubscriber::Router do
   end
 
   it "can specify the queue" do
-    class FakeSubscriber; end
-
     routes = described_class.draw_routes do
       route FakeSubscriber, :foo, :publisher => "russell", :queue => "i-am-your-father"
     end
@@ -75,8 +67,6 @@ describe ActionSubscriber::Router do
   end
 
   it "can specify the routing key" do
-    class FakeSubscriber; end
-
     routes = described_class.draw_routes do
       route FakeSubscriber, :foo, :publisher => "russell", :routing_key => "make.it.so"
     end
@@ -87,5 +77,34 @@ describe ActionSubscriber::Router do
     expect(routes.first.routing_key).to eq("make.it.so")
     expect(routes.first.subscriber).to eq(FakeSubscriber)
     expect(routes.first.queue).to eq("alice.russell.fake.foo")
+  end
+
+  it "can infer routes based on the default routing rules" do
+    class SparkleSubscriber < ::ActionSubscriber::Base
+      at_most_once!
+      publisher :tommy
+      exchange :party
+
+      def bright; end
+      def dim; end
+    end
+
+    routes = described_class.draw_routes do
+      default_routes_for SparkleSubscriber
+    end
+
+    expect(routes.size).to eq(2)
+    expect(routes.first.acknowledgements).to eq(true)
+    expect(routes.first.action).to eq(:bright)
+    expect(routes.first.exchange).to eq("party")
+    expect(routes.first.routing_key).to eq("tommy.sparkle.bright")
+    expect(routes.first.subscriber).to eq(SparkleSubscriber)
+    expect(routes.first.queue).to eq("alice.tommy.sparkle.bright")
+    expect(routes.last.acknowledgements).to eq(true)
+    expect(routes.last.action).to eq(:dim)
+    expect(routes.last.exchange).to eq("party")
+    expect(routes.last.routing_key).to eq("tommy.sparkle.dim")
+    expect(routes.last.subscriber).to eq(SparkleSubscriber)
+    expect(routes.last.queue).to eq("alice.tommy.sparkle.dim")
   end
 end

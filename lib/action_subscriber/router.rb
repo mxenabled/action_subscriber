@@ -28,6 +28,12 @@ module ActionSubscriber
       ].compact.join(".")
     end
 
+    def default_routes_for(subscriber)
+      subscriber.routes.each do |route|
+        routes << route
+      end
+    end
+
     def resource_name(route_settings)
       route_settings[:subscriber].name.underscore.gsub(/_subscriber/, "").to_s
     end
