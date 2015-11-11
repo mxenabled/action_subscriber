@@ -62,7 +62,16 @@ module ActionSubscriber
   end
 
   def self.print_subscriptions
-    ::ActionSubscriber::Base.print_subscriptions
+    puts configuration.inspect
+    route_set.routes.group_by(&:subscriber).each do |subscriber, routes|
+      puts subscriber.name
+      routes.each do |route|
+        puts "  -- method: #{route.action}"
+        puts "    --    exchange: #{route.exchange}"
+        puts "    --       queue: #{route.queue}"
+        puts "    -- routing_key: #{route.routing_key}"
+      end
+    end
   end
 
   def self.setup_queues!
