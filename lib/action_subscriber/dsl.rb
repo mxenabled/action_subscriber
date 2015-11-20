@@ -59,10 +59,6 @@ module ActionSubscriber
       @_queue_names ||= {}
     end
 
-    def queue_subscription_options
-      @_queue_subscription_options ||= { :manual_ack => acknowledge_messages? }
-    end
-
     def remote_application_name(name = nil)
       @_remote_application_name = name if name
       @_remote_application_name

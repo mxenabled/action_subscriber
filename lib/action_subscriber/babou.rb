@@ -81,10 +81,8 @@ module ActionSubscriber
     def self.stop_receving_messages!
       @shutting_down = true
       ::Thread.new do
-        ::ActionSubscriber::Base.inherited_classes.each do |subscriber|
-          subscriber.cancel_consumers!
-          puts "finished cancelling consumers"
-        end
+        ::ActionSubscriber.stop_subscribers!
+        puts "stopped all subscribers"
       end.join
     end
 

@@ -24,10 +24,9 @@ RSpec.configure do |config|
     ::ActionSubscriber.setup_queues!
   end
   config.after(:each, :integration => true) do
+    ::ActionSubscriber.stop_subscribers!
     ::ActionSubscriber::RabbitConnection.subscriber_disconnect!
-    ::ActionSubscriber::Base.inherited_classes.each do |klass|
-      klass.instance_variable_set("@_queues", nil)
-    end
+    ::ActionSubscriber.instance_variable_set("@route_set", nil)
   end
 end
 
