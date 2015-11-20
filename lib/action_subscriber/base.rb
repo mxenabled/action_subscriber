@@ -44,17 +44,6 @@ module ActionSubscriber
       @_inherited_classes ||= []
     end
 
-    def self.print_subscriptions
-      puts ::ActionSubscriber.configuration.inspect
-      puts ""
-
-      inherited_classes.each do |klass|
-        puts klass.inspect
-      end
-
-      nil
-    end
-
     ##
     # Class Aliases
     #

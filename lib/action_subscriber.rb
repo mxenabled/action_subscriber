@@ -24,6 +24,7 @@ require "action_subscriber/babou"
 require "action_subscriber/publisher"
 require "action_subscriber/route"
 require "action_subscriber/route_set"
+require "action_subscriber/router"
 require "action_subscriber/threadpool"
 require "action_subscriber/base"
 
@@ -55,8 +56,22 @@ module ActionSubscriber
     yield(configuration) if block_given?
   end
 
+  def self.draw_routes(&block)
+    routes = Router.draw_routes(&block)
+    @route_set = RouteSet.new(routes)
+  end
+
   def self.print_subscriptions
-    ::ActionSubscriber::Base.print_subscriptions
+    puts configuration.inspect
+    route_set.routes.group_by(&:subscriber).each do |subscriber, routes|
+      puts subscriber.name
+      routes.each do |route|
+        puts "  -- method: #{route.action}"
+        puts "    --    exchange: #{route.exchange}"
+        puts "    --       queue: #{route.queue}"
+        puts "    -- routing_key: #{route.routing_key}"
+      end
+    end
   end
 
   def self.setup_queues!
@@ -96,16 +111,19 @@ module ActionSubscriber
   # Private Implementation
   #
   def self.route_set
-    @route_set ||= RouteSet.new(routes)
+    @route_set ||= begin
+      puts "DEPRECATION WARNING: We are inferring your routes by looking at your subscribers. This behavior is deprecated and will be removed in version 2.0. Please see the routing guide at https://github.com/mxenabled/action_subscriber/blob/master/routing.md"
+      RouteSet.new(self.send(:default_routes))
+    end
   end
   private_class_method :route_set
 
-  def self.routes
+  def self.default_routes
     ::ActionSubscriber::Base.inherited_classes.flat_map do |klass|
       klass.routes
     end
   end
-  private_class_method :routes
+  private_class_method :default_routes
 
 end
 
