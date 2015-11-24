@@ -65,7 +65,9 @@ trap(:USR2) {
   Action Subscriber Stats
     Pool Size: #{ ::ActionSubscriber.config.threadpool_size }
     Ready Size: #{ ::ActionSubscriber::Threadpool.ready_size }
+    Jobs Waiting in Queue: #{ ::ActionSubscriber::Threadpool.number_of_jobs_queued }
   CONFIG
+  ActionSubscriber::Threadpool.print_threadpool_stackraces
 }
 
 ::ActionSubscriber::CLI.start(ARGV)
