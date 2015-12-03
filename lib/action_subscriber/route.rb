@@ -3,6 +3,7 @@ module ActionSubscriber
     attr_reader :acknowledgements,
                 :action,
                 :exchange,
+                :prefetch,
                 :routing_key,
                 :subscriber,
                 :queue
@@ -11,6 +12,7 @@ module ActionSubscriber
       @acknowledgements = attributes.fetch(:acknowledgements)
       @action = attributes.fetch(:action)
       @exchange = attributes.fetch(:exchange).to_s
+      @prefetch = attributes.fetch(:prefetch) { ::ActionSubscriber.config.prefetch }
       @routing_key = attributes.fetch(:routing_key)
       @subscriber = attributes.fetch(:subscriber)
       @queue = attributes.fetch(:queue)
