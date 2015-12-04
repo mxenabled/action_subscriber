@@ -53,6 +53,16 @@ describe ActionSubscriber::Router do
     expect(routes.first.queue).to eq("alice.fake.foo")
   end
 
+  it "can specify a prefetch value" do
+    routes = described_class.draw_routes do
+      route FakeSubscriber, :foo, :acknowledgements => true, :prefetch => 10
+      route FakeSubscriber, :bar, :acknowledgements => true
+    end
+
+    expect(routes.first.prefetch).to eq(10)
+    expect(routes.last.prefetch).to eq(::ActionSubscriber.config.prefetch)
+  end
+
   it "can specify the queue" do
     routes = described_class.draw_routes do
       route FakeSubscriber, :foo, :publisher => "russell", :queue => "i-am-your-father"

@@ -37,7 +37,7 @@ module ActionSubscriber
       def auto_subscribe!
         queues.each do |route, queue|
           channel = queue.channel
-          channel.prefetch(::ActionSubscriber.config.prefetch) if route.acknowledgements?
+          channel.prefetch(route.prefetch) if route.acknowledgements?
           consumer = ::Bunny::Consumer.new(channel, queue, channel.generate_consumer_tag, !route.acknowledgements?)
           consumer.on_delivery do |delivery_info, properties, encoded_payload|
             ::ActiveSupport::Notifications.instrument "received_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
