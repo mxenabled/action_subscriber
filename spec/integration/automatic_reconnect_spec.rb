@@ -13,9 +13,7 @@ describe "Automatically reconnect on connection failure", :integration => true, 
 
   it "reconnects when a connection drops" do
     ::ActionSubscriber::auto_subscribe!
-    channel = connection.create_channel
-    exchange = channel.topic("events")
-    exchange.publish("First", :routing_key => "gus.spoke")
+    ::ActionSubscriber::Publisher.publish("gus.spoke", "First", "events")
     verify_expectation_within(5.0) do
       expect($messages).to eq(Set.new(["First"]))
     end
@@ -26,9 +24,7 @@ describe "Automatically reconnect on connection failure", :integration => true, 
       expect(connection).to be_open
     end
 
-    channel = connection.create_channel
-    exchange = channel.topic("events")
-    exchange.publish("Second", :routing_key => "gus.spoke")
+    ::ActionSubscriber::Publisher.publish("gus.spoke", "Second", "events")
     verify_expectation_within(5.0) do
       expect($messages).to eq(Set.new(["First", "Second"]))
     end
