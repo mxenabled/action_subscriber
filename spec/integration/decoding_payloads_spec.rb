@@ -10,6 +10,11 @@ end
 
 describe "Payload Decoding", :integration => true do
   let(:connection) { subscriber.connection }
+  let(:draw_routes) do
+    ::ActionSubscriber.draw_routes do
+      default_routes_for TwitterSubscriber
+    end
+  end
   let(:subscriber) { TwitterSubscriber }
   let(:json_string) { '{"foo": "bar"}' }
 

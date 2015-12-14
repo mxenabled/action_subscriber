@@ -7,6 +7,11 @@ class PrankSubscriber < ActionSubscriber::Base
 end
 
 describe "Custom Headers Are Published and Received", :integration => true do
+  let(:draw_routes) do
+    ::ActionSubscriber.draw_routes do
+      default_routes_for PrankSubscriber
+    end
+  end
   let(:headers) { { "Custom" => "content/header" } }
 
   it "works for auto_pop!" do

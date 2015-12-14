@@ -17,6 +17,11 @@ end
 
 describe "A Basic Subscriber", :integration => true do
   let(:connection) { subscriber.connection }
+  let(:draw_routes) do
+    ::ActionSubscriber.draw_routes do
+      default_routes_for ::BasicPushSubscriber
+    end
+  end
   let(:subscriber) { BasicPushSubscriber }
 
   context "ActionSubscriber.auto_pop!" do

@@ -8,6 +8,11 @@ class PokemonSubscriber < ActionSubscriber::Base
 end
 
 describe "at_most_once! mode", :integration => true do
+  let(:draw_routes) do
+    ::ActionSubscriber.draw_routes do
+      default_routes_for PokemonSubscriber
+    end
+  end
   let(:subscriber) { PokemonSubscriber }
 
   it "does not retry a failed message" do
