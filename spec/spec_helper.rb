@@ -20,6 +20,7 @@ RSpec.configure do |config|
 
   config.before(:each, :integration => true) do
     $messages = Set.new
+    draw_routes if respond_to?(:draw_routes)
     ::ActionSubscriber::RabbitConnection.subscriber_connection
     ::ActionSubscriber.setup_queues!
   end
