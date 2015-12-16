@@ -22,6 +22,11 @@ class InstaSubscriber < ActionSubscriber::Base
 end
 
 describe "subscriber filters", :integration => true do
+  let(:draw_routes) do
+    ::ActionSubscriber.draw_routes do
+      default_routes_for InstaSubscriber
+    end
+  end
   let(:subscriber) { InstaSubscriber }
 
   it "runs multiple around filters" do

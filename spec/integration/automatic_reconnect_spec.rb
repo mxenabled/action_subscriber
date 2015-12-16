@@ -8,6 +8,11 @@ end
 
 describe "Automatically reconnect on connection failure", :integration => true, :slow => true do
   let(:connection) { subscriber.connection }
+  let(:draw_routes) do
+    ::ActionSubscriber.draw_routes do
+      default_routes_for GusSubscriber
+    end
+  end
   let(:http_client) { RabbitMQ::HTTP::Client.new("http://127.0.0.1:15672") }
   let(:subscriber) { GusSubscriber }
 

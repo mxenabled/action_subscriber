@@ -13,6 +13,11 @@ end
 
 describe "Manual Message Acknowledgment", :integration => true do
   let(:connection) { subscriber.connection }
+  let(:draw_routes) do
+    ::ActionSubscriber.draw_routes do
+      default_routes_for BaconSubscriber
+    end
+  end
   let(:subscriber) { BaconSubscriber }
 
   it "retries rejected messages and stops retrying acknowledged messages" do

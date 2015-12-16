@@ -8,6 +8,11 @@ class GorbyPuffSubscriber < ActionSubscriber::Base
 end
 
 describe "at_least_once! mode", :integration => true do
+  let(:draw_routes) do
+    ::ActionSubscriber.draw_routes do
+      default_routes_for GorbyPuffSubscriber
+    end
+  end
   let(:subscriber) { GorbyPuffSubscriber }
 
   it "retries a failed job until it succeeds" do
