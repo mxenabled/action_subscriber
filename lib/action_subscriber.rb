@@ -14,6 +14,7 @@ require "action_subscriber/version"
 require "action_subscriber/default_routing"
 require "action_subscriber/dsl"
 require "action_subscriber/configuration"
+require "action_subscriber/logging"
 require "action_subscriber/message_retry"
 require "action_subscriber/middleware"
 require "action_subscriber/rabbit_connection"
@@ -61,15 +62,19 @@ module ActionSubscriber
     @route_set = RouteSet.new(routes)
   end
 
+  def self.logger
+    ::ActionSubscriber::Logging.logger
+  end
+
   def self.print_subscriptions
-    puts configuration.inspect
+    logger.info configuration.inspect
     route_set.routes.group_by(&:subscriber).each do |subscriber, routes|
-      puts subscriber.name
+      logger.info subscriber.name
       routes.each do |route|
-        puts "  -- method: #{route.action}"
-        puts "    --    exchange: #{route.exchange}"
-        puts "    --       queue: #{route.queue}"
-        puts "    -- routing_key: #{route.routing_key}"
+        logger.info "  -- method: #{route.action}"
+        logger.info "    --    exchange: #{route.exchange}"
+        logger.info "    --       queue: #{route.queue}"
+        logger.info "    -- routing_key: #{route.routing_key}"
       end
     end
   end
@@ -112,7 +117,7 @@ module ActionSubscriber
   #
   def self.route_set
     @route_set ||= begin
-      puts "DEPRECATION WARNING: We are inferring your routes by looking at your subscribers. This behavior is deprecated and will be removed in version 2.0. Please see the routing guide at https://github.com/mxenabled/action_subscriber/blob/master/routing.md"
+      logger.warn "DEPRECATION WARNING: We are inferring your routes by looking at your subscribers. This behavior is deprecated and will be removed in version 2.0. Please see the routing guide at https://github.com/mxenabled/action_subscriber/blob/master/routing.md"
       RouteSet.new(self.send(:default_routes))
     end
   end
