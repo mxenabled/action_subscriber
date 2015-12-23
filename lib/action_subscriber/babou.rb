@@ -11,11 +11,11 @@ module ActionSubscriber
       sleep_time = ::ActionSubscriber.configuration.pop_interval.to_i / 1000.0
 
       ::ActionSubscriber.start_queues
-      logger.info "\nAction Subscriber is popping messages every #{sleep_time} seconds.\n"
+      logger.info "Action Subscriber is popping messages every #{sleep_time} seconds."
 
       # How often do we want the timer checking for new pops
       # since we included an eager popper we decreased the
-      # default check interval to 100ms
+      # default check interval to 100m
       while true
         ::ActionSubscriber.auto_pop! unless shutting_down?
         sleep sleep_time
@@ -33,7 +33,7 @@ module ActionSubscriber
       load_subscribers unless subscribers_loaded?
 
       ::ActionSubscriber.start_subscribers
-      logger.info "\nAction Subscriber connected\n"
+      logger.info "Action Subscriber connected"
 
       while true
         sleep 1.0 #just hang around waiting for messages
