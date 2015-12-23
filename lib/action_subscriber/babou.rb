@@ -11,7 +11,7 @@ module ActionSubscriber
       sleep_time = ::ActionSubscriber.configuration.pop_interval.to_i / 1000.0
 
       ::ActionSubscriber.start_queues
-      puts "\nAction Subscriber is popping messages every #{sleep_time} seconds.\n"
+      logger.info "\nAction Subscriber is popping messages every #{sleep_time} seconds.\n"
 
       # How often do we want the timer checking for new pops
       # since we included an eager popper we decreased the
@@ -33,7 +33,7 @@ module ActionSubscriber
       load_subscribers unless subscribers_loaded?
 
       ::ActionSubscriber.start_subscribers
-      puts "\nAction Subscriber connected\n"
+      logger.info "\nAction Subscriber connected\n"
 
       while true
         sleep 1.0 #just hang around waiting for messages
@@ -68,6 +68,10 @@ module ActionSubscriber
       end
     end
 
+    def self.logger
+      ::ActionSubscriber::Logging.logger
+    end
+
     def self.reload_active_record
       if defined?(::ActiveRecord::Base) && !::ActiveRecord::Base.connected?
         ::ActiveRecord::Base.establish_connection
@@ -82,24 +86,24 @@ module ActionSubscriber
       @shutting_down = true
       ::Thread.new do
         ::ActionSubscriber.stop_subscribers!
-        puts "stopped all subscribers"
+        logger.info "stopped all subscribers"
       end.join
     end
 
     def self.stop_server!
-      puts "Stopping server..."
+      logger.info "Stopping server..."
       wait_loops = 0
       ::ActionSubscriber::Babou.stop_receving_messages!
 
       # Going to wait until the thread pool drains or we wait for 1000 seconds
       while ::ActionSubscriber::Threadpool.pool.busy_size > 0 && wait_loops < 1000
-        puts "waiting for threadpool to empty (#{::ActionSubscriber::Threadpool.pool.busy_size})"
+        logger.info "waiting for threadpool to empty (#{::ActionSubscriber::Threadpool.pool.busy_size})"
         Thread.pass
         wait_loops = wait_loops + 1
         sleep 1
       end
 
-      puts "threadpool empty. Shutting down"
+      logger.info "threadpool empty. Shutting down"
     end
 
     def self.subscribers_loaded?

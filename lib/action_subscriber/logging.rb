@@ -21,7 +21,7 @@ module ActionSubscriber
     end
 
     def logger
-      Sidekiq::Logging.logger
+      ::ActionSubscriber::Logging.logger
     end
   end
 end

@@ -6,6 +6,8 @@ require 'thor'
 
 module ActionSubscriber
   class CLI < ::Thor
+    include ::ActionSubscriber::Logging
+
     class_option :allow_low_priority_methods, :type => :boolean, :desc => "subscribe to low priority queues in addition to the normal queues", :default => false
     class_option :app, :default => "./config/environment.rb"
     class_option :mode
@@ -26,10 +28,10 @@ module ActionSubscriber
       require options[:app]
 
       $0 = "Action Subscriber server #{object_id}"
-      puts "Loading configuration..."
+      logger.info "Loading configuration..."
 
       ::ActionSubscriber::Configuration.configure_from_yaml_and_cli(options)
-      puts "Starting server..."
+      logger.info "Starting server..."
 
       case ::ActionSubscriber.configuration.mode
       when /pop/i then
