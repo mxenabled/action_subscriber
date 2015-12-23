@@ -91,19 +91,20 @@ module ActionSubscriber
     end
 
     def self.stop_server!
-      logger.info "Stopping server..."
+      # this method is called from within a TRAP context so we can't use the logger
+      puts "Stopping server..."
       wait_loops = 0
       ::ActionSubscriber::Babou.stop_receving_messages!
 
       # Going to wait until the thread pool drains or we wait for 1000 seconds
       while ::ActionSubscriber::Threadpool.pool.busy_size > 0 && wait_loops < 1000
-        logger.info "waiting for threadpool to empty (#{::ActionSubscriber::Threadpool.pool.busy_size})"
+        puts "waiting for threadpool to empty (#{::ActionSubscriber::Threadpool.pool.busy_size})"
         Thread.pass
         wait_loops = wait_loops + 1
         sleep 1
       end
 
-      logger.info "threadpool empty. Shutting down"
+      puts "threadpool empty. Shutting down"
     end
 
     def self.subscribers_loaded?

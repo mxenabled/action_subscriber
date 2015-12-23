@@ -8,7 +8,7 @@ module ActionSubscriber
       end
 
       def call(env)
-        logger.info "START #{env.message_id}"
+        logger.info "START #{env.message_id} #{env.subscriber}##{env.action}"
         env.subscriber.run_action_with_filters(env, env.action)
         logger.info "FINISHED #{env.message_id}"
       end
