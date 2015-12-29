@@ -16,8 +16,9 @@ module ActionSubscriber
       next_attempt = get_last_attempt_number(env) + 1
       ttl = SCHEDULE[next_attempt]
       return unless ttl
-      with_exchange(env, ttl) do |exchange|
-        exchange.publish(env.encoded_payload, retry_options(env, next_attempt))
+      retry_queue_name = "#{env.queue}.retry_#{ttl}"
+      with_exchange(env, ttl, retry_queue_name) do |exchange|
+        exchange.publish(env.encoded_payload, retry_options(env, next_attempt, retry_queue_name))
       end
     end
 
@@ -30,26 +31,27 @@ module ActionSubscriber
     def self.retry_headers(env, attempt)
       env.headers.reject do |key, val|
         key == "x-death"
-      end.merge({"as-attempt" => attempt.to_s})
+      end.merge({
+        "as-attempt" => attempt.to_s,
+        "x-dead-letter-routing-key" => env.queue,
+      })
     end
 
-    def self.retry_options(env, attempt)
+    def self.retry_options(env, attempt, retry_queue_name)
       {
         :content_type => env.content_type,
-        :routing_key => env.routing_key,
+        :routing_key => retry_queue_name,
         :headers => retry_headers(env, attempt),
       }
     end
 
-    def self.with_exchange(env, ttl)
-      exchange_retry_name = "#{env.exchange}_retry_#{ttl}"
-      queue_retry_name = "#{env.queue}_retry_#{ttl}"
+    def self.with_exchange(env, ttl, retry_queue_name)
       channel = RabbitConnection.subscriber_connection.create_channel
       begin
         channel.confirm_select
-        exchange = channel.topic(exchange_retry_name)
-        queue = channel.queue(queue_retry_name, :arguments => {"x-dead-letter-exchange" => env.exchange, "x-message-ttl" => ttl})
-        queue.bind(exchange, :routing_key => env.routing_key)
+        # an empty string is the default exchange [see bunny docs](http://rubybunny.info/articles/exchanges.html#default_exchange)
+        exchange = channel.topic("")
+        queue = channel.queue(retry_queue_name, :arguments => {"x-dead-letter-exchange" => "", "x-message-ttl" => ttl, "x-dead-letter-routing-key" => env.queue})
         yield(exchange)
         channel.wait_for_confirms
       ensure
