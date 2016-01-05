@@ -1,6 +1,8 @@
 module ActionSubscriber
   module Bunny
     module Subscriber
+      include ::ActionSubscriber::Logging
+
       def bunny_consumers
         @bunny_consumers ||= []
       end
@@ -62,6 +64,7 @@ module ActionSubscriber
       private
 
       def enqueue_env(threadpool, env)
+        logger.info "RECEIVED #{env.message_id} from #{env.queue}"
         threadpool.async(env) do |env|
           ::ActiveSupport::Notifications.instrument "process_event.action_subscriber", :subscriber => env.subscriber.to_s, :routing_key => env.routing_key do
             ::ActionSubscriber.config.middleware.call(env)

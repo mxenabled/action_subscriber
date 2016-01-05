@@ -10,8 +10,10 @@ require 'active_record'
 
 # Require spec support files
 require 'support/user_subscriber'
-
 require 'action_subscriber/rspec'
+
+# Silence the Logger
+::ActionSubscriber::Logging.initialize_logger(nil)
 
 RSpec.configure do |config|
   config.mock_with :rspec do |mocks|
