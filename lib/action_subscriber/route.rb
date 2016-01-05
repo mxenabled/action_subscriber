@@ -4,18 +4,20 @@ module ActionSubscriber
                 :action,
                 :exchange,
                 :prefetch,
+                :queue,
                 :routing_key,
                 :subscriber,
-                :queue
+                :threadpool
 
     def initialize(attributes)
       @acknowledgements = attributes.fetch(:acknowledgements)
       @action = attributes.fetch(:action)
       @exchange = attributes.fetch(:exchange).to_s
       @prefetch = attributes.fetch(:prefetch) { ::ActionSubscriber.config.prefetch }
+      @queue = attributes.fetch(:queue)
       @routing_key = attributes.fetch(:routing_key)
       @subscriber = attributes.fetch(:subscriber)
-      @queue = attributes.fetch(:queue)
+      @threadpool = attributes.fetch(:threadpool) { ::ActionSubscriber::Threadpool.pool(:default) }
     end
 
     def acknowledgements?

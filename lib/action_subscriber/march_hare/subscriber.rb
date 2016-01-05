@@ -25,7 +25,7 @@ module ActionSubscriber
               :queue => queue.name,
             }
             env = ::ActionSubscriber::Middleware::Env.new(route.subscriber, encoded_payload, properties)
-            enqueue_env(env)
+            enqueue_env(route.threadpool, env)
           end
         end
 
@@ -49,7 +49,7 @@ module ActionSubscriber
               :queue => queue.name,
             }
             env = ::ActionSubscriber::Middleware::Env.new(route.subscriber, encoded_payload, properties)
-            enqueue_env(env)
+            enqueue_env(route.threadpool, env)
           end
 
           march_hare_consumers << consumer
@@ -62,8 +62,8 @@ module ActionSubscriber
 
       private
 
-      def enqueue_env(env)
-        ::ActionSubscriber::Threadpool.pool.async(env) do |env|
+      def enqueue_env(threadpool, env)
+        threadpool.async(env) do |env|
           ::ActiveSupport::Notifications.instrument "process_event.action_subscriber", :subscriber => env.subscriber.to_s, :routing_key => env.routing_key do
             ::ActionSubscriber.config.middleware.call(env)
           end
