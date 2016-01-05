@@ -1,3 +1,5 @@
+require "securerandom"
+
 module ActionSubscriber
   module Middleware
     class Env
@@ -30,7 +32,7 @@ module ActionSubscriber
         @encoded_payload = encoded_payload
         @exchange = properties.fetch(:exchange)
         @headers = properties.fetch(:headers) || {}
-        @message_id = properties.fetch(:message_id) || ::Random.new.bytes(3).unpack("H*")[0]
+        @message_id = properties.fetch(:message_id) || ::SecureRandom.hex(3)
         @queue = properties.fetch(:queue)
         @routing_key = properties.fetch(:routing_key)
         @subscriber = subscriber
