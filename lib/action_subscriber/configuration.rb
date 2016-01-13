@@ -8,13 +8,18 @@ module ActionSubscriber
                   :host,
                   :hosts,
                   :mode,
+                  :pass,
                   :pop_interval,
                   :port,
                   :prefetch,
                   :publisher_confirms,
+                  :user,
+                  :scheme,
+                  :ssl,
                   :threadpool_size,
                   :timeout,
-                  :times_to_pop
+                  :times_to_pop,
+                  :vhost
 
     DEFAULTS = {
       :allow_low_priority_methods => false,
@@ -27,9 +32,13 @@ module ActionSubscriber
       :port => 5672,
       :prefetch => 200,
       :publisher_confirms => false,
+      :ssl       => false,
       :threadpool_size => 8,
       :timeout => 1,
-      :times_to_pop => 8
+      :times_to_pop => 8,
+      :user      => "guest",
+      :pass      => "guest",
+      :vhost     => "/"
     }
 
     ##
@@ -77,6 +86,13 @@ module ActionSubscriber
       end
 
       self.decoder.merge!(decoders)
+    end
+
+    def connection_string=(url)
+      settings = ::AMQ::Settings.parse_amqp_url(url)
+      settings.each do |key, value|
+        send("#{key}=", value)
+      end
     end
 
     def hosts

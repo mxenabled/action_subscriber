@@ -33,4 +33,15 @@ describe ::ActionSubscriber::Configuration do
       }.to raise_error(/The foo decoder was given with arity of 2/)
     end
   end
+
+  describe "connection_string" do
+    it "explodes the connection string into the corresponding settings" do
+      subject.connection_string = "amqp://user:pass@host:100/vhost"
+      expect(subject.user).to eq("user")
+      expect(subject.pass).to eq("pass")
+      expect(subject.host).to eq("host")
+      expect(subject.port).to eq(100)
+      expect(subject.vhost).to eq("vhost")
+    end
+  end
 end
