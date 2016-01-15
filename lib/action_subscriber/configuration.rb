@@ -32,7 +32,6 @@ module ActionSubscriber
       :port => 5672,
       :prefetch => 200,
       :publisher_confirms => false,
-      :ssl       => false,
       :threadpool_size => 8,
       :timeout => 1,
       :times_to_pop => 8,

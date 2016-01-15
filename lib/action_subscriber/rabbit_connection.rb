@@ -66,7 +66,6 @@ module ActionSubscriber
         :hosts                         => ::ActionSubscriber.configuration.hosts,
         :pass                          => ::ActionSubscriber.configuration.pass,
         :port                          => ::ActionSubscriber.configuration.port,
-        :ssl                           => ::ActionSubscriber.configuration.ssl,
         :user                          => ::ActionSubscriber.configuration.user,
         :vhost                         => ::ActionSubscriber.configuration.vhost,
         :automatically_recover         => true,
