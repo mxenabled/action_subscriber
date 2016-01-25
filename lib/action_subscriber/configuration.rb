@@ -12,6 +12,7 @@ module ActionSubscriber
                   :port,
                   :prefetch,
                   :publisher_confirms,
+                  :seconds_to_wait_for_graceful_shutdown,
                   :threadpool_size,
                   :timeout,
                   :times_to_pop
@@ -25,8 +26,9 @@ module ActionSubscriber
       :mode => 'subscribe',
       :pop_interval => 100, # in milliseconds
       :port => 5672,
-      :prefetch => 200,
+      :prefetch => 5,
       :publisher_confirms => false,
+      :seconds_to_wait_for_graceful_shutdown => 30,
       :threadpool_size => 8,
       :timeout => 1,
       :times_to_pop => 8
