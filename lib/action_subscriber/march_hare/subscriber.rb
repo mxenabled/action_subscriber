@@ -17,6 +17,7 @@ module ActionSubscriber
             next unless encoded_payload
             ::ActiveSupport::Notifications.instrument "popped_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
+              :action => route.action,
               :channel => queue.channel,
               :content_type => metadata.content_type,
               :delivery_tag => metadata.delivery_tag,
@@ -41,6 +42,7 @@ module ActionSubscriber
           consumer = queue.subscribe(route.queue_subscription_options) do |metadata, encoded_payload|
             ::ActiveSupport::Notifications.instrument "received_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
+              :action => route.action,
               :channel => queue.channel,
               :content_type => metadata.content_type,
               :delivery_tag => metadata.delivery_tag,
