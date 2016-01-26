@@ -5,7 +5,8 @@ module ActionSubscriber
     class Env
       attr_accessor :payload
 
-      attr_reader :content_type,
+      attr_reader :action,
+                  :content_type,
                   :encoded_payload,
                   :exchange,
                   :headers,
@@ -26,6 +27,7 @@ module ActionSubscriber
       #         :message_id => String
       #         :routing_key => String
       def initialize(subscriber, encoded_payload, properties)
+        @action = properties.fetch(:action)
         @channel = properties.fetch(:channel)
         @content_type = properties.fetch(:content_type)
         @delivery_tag = properties.fetch(:delivery_tag)
@@ -41,13 +43,6 @@ module ActionSubscriber
       def acknowledge
         acknowledge_multiple_messages = false
         @channel.ack(@delivery_tag, acknowledge_multiple_messages)
-      end
-
-      # Return the last element of the routing key to indicate which action
-      # to route the payload to
-      #
-      def action
-        routing_key.split('.').last.to_s
       end
 
       def reject
