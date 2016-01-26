@@ -13,6 +13,7 @@ module ActionSubscriber
     end
 
     PROPERTIES_DEFAULTS = {
+      :action => :created,
       :channel => FakeChannel.new,
       :content_type => "text/plain",
       :delivery_tag => "XYZ",
@@ -71,6 +72,7 @@ end
     let(:app) { Proc.new { |inner_env| inner_env } }
     let(:env) { ActionSubscriber::Middleware::Env.new(UserSubscriber, 'encoded payload', message_properties) }
     let(:message_properties) {{
+      :action => :created,
       :channel => ::ActionSubscriber::RSpec::FakeChannel.new,
       :content_type => "text/plain",
       :delivery_tag => "XYZ",

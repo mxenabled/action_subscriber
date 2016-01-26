@@ -2,6 +2,7 @@ describe ActionSubscriber::Middleware::Env do
   let(:channel) { double("channel") }
   let(:encoded_payload) { 'encoded_payload' }
   let(:properties){ {
+    :action => :created,
     :channel => channel,
     :content_type => "application/json",
     :delivery_tag => "XYZ",
@@ -16,7 +17,7 @@ describe ActionSubscriber::Middleware::Env do
 
   subject { described_class.new(subscriber, encoded_payload, properties) }
 
-  specify { expect(subject.action).to eq("created") }
+  specify { expect(subject.action).to eq(:created) }
   specify { expect(subject.content_type).to eq(properties[:content_type]) }
   specify { expect(subject.exchange).to eq(properties[:exchange]) }
   specify { expect(subject.headers).to eq(properties[:headers]) }
