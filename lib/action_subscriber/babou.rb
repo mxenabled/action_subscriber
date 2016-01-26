@@ -96,8 +96,7 @@ module ActionSubscriber
       wait_loops = 0
       ::ActionSubscriber::Babou.stop_receving_messages!
 
-      # Going to wait until the thread pool drains or we wait for 1000 seconds
-      while ::ActionSubscriber::Threadpool.pool.busy_size > 0 && wait_loops < 1000
+      while ::ActionSubscriber::Threadpool.pool.busy_size > 0 && wait_loops < ::ActionSubscriber.configuration.seconds_to_wait_for_graceful_shutdown
         puts "waiting for threadpool to empty (#{::ActionSubscriber::Threadpool.pool.busy_size})"
         Thread.pass
         wait_loops = wait_loops + 1
