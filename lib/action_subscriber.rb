@@ -23,6 +23,7 @@ require "action_subscriber/bunny/subscriber"
 require "action_subscriber/march_hare/subscriber"
 require "action_subscriber/babou"
 require "action_subscriber/publisher"
+require "action_subscriber/publisher/async"
 require "action_subscriber/route"
 require "action_subscriber/route_set"
 require "action_subscriber/router"
@@ -109,6 +110,9 @@ module ActionSubscriber
 
   # Initialize config object
   config
+
+  # Intialize async publisher adapter
+  ::ActionSubscriber::Publisher::Async.publisher_adapter
 
   ::ActiveSupport.run_load_hooks(:action_subscriber, Base)
 

@@ -1,6 +1,7 @@
 module ActionSubscriber
   class Configuration
     attr_accessor :allow_low_priority_methods,
+                  :async_message_publisher_mode,
                   :decoder,
                   :default_exchange,
                   :error_handler,
@@ -19,6 +20,7 @@ module ActionSubscriber
 
     DEFAULTS = {
       :allow_low_priority_methods => false,
+      :async_message_publisher_mode => 'memory',
       :default_exchange => 'events',
       :heartbeat => 5,
       :host => 'localhost',
