@@ -8,16 +8,16 @@ module ActionSubscriber
                   :host,
                   :hosts,
                   :mode,
-                  :pass,
+                  :password,
                   :pop_interval,
                   :port,
                   :prefetch,
                   :publisher_confirms,
-                  :user,
+                  :username,
                   :threadpool_size,
                   :timeout,
                   :times_to_pop,
-                  :vhost
+                  :virtual_host
 
     DEFAULTS = {
       :allow_low_priority_methods => false,
@@ -33,9 +33,9 @@ module ActionSubscriber
       :threadpool_size => 8,
       :timeout => 1,
       :times_to_pop => 8,
-      :user      => "guest",
-      :pass      => "guest",
-      :vhost     => "/"
+      :username => "guest",
+      :password => "guest",
+      :virtual_host => "/"
     }
 
     ##

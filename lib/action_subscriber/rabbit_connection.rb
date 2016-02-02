@@ -64,10 +64,10 @@ module ActionSubscriber
         :continuation_timeout          => ::ActionSubscriber.configuration.timeout * 1_000.0, #convert sec to ms
         :heartbeat                     => ::ActionSubscriber.configuration.heartbeat,
         :hosts                         => ::ActionSubscriber.configuration.hosts,
-        :pass                          => ::ActionSubscriber.configuration.pass,
+        :pass                          => ::ActionSubscriber.configuration.password,
         :port                          => ::ActionSubscriber.configuration.port,
-        :user                          => ::ActionSubscriber.configuration.user,
-        :vhost                         => ::ActionSubscriber.configuration.vhost,
+        :user                          => ::ActionSubscriber.configuration.username,
+        :vhost                         => ::ActionSubscriber.configuration.virtual_host,
         :automatically_recover         => true,
         :network_recovery_interval     => 1,
         :recover_from_connection_close => true,

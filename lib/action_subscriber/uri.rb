@@ -12,14 +12,14 @@ module ActionSubscriber
 
       opts = {}
 
-      opts[:user]   = ::CGI::unescape(uri.user) if uri.user
-      opts[:pass]   = ::CGI::unescape(uri.password) if uri.password
+      opts[:username]   = ::CGI::unescape(uri.user) if uri.user
+      opts[:password]   = ::CGI::unescape(uri.password) if uri.password
       opts[:host]   = uri.host if uri.host
       opts[:port]   = uri.port || AMQP_PORTS[uri.scheme]
 
       if uri.path =~ %r{^/(.*)}
         raise ArgumentError.new("#{uri} has multiple-segment path; please percent-encode any slashes in the vhost name (e.g. /production => %2Fproduction). Learn more at http://bit.ly/amqp-gem-and-connection-uris") if $1.index('/')
-        opts[:vhost] = ::CGI::unescape($1)
+        opts[:virtual_host] = ::CGI::unescape($1)
       end
 
       opts
