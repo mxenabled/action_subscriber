@@ -1,4 +1,4 @@
-# Taken an adapted from https://github.com/ruby-amqp/amq-protocol/blob/master/lib/amq/uri.rb
+# Taken and adapted from https://github.com/ruby-amqp/amq-protocol/blob/master/lib/amq/uri.rb
 require "cgi"
 require "uri"
 
