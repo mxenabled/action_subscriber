@@ -28,6 +28,7 @@ require "action_subscriber/route_set"
 require "action_subscriber/router"
 require "action_subscriber/threadpool"
 require "action_subscriber/base"
+require "action_subscriber/uri"
 
 module ActionSubscriber
   ##

@@ -14,8 +14,6 @@ module ActionSubscriber
                   :prefetch,
                   :publisher_confirms,
                   :user,
-                  :scheme,
-                  :ssl,
                   :threadpool_size,
                   :timeout,
                   :times_to_pop,
@@ -88,7 +86,7 @@ module ActionSubscriber
     end
 
     def connection_string=(url)
-      settings = ::AMQ::Settings.parse_amqp_url(url)
+      settings = ::ActionSubscriber::URI.parse_amqp_url(url)
       settings.each do |key, value|
         send("#{key}=", value)
       end
