@@ -36,8 +36,6 @@ module ActionSubscriber
 
         attr_reader :consumer, :queue, :supervisor
 
-        MAXIMUM_QUEUE_SIZE = 1_000_000.freeze
-
         if ::RUBY_PLATFORM == "java"
           NETWORK_ERRORS = [::MarchHare::Exception, ::Java::ComRabbitmqClient::AlreadyClosedException, ::Java::JavaIo::IOException].freeze
         else
@@ -50,8 +48,14 @@ module ActionSubscriber
         end
 
         def push(message)
-          # TODO: How do we exert backpressure here? Do we block the thread, or do we raise an error?
-          fail UnableToPersistMessageError, "Queue is full, messages will be dropped." if queue.size > MAXIMUM_QUEUE_SIZE
+          # Default of 1_000_000 messages.
+          if queue.size > ::ActionSubscriber.configuration.async_publisher_max_queue_size
+            # Drop Messages if the queue is full and we were configured to do so.
+            return if ::ActionSubscriber.configuration.async_publisher_drop_messages_when_queue_full
+
+            # By default we will raise an error to push the responsibility onto the caller.
+            fail UnableToPersistMessageError, "Queue is full, messages will be dropped."
+          end
 
           queue.push(message)
         end
@@ -111,7 +115,7 @@ module ActionSubscriber
 
         def supervisor_interval
           @supervisor_interval ||= begin
-            interval_in_milliseconds = ::ActionSubscriber.configuration.async_message_supervisor_interval
+            interval_in_milliseconds = ::ActionSubscriber.configuration.async_publisher_supervisor_interval
             interval_in_milliseconds / 1000.0
           end
         end

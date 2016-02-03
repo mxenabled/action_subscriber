@@ -16,7 +16,7 @@ module ActionSubscriber
 
     module Async
       def self.publisher_adapter
-        @publisher_adapter ||= case ::ActionSubscriber.configuration.async_message_publisher
+        @publisher_adapter ||= case ::ActionSubscriber.configuration.async_publisher
                                when /memory/i then
                                  require "action_subscriber/publisher/async/in_memory_adapter"
                                  InMemoryAdapter.new
