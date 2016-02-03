@@ -87,7 +87,7 @@ module ActionSubscriber
                 @current_message = nil
               rescue *NETWORK_ERRORS
                 # Sleep because the connection is down.
-                sleep 1
+                sleep ::ActionSubscriber::RabbitConnection::NETWORK_RECOVERY_INTERVAL
                 # Requeue and try again.
                 queue.push(message)
               rescue => unknown_error
