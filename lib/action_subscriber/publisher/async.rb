@@ -23,7 +23,7 @@ module ActionSubscriber
                                when /redis/i then
                                  fail "Not yet implemented"
                                else
-                                 fail "Unknown async publisher provided"
+                                 fail "Unknown adapter '#{::ActionSubscriber.configuration.async_publisher}' provided"
                                end
       end
     end
