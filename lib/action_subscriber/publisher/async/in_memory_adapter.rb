@@ -32,14 +32,16 @@ module ActionSubscriber
       end
 
       class AsyncQueue
+        include ::ActionSubscriber::Logging
+
         attr_reader :consumer, :queue, :supervisor
 
         MAXIMUM_QUEUE_SIZE = 1_000_000.freeze
 
         if ::RUBY_PLATFORM == "java"
-          NETWORK_ERRORS = [::Java::ComRabbitmqClient::AlreadyClosedException, ::Java::JavaIo::IOException]
+          NETWORK_ERRORS = [::MarchHare::Exception, ::Java::ComRabbitmqClient::AlreadyClosedException, ::Java::JavaIo::IOException].freeze
         else
-          NETWORK_ERRORS = [::Bunny::Exception, ::Timeout::Error, ::IOError]
+          NETWORK_ERRORS = [::Bunny::Exception, ::Timeout::Error, ::IOError].freeze
         end
 
         def initialize
@@ -68,7 +70,7 @@ module ActionSubscriber
               end
 
               # Pause before checking the consumer again.
-              sleep 1
+              sleep supervisor_interval
             end
           end
         end
@@ -93,10 +95,24 @@ module ActionSubscriber
               rescue => unknown_error
                 # Do not requeue the message because something else horrible happened.
                 @current_message = nil
-                puts unknown_error.class
-                puts unknown_error.message
+
+                # Log the error.
+                logger.info unknown_error.class
+                logger.info unknown_error.message
+                logger.info unknown_error.backtrace.join("\n")
+
+                # TODO: Find a way to bubble this out of the thread for logging purposes.
+                # Reraise the error out of the publisher loop. The Supervisor will restart the consumer.
+                raise unknown_error
               end
             end
+          end
+        end
+
+        def supervisor_interval
+          @supervisor_interval ||= begin
+            interval_in_milliseconds = ::ActionSubscriber.configuration.async_message_supervisor_interval
+            interval_in_milliseconds / 1000.0
           end
         end
       end
