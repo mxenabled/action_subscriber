@@ -8,14 +8,17 @@ module ActionSubscriber
                   :host,
                   :hosts,
                   :mode,
+                  :password,
                   :pop_interval,
                   :port,
                   :prefetch,
                   :publisher_confirms,
                   :seconds_to_wait_for_graceful_shutdown,
+                  :username,
                   :threadpool_size,
                   :timeout,
-                  :times_to_pop
+                  :times_to_pop,
+                  :virtual_host
 
     DEFAULTS = {
       :allow_low_priority_methods => false,
@@ -31,7 +34,10 @@ module ActionSubscriber
       :seconds_to_wait_for_graceful_shutdown => 30,
       :threadpool_size => 8,
       :timeout => 1,
-      :times_to_pop => 8
+      :times_to_pop => 8,
+      :username => "guest",
+      :password => "guest",
+      :virtual_host => "/"
     }
 
     ##
@@ -79,6 +85,13 @@ module ActionSubscriber
       end
 
       self.decoder.merge!(decoders)
+    end
+
+    def connection_string=(url)
+      settings = ::ActionSubscriber::URI.parse_amqp_url(url)
+      settings.each do |key, value|
+        send("#{key}=", value)
+      end
     end
 
     def hosts

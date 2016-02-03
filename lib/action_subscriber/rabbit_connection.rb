@@ -61,10 +61,13 @@ module ActionSubscriber
 
     def self.connection_options
       {
+        :continuation_timeout          => ::ActionSubscriber.configuration.timeout * 1_000.0, #convert sec to ms
         :heartbeat                     => ::ActionSubscriber.configuration.heartbeat,
         :hosts                         => ::ActionSubscriber.configuration.hosts,
+        :pass                          => ::ActionSubscriber.configuration.password,
         :port                          => ::ActionSubscriber.configuration.port,
-        :continuation_timeout          => ::ActionSubscriber.configuration.timeout * 1_000.0, #convert sec to ms
+        :user                          => ::ActionSubscriber.configuration.username,
+        :vhost                         => ::ActionSubscriber.configuration.virtual_host,
         :automatically_recover         => true,
         :network_recovery_interval     => 1,
         :recover_from_connection_close => true,
