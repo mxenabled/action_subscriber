@@ -139,5 +139,6 @@ end
 require "action_subscriber/railtie" if defined?(Rails)
 
 at_exit do
+  ::ActionSubscriber::Publisher::Async.publisher_adapter.shutdown!
   ::ActionSubscriber::RabbitConnection.publisher_disconnect!
 end

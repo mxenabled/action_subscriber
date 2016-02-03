@@ -4,9 +4,13 @@ module ActionSubscriber
   module Publisher
     module Async
       class InMemoryAdapter
+        include ::ActionSubscriber::Logging
+
         attr_reader :async_queue
 
         def initialize
+          logger.info "Starting in-memory publisher adapter."
+
           @async_queue = AsyncQueue.new
         end
 
@@ -14,6 +18,21 @@ module ActionSubscriber
           message = Message.new(route, payload, exchange_name, options)
           async_queue.push(message)
           nil
+        end
+
+        def shutdown!
+          max_wait_time = ::ActionSubscriber.configuration.seconds_to_wait_for_graceful_shutdown
+          started_shutting_down_at = ::Time.now
+
+          logger.info "Draining async publisher in-memory adapter queue before shutdown. Current queue size: #{async_queue.size}."
+          while async_queue.size > 0
+            if (::Time.now - started_shutting_down_at) > max_wait_time
+              logger.info "Forcing async publisher adapter shutdown because graceful shutdown period of #{max_wait_time} seconds was exceeded. Current queue size: #{async_queue.size}."
+              break
+            end
+
+            sleep 0.1
+          end
         end
       end
 
@@ -58,6 +77,10 @@ module ActionSubscriber
           end
 
           queue.push(message)
+        end
+
+        def size
+          queue.size
         end
 
       private
