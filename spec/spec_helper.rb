@@ -13,6 +13,7 @@ require 'support/user_subscriber'
 require 'action_subscriber/rspec'
 
 # Silence the Logger
+$TESTING = true
 ::ActionSubscriber::Logging.initialize_logger(nil)
 
 RSpec.configure do |config|

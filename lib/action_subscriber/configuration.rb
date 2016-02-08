@@ -1,6 +1,10 @@
 module ActionSubscriber
   class Configuration
     attr_accessor :allow_low_priority_methods,
+                  :async_publisher,
+                  :async_publisher_drop_messages_when_queue_full,
+                  :async_publisher_max_queue_size,
+                  :async_publisher_supervisor_interval,
                   :decoder,
                   :default_exchange,
                   :error_handler,
@@ -22,6 +26,10 @@ module ActionSubscriber
 
     DEFAULTS = {
       :allow_low_priority_methods => false,
+      :async_publisher => 'memory',
+      :async_publisher_drop_messages_when_queue_full => false,
+      :async_publisher_max_queue_size => 1_000_000,
+      :async_publisher_supervisor_interval => 200, # in milliseconds
       :default_exchange => 'events',
       :heartbeat => 5,
       :host => 'localhost',

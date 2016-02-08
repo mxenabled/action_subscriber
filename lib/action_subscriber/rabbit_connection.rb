@@ -4,6 +4,7 @@ module ActionSubscriber
   module RabbitConnection
     SUBSCRIBER_CONNECTION_MUTEX = ::Mutex.new
     PUBLISHER_CONNECTION_MUTEX = ::Mutex.new
+    NETWORK_RECOVERY_INTERVAL = 1.freeze
 
     def self.publisher_connected?
       publisher_connection.try(:connected?)
@@ -69,7 +70,7 @@ module ActionSubscriber
         :user                          => ::ActionSubscriber.configuration.username,
         :vhost                         => ::ActionSubscriber.configuration.virtual_host,
         :automatically_recover         => true,
-        :network_recovery_interval     => 1,
+        :network_recovery_interval     => NETWORK_RECOVERY_INTERVAL,
         :recover_from_connection_close => true,
       }
     end
