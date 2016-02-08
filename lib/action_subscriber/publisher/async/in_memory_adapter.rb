@@ -99,6 +99,15 @@ module ActionSubscriber
                   @consumer = create_consumer
                 end
 
+                # QUESTION: Should I create a new thread pool to publish these notifications? I just don't want to block the
+                # supervisor thread.
+                begin
+                  payload = { :queue_size => size, :is_consumer_alive => consumer.alive? }
+                  ::ActiveSupport::Notifications.instrument "supervisor_tick.in_memory_publisher.action_subscriber", payload
+                rescue
+                  logger.warn "Unable to publish supervisor tick event"
+                end
+
                 # Pause before checking the consumer again.
                 sleep supervisor_interval
               end
