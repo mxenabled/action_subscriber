@@ -34,14 +34,15 @@ describe ::ActionSubscriber::Publisher::Async::InMemoryAdapter do
 
     describe ".initialize" do
       it "creates a supervisor" do
-        expect_any_instance_of(described_class::AsyncQueue).to receive(:create_and_supervise_consumer!)
+        expect_any_instance_of(described_class::AsyncQueue).to receive(:create_and_supervise_consumer_observer)
         subject
       end
     end
 
-    describe "#create_and_supervise_consumer!" do
+    describe "#create_and_supervise_consumer_observer" do
       it "creates a supervisor" do
         expect_any_instance_of(described_class::AsyncQueue).to receive(:create_consumer)
+        expect_any_instance_of(described_class::AsyncQueue).to receive(:create_observer)
         subject
       end
 
@@ -55,6 +56,29 @@ describe ::ActionSubscriber::Publisher::Async::InMemoryAdapter do
 
         verify_expectation_within(0.3) do
           expect(subject.consumer).to be_alive
+        end
+      end
+
+      describe "tick notificaitons" do
+        let(:name) { "supervisor_tick.in_memory_publisher.action_subscriber" }
+        let(:example_payload) {
+          {
+            :queue_size => 0,
+            :is_consumer_alive => true
+          }
+        }
+
+        it "sends an active support notification on every tick" do
+          payload = nil
+          subscription = ::ActiveSupport::Notifications.subscribe(name) do |_, _, _, _, the_payload|
+            payload = the_payload
+          end
+
+          verify_expectation_within(0.6) do
+            expect(payload).to eq(example_payload)
+          end
+
+          ::ActiveSupport::Notifications.unsubscribe(subscription)
         end
       end
     end

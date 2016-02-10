@@ -52,7 +52,7 @@ module ActionSubscriber
         class AsyncQueue
           include ::ActionSubscriber::Logging
 
-          attr_reader :consumer, :queue, :supervisor
+          attr_reader :consumer, :observer, :queue, :supervisor
 
           if ::RUBY_PLATFORM == "java"
             NETWORK_ERRORS = [::MarchHare::Exception, ::Java::ComRabbitmqClient::AlreadyClosedException, ::Java::JavaIo::IOException].freeze
@@ -62,7 +62,7 @@ module ActionSubscriber
 
           def initialize
             @queue = ::Queue.new
-            create_and_supervise_consumer!
+            create_and_supervise_consumer_observer
           end
 
           def push(message)
@@ -88,15 +88,27 @@ module ActionSubscriber
             sleep ::ActionSubscriber::RabbitConnection::NETWORK_RECOVERY_INTERVAL
           end
 
-          def create_and_supervise_consumer!
+          def create_and_supervise_consumer_observer
             @consumer = create_consumer
+            @observer = create_observer
             @supervisor = ::Thread.new do
               loop do
-                unless consumer.alive?
-                  # Why might need to requeue the last message.
-                  queue.push(@current_message) if @current_message.present?
-                  consumer.kill
-                  @consumer = create_consumer
+                begin
+                  # Supervise consumer
+                  unless consumer.alive?
+                    # Why might need to requeue the last message.
+                    queue.push(@current_message) if @current_message.present?
+                    consumer.kill
+                    @consumer = create_consumer
+                  end
+
+                  # Supervise observer
+                  unless observer.alive?
+                    observer.kill
+                    @observer = create_observer
+                  end
+                rescue
+                  # Just keep ticking...
                 end
 
                 # Pause before checking the consumer again.
@@ -136,6 +148,16 @@ module ActionSubscriber
                   # Reraise the error out of the publisher loop. The Supervisor will restart the consumer.
                   raise unknown_error
                 end
+              end
+            end
+          end
+
+          def create_observer
+            ::Thread.new do
+              loop do
+                payload = { :queue_size => size, :is_consumer_alive => consumer.alive? }
+                ::ActiveSupport::Notifications.instrument "supervisor_tick.in_memory_publisher.action_subscriber", payload
+                sleep 0.5
               end
             end
           end
