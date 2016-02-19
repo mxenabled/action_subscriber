@@ -60,8 +60,12 @@ module ActionSubscriber
   end
 
   def self.draw_routes(&block)
-    routes = Router.draw_routes(&block)
-    @route_set = RouteSet.new(routes)
+    fail "No block provided to ActionSubscriber.draw_routes" unless block_given?
+
+    # We need to delay the execution of this block because ActionSubscriber is
+    # not configured at this point if we're calling from within the required app.
+    @route_set = nil
+    @draw_routes_block = block
   end
 
   def self.logger
@@ -122,8 +126,13 @@ module ActionSubscriber
   #
   def self.route_set
     @route_set ||= begin
-      logger.warn "DEPRECATION WARNING: We are inferring your routes by looking at your subscribers. This behavior is deprecated and will be removed in version 2.0. Please see the routing guide at https://github.com/mxenabled/action_subscriber/blob/master/routing.md"
-      RouteSet.new(self.send(:default_routes))
+      if @draw_routes_block
+        routes = Router.draw_routes(&@draw_routes_block)
+        RouteSet.new(routes)
+      else
+        logger.warn "DEPRECATION WARNING: We are inferring your routes by looking at your subscribers. This behavior is deprecated and will be removed in version 2.0. Please see the routing guide at https://github.com/mxenabled/action_subscriber/blob/master/routing.md"
+        RouteSet.new(self.send(:default_routes))
+      end
     end
   end
   private_class_method :route_set
