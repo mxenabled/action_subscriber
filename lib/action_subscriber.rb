@@ -81,6 +81,7 @@ module ActionSubscriber
         logger.info "    --    exchange: #{route.exchange}"
         logger.info "    --       queue: #{route.queue}"
         logger.info "    -- routing_key: #{route.routing_key}"
+        logger.info "    --  threadpool: #{route.threadpool.pool_size}"
       end
     end
   end

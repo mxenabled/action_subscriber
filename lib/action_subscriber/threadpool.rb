@@ -4,9 +4,7 @@ module ActionSubscriber
     # Class Methods
     #
     def self.busy?
-      pools.any? do |_pool_name, pool|
-        pool.pool_size == pool.busy_size
-      end
+      !ready?
     end
 
     def self.new_pool(name, pool_size = nil)
@@ -30,7 +28,9 @@ module ActionSubscriber
     end
 
     def self.ready?
-      !busy?
+      pools.any? do |_pool_name, pool|
+        pool.busy_size < pool.pool_size
+      end
     end
 
     def self.ready_size

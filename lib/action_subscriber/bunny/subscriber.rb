@@ -17,6 +17,9 @@ module ActionSubscriber
         times_to_pop = [::ActionSubscriber::Threadpool.ready_size, ::ActionSubscriber.config.times_to_pop].min
         times_to_pop.times do
           queues.each do |route, queue|
+            # Handle busy checks on a per threadpool basis
+            next if route.threadpool.busy_size >= route.threadpool.pool_size
+
             delivery_info, properties, encoded_payload = queue.pop(route.queue_subscription_options)
             next unless encoded_payload # empty queue
             ::ActiveSupport::Notifications.instrument "popped_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
