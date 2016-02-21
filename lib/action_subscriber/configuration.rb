@@ -103,6 +103,14 @@ module ActionSubscriber
       self.decoder.merge!(decoders)
     end
 
+    def async_publisher_error_handler=(handler)
+      if !handler.respond_to?(:call) || handler.arity != 1
+        fail "Error handler must respond to #call with an arity of 1"
+      end
+
+      @async_publisher_error_handler = handler
+    end
+
     def connection_string=(url)
       settings = ::ActionSubscriber::URI.parse_amqp_url(url)
       settings.each do |key, value|

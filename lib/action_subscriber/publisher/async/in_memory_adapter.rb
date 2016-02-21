@@ -69,14 +69,7 @@ module ActionSubscriber
             # This is currently not memoized because the configuration might change by some other
             # gem loaded after action subscriber starts publishing. Because this code path only
             # executes when something terrible happens, I think this trade-off is fine.
-            handler = ::ActionSubscriber.configuration.async_publisher_error_handler
-
-            if !handler.respond_to?(:call) || handler.arity != 1
-              logger.error "Error handler must respond to #call with an arity of 1"
-              return
-            end
-
-            handler
+            ::ActionSubscriber.configuration.async_publisher_error_handler
           end
 
           def push(message)

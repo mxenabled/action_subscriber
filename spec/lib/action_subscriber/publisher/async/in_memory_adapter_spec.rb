@@ -101,13 +101,10 @@ describe ::ActionSubscriber::Publisher::Async::InMemoryAdapter do
 
       context "when an invalid custom error handler is provided" do
         let(:invalid_error_handler) { lambda {} }
-
-        before { ::ActionSubscriber.configuration.async_publisher_error_handler = invalid_error_handler }
-        after { ::ActionSubscriber.configuration.async_publisher_error_handler = ::ActionSubscriber::Configuration::DEFAULT_ERROR_HANDLER }
+        let(:error_message) { "Error handler must respond to #call with an arity of 1" }
 
         it "returns nil" do
-          expect(subject).to receive(:error_handler).and_return(nil)
-          expect(subject.error_handler).to be_nil
+          expect { ::ActionSubscriber.configuration.async_publisher_error_handler = invalid_error_handler }.to raise_error(error_message)
         end
       end
     end
