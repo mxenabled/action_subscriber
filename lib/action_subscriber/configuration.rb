@@ -1,3 +1,5 @@
+require "yaml"
+
 module ActionSubscriber
   class Configuration
     attr_accessor :allow_low_priority_methods,
@@ -57,7 +59,7 @@ module ActionSubscriber
       yaml_config = {}
       absolute_config_path = ::File.expand_path(::File.join("config", "action_subscriber.yml"))
       if ::File.exists?(absolute_config_path)
-        yaml_config = ::YAML.load_file(absolute_config_path, :safe => true)[env]
+        yaml_config = ::YAML.load_file(absolute_config_path)[env]
       end
 
       ::ActionSubscriber::Configuration::DEFAULTS.each_pair do |key, value|
