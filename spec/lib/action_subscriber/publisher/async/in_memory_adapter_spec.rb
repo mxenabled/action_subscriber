@@ -92,6 +92,23 @@ describe ::ActionSubscriber::Publisher::Async::InMemoryAdapter do
       end
     end
 
+    describe "#error_handler" do
+      it "calls the error handler when something goes wrong" do
+        expect(subject).to receive(:error_handler)
+        subject.push(Object.new)
+        sleep 0.1 # Await results
+      end
+
+      context "when an invalid custom error handler is provided" do
+        let(:invalid_error_handler) { lambda {} }
+        let(:error_message) { "Error handler must respond to #call with an arity of 1" }
+
+        it "returns nil" do
+          expect { ::ActionSubscriber.configuration.async_publisher_error_handler = invalid_error_handler }.to raise_error(error_message)
+        end
+      end
+    end
+
     describe "#push" do
       after { ::ActionSubscriber.configuration.async_publisher_max_queue_size = 1000 }
       after { ::ActionSubscriber.configuration.async_publisher_drop_messages_when_queue_full = false }

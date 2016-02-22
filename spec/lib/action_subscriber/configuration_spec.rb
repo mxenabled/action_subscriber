@@ -3,6 +3,7 @@ describe ::ActionSubscriber::Configuration do
     specify { expect(subject.allow_low_priority_methods).to eq(false) }
     specify { expect(subject.async_publisher).to eq("memory") }
     specify { expect(subject.async_publisher_drop_messages_when_queue_full).to eq(false) }
+    specify { expect(subject.async_publisher_error_handler).to eq(described_class::DEFAULT_ERROR_HANDLER) }
     specify { expect(subject.async_publisher_max_queue_size).to eq(1_000_000) }
     specify { expect(subject.async_publisher_supervisor_interval).to eq(200) }
     specify { expect(subject.default_exchange).to eq("events") }
@@ -47,6 +48,22 @@ describe ::ActionSubscriber::Configuration do
       expect(subject.host).to eq("host")
       expect(subject.port).to eq(100)
       expect(subject.virtual_host).to eq("vhost")
+    end
+  end
+
+  describe "error handler" do
+    let(:exception) { StandardError.new }
+
+    before { allow(exception).to receive(:backtrace).and_return(["line one", "line two"]) }
+
+    it "logs any excption with a backtrace" do
+      expect(::ActionSubscriber.logger).to receive(:error).exactly(3).times
+      subject.async_publisher_error_handler.call(exception)
+    end
+
+    it "logs any excption without a backtrace" do
+      expect(::ActionSubscriber.logger).to receive(:error).exactly(2).times
+      subject.async_publisher_error_handler.call(StandardError.new)
     end
   end
 end

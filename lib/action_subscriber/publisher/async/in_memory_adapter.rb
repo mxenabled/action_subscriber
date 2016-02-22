@@ -65,6 +65,13 @@ module ActionSubscriber
             create_and_supervise_consumer!
           end
 
+          def error_handler
+            # This is currently not memoized because the configuration might change by some other
+            # gem loaded after action subscriber starts publishing. Because this code path only
+            # executes when something terrible happens, I think this trade-off is fine.
+            ::ActionSubscriber.configuration.async_publisher_error_handler
+          end
+
           def push(message)
             # Default of 1_000_000 messages.
             if queue.size > ::ActionSubscriber.configuration.async_publisher_max_queue_size
@@ -127,10 +134,8 @@ module ActionSubscriber
                   # Do not requeue the message because something else horrible happened.
                   @current_message = nil
 
-                  # Log the error.
-                  logger.info unknown_error.class
-                  logger.info unknown_error.message
-                  logger.info unknown_error.backtrace.join("\n")
+                  # Trigger error handler
+                  error_handler.call(unknown_error)
 
                   # TODO: Find a way to bubble this out of the thread for logging purposes.
                   # Reraise the error out of the publisher loop. The Supervisor will restart the consumer.
