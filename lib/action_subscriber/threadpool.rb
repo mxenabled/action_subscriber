@@ -4,15 +4,14 @@ module ActionSubscriber
     # Class Methods
     #
     def self.busy?
-      pools.any? do |_pool_name, pool|
-        pool.pool_size == pool.busy_size
-      end
+      !ready?
     end
 
     def self.new_pool(name, pool_size = nil)
       fail ArgumentError, "#{name} already exists as a threadpool" if pools.key?(name)
       pool_size ||= ::ActionSubscriber.config.threadpool_size
       pools[name] = ::Lifeguard::InfiniteThreadpool.new(
+        :name => name,
         :pool_size => pool_size
       )
     end
@@ -24,13 +23,14 @@ module ActionSubscriber
     def self.pools
       @pools ||= {
         :default => ::Lifeguard::InfiniteThreadpool.new(
+          :name => :default,
           :pool_size => ::ActionSubscriber.config.threadpool_size
         )
       }
     end
 
     def self.ready?
-      !busy?
+      pools.any? { |_pool_name, pool| !pool.busy? }
     end
 
     def self.ready_size

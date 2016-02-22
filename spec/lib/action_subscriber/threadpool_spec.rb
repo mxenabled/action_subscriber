@@ -1,32 +1,46 @@
 describe ::ActionSubscriber::Threadpool do
   describe "busy?" do
-    context "when the workers are busy" do
+    context "when the pool is busy" do
       it "returns true" do
-        allow(::ActionSubscriber::Threadpool.pool).to receive(:busy_size).and_return(8)
-        expect(::ActionSubscriber::Threadpool.busy?).to eq(true)
+        allow(::ActionSubscriber::Threadpool).to receive(:ready?).and_return(false)
+        expect(::ActionSubscriber::Threadpool).to be_busy
       end
     end
 
-    context "when there are idle workers" do
+    context "when the pool is not busy" do
       it "returns false" do
-        allow(::ActionSubscriber::Threadpool.pool).to receive(:busy_size).and_return(1)
-        expect(::ActionSubscriber::Threadpool.busy?).to eq(false)
+        allow(::ActionSubscriber::Threadpool).to receive(:ready?).and_return(true)
+        expect(::ActionSubscriber::Threadpool).to_not be_busy
       end
     end
   end
 
   describe "ready?" do
-    context "when the pool is busy" do
+    context "when all the workers are full" do
       it "returns false" do
-        allow(::ActionSubscriber::Threadpool).to receive(:busy?).and_return true
-        expect(::ActionSubscriber::Threadpool.ready?).to eq(false)
+        ::ActionSubscriber::Threadpool.new_pool(:some_dumb_pool, 2)
+
+        ::ActionSubscriber::Threadpool.pools.map do |_name, pool|
+          allow(pool).to receive(:busy_size).and_return(pool.pool_size)
+        end
+
+        expect(::ActionSubscriber::Threadpool).to_not be_ready
       end
     end
 
-    context "when the pool is not busy" do
+    context "when only one of the workers is full" do
       it "returns true" do
-        allow(::ActionSubscriber::Threadpool).to receive(:busy?).and_return false
-        expect(::ActionSubscriber::Threadpool.ready?).to eq(true)
+        pool = ::ActionSubscriber::Threadpool.new_pool(:some_other_dumb_pool, 2)
+        allow(pool).to receive(:busy_size).and_return(2)
+
+        expect(::ActionSubscriber::Threadpool).to be_ready
+      end
+    end
+
+    context "when there are idle workers" do
+      it "returns true" do
+        allow(::ActionSubscriber::Threadpool.pool).to receive(:busy_size).and_return(1)
+        expect(::ActionSubscriber::Threadpool).to be_ready
       end
     end
   end

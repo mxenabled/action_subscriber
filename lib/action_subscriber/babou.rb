@@ -96,8 +96,11 @@ module ActionSubscriber
       wait_loops = 0
       ::ActionSubscriber::Babou.stop_receving_messages!
 
-      while ::ActionSubscriber::Threadpool.pool.busy_size > 0 && wait_loops < ::ActionSubscriber.configuration.seconds_to_wait_for_graceful_shutdown
-        puts "waiting for threadpool to empty (#{::ActionSubscriber::Threadpool.pool.busy_size})"
+      while ::ActionSubscriber::Threadpool.busy? && wait_loops < ::ActionSubscriber.configuration.seconds_to_wait_for_graceful_shutdown
+        puts "waiting for threadpools to empty:"
+        ::ActionSubscriber::Threadpool.pools.each do |name, pool|
+          puts "  -- #{name} (remaining: #{pool.busy_size})" if pool.busy_size > 0
+        end
         Thread.pass
         wait_loops = wait_loops + 1
         sleep 1
