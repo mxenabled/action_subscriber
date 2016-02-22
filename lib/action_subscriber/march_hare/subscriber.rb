@@ -14,7 +14,7 @@ module ActionSubscriber
         times_to_pop.times do
           queues.each do |route,queue|
             # Handle busy checks on a per threadpool basis
-            next if route.threadpool.busy_size >= route.threadpool.pool_size
+            next if route.threadpool.busy?
 
             metadata, encoded_payload = queue.pop(route.queue_subscription_options)
             next unless encoded_payload
