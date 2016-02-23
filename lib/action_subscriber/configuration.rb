@@ -72,7 +72,7 @@ module ActionSubscriber
             ::ActionSubscriber.config.__send__("#{key}=", setting) if setting
           end
 
-          nil
+          true
         end
       end
     end
