@@ -114,13 +114,17 @@ module ActionSubscriber
     alias_method :config, :configuration
   end
 
+  # Execution is delayed until after app loads when used with bin/action_subscriber
+  unless $ACTION_SUBSCRIBER_SERVER_MODE
+    ::ActiveSupport.run_load_hooks(:action_subscriber, Base)
+    require "action_subscriber/railtie" if defined?(Rails)
+  end
+
   # Initialize config object
   config
 
   # Intialize async publisher adapter
   ::ActionSubscriber::Publisher::Async.publisher_adapter
-
-  ::ActiveSupport.run_load_hooks(:action_subscriber, Base)
 
   ##
   # Private Implementation
@@ -144,10 +148,7 @@ module ActionSubscriber
     end
   end
   private_class_method :default_routes
-
 end
-
-require "action_subscriber/railtie" if defined?(Rails)
 
 at_exit do
   ::ActionSubscriber::Publisher::Async.publisher_adapter.shutdown!

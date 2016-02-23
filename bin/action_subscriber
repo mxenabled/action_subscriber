@@ -1,8 +1,11 @@
 #!/usr/bin/env ruby
 
+$ACTION_SUBSCRIBER_SERVER_MODE = true
+
 require 'active_support'
 require 'active_support/core_ext'
 require 'thor'
+require 'action_subscriber'
 
 module ActionSubscriber
   class CLI < ::Thor
@@ -23,12 +26,24 @@ module ActionSubscriber
     BABOUDESC
 
     def start
-      require options[:app]
-
       $0 = "Action Subscriber server #{object_id}"
       ::ActionSubscriber.logger.info "Loading configuration..."
 
       ::ActionSubscriber::Configuration.configure_from_yaml_and_cli(options)
+
+      ::ActionSubscriber.logger.info "Requiring app..."
+
+      require options[:app]
+
+      # We run these outside of lib/action_subscriber.rb because we need to load
+      # our railtie (Rails must be defined) before we can run our load hooks.
+      # When requiring action_subscriber as a client, these will be run
+      # automatically.
+      ::ActionSubscriber.logger.info "Running load hooks..."
+
+      require "action_subscriber/railtie" if defined?(Rails)
+      ::ActiveSupport.run_load_hooks(:action_subscriber, Base)
+
       ::ActionSubscriber.logger.info "Starting server..."
 
       case ::ActionSubscriber.configuration.mode
