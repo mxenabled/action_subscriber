@@ -26,6 +26,8 @@ module ActionSubscriber
                   :times_to_pop,
                   :virtual_host
 
+    CONFIGURATION_MUTEX = ::Mutex.new
+
     DEFAULTS = {
       :allow_low_priority_methods => false,
       :async_publisher => 'memory',
@@ -53,18 +55,25 @@ module ActionSubscriber
     ##
     # Class Methods
     #
-    def self.configure_from_yaml_and_cli(cli_options = {})
-      env = ENV["RAILS_ENV"] || ENV["RACK_ENV"] || ENV["APP_ENV"] || "development"
+    def self.configure_from_yaml_and_cli(cli_options = {}, reload = false)
+      CONFIGURATION_MUTEX.synchronize do
+        @configure_from_yaml_and_cli = nil if reload
+        @configure_from_yaml_and_cli ||= begin
+          env = ENV["RAILS_ENV"] || ENV["RACK_ENV"] || ENV["APP_ENV"] || "development"
 
-      yaml_config = {}
-      absolute_config_path = ::File.expand_path(::File.join("config", "action_subscriber.yml"))
-      if ::File.exists?(absolute_config_path)
-        yaml_config = ::YAML.load_file(absolute_config_path)[env]
-      end
+          yaml_config = {}
+          absolute_config_path = ::File.expand_path(::File.join("config", "action_subscriber.yml"))
+          if ::File.exists?(absolute_config_path)
+            yaml_config = ::YAML.load_file(absolute_config_path)[env]
+          end
 
-      ::ActionSubscriber::Configuration::DEFAULTS.each_pair do |key, value|
-        setting = cli_options[key] || yaml_config[key.to_s]
-        ::ActionSubscriber.config.__send__("#{key}=", setting) if setting
+          ::ActionSubscriber::Configuration::DEFAULTS.each_pair do |key, value|
+            setting = cli_options[key] || yaml_config[key.to_s]
+            ::ActionSubscriber.config.__send__("#{key}=", setting) if setting
+          end
+
+          nil
+        end
       end
     end
 
