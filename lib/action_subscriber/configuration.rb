@@ -1,4 +1,5 @@
 require "yaml"
+require "action_subscriber/uri"
 
 module ActionSubscriber
   class Configuration

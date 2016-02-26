@@ -11,10 +11,13 @@ require "thread"
 
 require "action_subscriber/version"
 
+# Preload will load configuration and logging. These are the things
+# that the bin stub need to initialize the configuration before load
+# hooks are run when the app loads.
+require "action_subscriber/preload"
+
 require "action_subscriber/default_routing"
 require "action_subscriber/dsl"
-require "action_subscriber/configuration"
-require "action_subscriber/logging"
 require "action_subscriber/message_retry"
 require "action_subscriber/middleware"
 require "action_subscriber/rabbit_connection"
@@ -29,7 +32,6 @@ require "action_subscriber/route_set"
 require "action_subscriber/router"
 require "action_subscriber/threadpool"
 require "action_subscriber/base"
-require "action_subscriber/uri"
 
 module ActionSubscriber
   ##
@@ -51,10 +53,6 @@ module ActionSubscriber
     route_set.auto_subscribe!
   end
 
-  def self.configuration
-    @configuration ||= ::ActionSubscriber::Configuration.new
-  end
-
   def self.configure
     yield(configuration) if block_given?
   end
@@ -66,10 +64,6 @@ module ActionSubscriber
     # not configured at this point if we're calling from within the required app.
     @route_set = nil
     @draw_routes_block = block
-  end
-
-  def self.logger
-    ::ActionSubscriber::Logging.logger
   end
 
   def self.print_subscriptions
@@ -107,21 +101,9 @@ module ActionSubscriber
     route_set.cancel_consumers!
   end
 
-  ##
-  # Class aliases
-  #
-  class << self
-    alias_method :config, :configuration
-  end
-
   # Execution is delayed until after app loads when used with bin/action_subscriber
-  unless $ACTION_SUBSCRIBER_SERVER_MODE
-    ::ActiveSupport.run_load_hooks(:action_subscriber, Base)
-    require "action_subscriber/railtie" if defined?(Rails)
-  end
-
-  # Initialize config object
-  config
+  require "action_subscriber/railtie" if defined?(Rails)
+  ::ActiveSupport.run_load_hooks(:action_subscriber, Base)
 
   # Intialize async publisher adapter
   ::ActionSubscriber::Publisher::Async.publisher_adapter
