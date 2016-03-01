@@ -72,7 +72,7 @@ ActionSubscriber needs to know how to connect to your rabbit server to start get
 
 In an initializer, you can set the host and the port like this :
 
-    ActionSubscriber::Configuration.configure do |config|
+    ActionSubscriber.configure do |config|
       config.hosts = ["rabbit1", "rabbit2", "rabbit3"]
       config.port = 5672
     end
