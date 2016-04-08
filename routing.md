@@ -34,6 +34,7 @@ The `route` method supports the following options:
 
 * `acknowledgements` this toggles whether this route is expected to provide an acknowledgment (default `false`)
   * This is the equivalent of calling `at_most_once!`, `at_least_once!` or `manual_acknowledgement!` in your subscriber class
+* `durable` specifies whether the queue for this route should be a durable (default `false`)
 * `exchange` specify which exchange you expect messages to be published to (default `"events"`)
   * This is the equivalent of calling `exchange :actions` in your subscriber
 * `publisher` this will prefix your queue and routing key with the publishers name
