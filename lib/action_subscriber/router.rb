@@ -8,6 +8,7 @@ module ActionSubscriber
 
     DEFAULT_SETTINGS = {
       :acknowledgements => false,
+      :durable => false,
       :exchange => "events",
     }.freeze
 
