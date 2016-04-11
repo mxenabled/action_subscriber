@@ -2,6 +2,7 @@ module ActionSubscriber
   class Route
     attr_reader :acknowledgements,
                 :action,
+                :durable, 
                 :exchange,
                 :prefetch,
                 :queue,
@@ -12,6 +13,7 @@ module ActionSubscriber
     def initialize(attributes)
       @acknowledgements = attributes.fetch(:acknowledgements)
       @action = attributes.fetch(:action)
+      @durable = attributes.fetch(:durable)
       @exchange = attributes.fetch(:exchange).to_s
       @prefetch = attributes.fetch(:prefetch) { ::ActionSubscriber.config.prefetch }
       @queue = attributes.fetch(:queue)
