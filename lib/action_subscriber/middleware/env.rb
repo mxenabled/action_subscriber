@@ -13,7 +13,8 @@ module ActionSubscriber
                   :message_id,
                   :routing_key,
                   :queue,
-                  :subscriber
+                  :subscriber,
+                  :middleware
 
       ##
       # @param subscriber [Class] the class that will handle this message
@@ -38,6 +39,7 @@ module ActionSubscriber
         @queue = properties.fetch(:queue)
         @routing_key = properties.fetch(:routing_key)
         @subscriber = subscriber
+        @middleware = properties.fetch(:middleware) || ::ActionSubscriber.config.middleware
       end
 
       def acknowledge
