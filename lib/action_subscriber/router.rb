@@ -39,11 +39,13 @@ module ActionSubscriber
       route_settings[:subscriber].name.underscore.gsub(/_subscriber/, "").to_s
     end
 
-    def route(subscriber, action, options = {})
+    def route(subscriber, action, options = {}, &block)
       route_settings = DEFAULT_SETTINGS.merge(options).merge(:subscriber => subscriber, :action => action)
       route_settings[:routing_key] ||= default_routing_key_for(route_settings)
       route_settings[:queue] ||= default_queue_for(route_settings)
-      routes << Route.new(route_settings)
+      _route = Route.new(route_settings)
+      _route.instance_eval(&block) if block_given?
+      routes << _route
     end
 
     def routes
