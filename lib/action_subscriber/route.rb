@@ -32,8 +32,9 @@ module ActionSubscriber
       { :manual_ack => acknowledgements? }
     end
 
-    def use(*middleware_args)
-      @middleware.use(*middleware_args)
-    end
+    delegate :use, :to => :middleware
+    delegate :insert, :to => :middleware
+    delegate :insert_after, :to => :middleware
+    delegate :insert_before, :to => :middleware
   end
 end
