@@ -39,7 +39,7 @@ module ActionSubscriber
         @queue = properties.fetch(:queue)
         @routing_key = properties.fetch(:routing_key)
         @subscriber = subscriber
-        @middleware = properties.fetch(:middleware) || ::ActionSubscriber.config.middleware
+        @middleware = properties.fetch(:middleware)
       end
 
       def acknowledge
