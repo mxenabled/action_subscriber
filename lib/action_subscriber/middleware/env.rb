@@ -42,6 +42,15 @@ module ActionSubscriber
         @middleware = properties.fetch(:middleware) { ::ActionSubscriber.config.middleware.forked }
       end
 
+      #allow env to be get/set from outside, like rack middleware allows
+      def [](key)
+        instance_variable_get(:"@#{key}")
+      end
+
+      def []=(key, value)
+        instance_variable_set(:"@#{key}", value)
+      end
+
       def acknowledge
         acknowledge_multiple_messages = false
         @channel.ack(@delivery_tag, acknowledge_multiple_messages)

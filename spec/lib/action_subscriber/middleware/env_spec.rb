@@ -25,6 +25,19 @@ describe ActionSubscriber::Middleware::Env do
   specify { expect(subject.routing_key).to eq(properties[:routing_key]) }
   specify { expect(subject.queue).to eq(properties[:queue]) }
 
+  describe "#[]" do
+    it "gets instance variable" do
+      expect(subject[:action]).to eq :created
+    end
+  end
+
+  describe "#[]=" do
+    it "sets instance variable" do
+      subject[:whatever] = :something
+      expect(subject[:whatever]).to eq :something
+    end
+  end
+
   describe "#acknowledge" do
     it "sends an acknowledgement to rabbitmq" do
       expect(channel).to receive(:ack).with(properties[:delivery_tag], false)
