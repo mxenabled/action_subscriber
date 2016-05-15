@@ -6,11 +6,20 @@ module ActionSubscriber
       router.routes
     end
 
+    # def self.stacks
+    #   @_stacks ||= {}
+    # end
+
+
     DEFAULT_SETTINGS = {
       :acknowledgements => false,
       :durable => false,
       :exchange => "events",
     }.freeze
+
+    def initialize
+      @stacks ||= {}
+    end
 
     def default_routing_key_for(route_settings)
       [
@@ -39,10 +48,15 @@ module ActionSubscriber
       route_settings[:subscriber].name.underscore.gsub(/_subscriber/, "").to_s
     end
 
+    def stack(name, &block)
+      @stacks[name] ||= ::ActionSubscriber.config.middleware.forked.instance_eval(&block)
+    end
+
     def route(subscriber, action, options = {}, &block)
       route_settings = DEFAULT_SETTINGS.merge(options).merge(:subscriber => subscriber, :action => action)
       route_settings[:routing_key] ||= default_routing_key_for(route_settings)
       route_settings[:queue] ||= default_queue_for(route_settings)
+      route_settings[:middleware] = @stacks[options[:stack]] if options.key?(:stack)
       _route = Route.new(route_settings)
       _route.instance_eval(&block) if block_given?
       routes << _route
