@@ -139,4 +139,28 @@ describe ActionSubscriber::Router do
     expect(routes.last.subscriber).to eq(SparkleSubscriber)
     expect(routes.last.queue).to eq("alice.tommy.sparkle.dim")
   end
+
+  it "can define a stack of middleware and use on a per route basis" do
+    class FakeMiddleware
+      def initialize(app)
+        @app = app
+      end
+
+      def call(env)
+        env
+      end
+    end
+
+    routes = described_class.draw_routes do
+      stack :fake_stack do
+        use FakeMiddleware
+      end
+
+      route FakeSubscriber, :foo, :stack => :fake_stack
+      route FakeSubscriber, :bar
+    end
+
+    expect(routes.first.middleware.instance_variable_get(:@stack).last.first).to eq(FakeMiddleware)
+    expect(routes.last.middleware.instance_variable_get(:@stack).last.first).to_not eq(FakeMiddleware)
+  end
 end
