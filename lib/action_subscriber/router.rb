@@ -2,6 +2,7 @@ module ActionSubscriber
   class Router
     def self.draw_routes(&block)
       router = self.new
+      ::ActiveSupport.run_load_hooks(:action_subscriber_routes, router)
       router.instance_eval(&block)
       router.routes
     end
