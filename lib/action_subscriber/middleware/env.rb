@@ -43,11 +43,13 @@ module ActionSubscriber
       def acknowledge
         acknowledge_multiple_messages = false
         @channel.ack(@delivery_tag, acknowledge_multiple_messages)
+        true
       end
 
       def reject
         requeue_message = true
         @channel.reject(@delivery_tag, requeue_message)
+        true
       end
 
       def to_hash

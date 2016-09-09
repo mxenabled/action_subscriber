@@ -61,17 +61,73 @@ module ActionSubscriber
     end
 
     def _at_least_once_filter
+      processed_acknowledgement = false
       yield
-      acknowledge
+      processed_acknowledgement = acknowledge
     rescue => error
       ::ActionSubscriber::MessageRetry.redeliver_message_with_backoff(env)
-      acknowledge
+      processed_acknowledgement = acknowledge
       raise error
+    ensure
+      rejected_message = false
+      rejected_message = reject unless processed_acknowledgement
+
+      if !processed_acknowledgement && !rejected_message
+        Process.kill(:TTIN, Process.pid)
+        Process.kill(:USR2, Process.pid)
+
+        $stdout << <<-UNREJECTABLE
+          CANNOT ACKNOWLEDGE OR REJECT THE MESSAGE
+
+          This is a exceptional state for ActionSubscriber to enter and puts the current
+          Process in the position of "I can't get new work from RabbitMQ, but also
+          can't acknowledge or reject the work that I currently have" ... While rare
+          this state can happen.
+
+          Instead of continuing to try to process the message ActionSubscriber is
+          sending a Kill signal to the current running process to gracefully shutdown
+          so that the RabbitMQ server will purge any outstanding acknowledgements. If
+          you are running a process monitoring tool (like Upstart) the Subscriber
+          process will be restarted and be able to take on new work.
+
+          ** Running a process monitoring tool like Upstart is recommended for this reason **
+        UNREJECTABLE
+
+        Process.kill(:TERM, Process.pid)
+      end
     end
 
     def _at_most_once_filter
-      acknowledge
+      processed_acknowledgement = false
+      processed_acknowledgement = acknowledge
       yield
+    ensure
+      rejected_message = false
+      rejected_message = reject unless processed_acknowledgement
+
+      if !processed_acknowledgement && !rejected_message
+        Process.kill(:TTIN, Process.pid)
+        Process.kill(:USR2, Process.pid)
+
+        $stdout << <<-UNREJECTABLE
+          CANNOT ACKNOWLEDGE OR REJECT THE MESSAGE
+
+          This is a exceptional state for ActionSubscriber to enter and puts the current
+          Process in the position of "I can't get new work from RabbitMQ, but also
+          can't acknowledge or reject the work that I currently have" ... While rare
+          this state can happen.
+
+          Instead of continuing to try to process the message ActionSubscriber is
+          sending a Kill signal to the current running process to gracefully shutdown
+          so that the RabbitMQ server will purge any outstanding acknowledgements. If
+          you are running a process monitoring tool (like Upstart) the Subscriber
+          process will be restarted and be able to take on new work.
+
+          ** Running a process monitoring tool like Upstart is recommended for this reason **
+        UNREJECTABLE
+
+        Process.kill(:TERM, Process.pid)
+      end
     end
 
     def reject
