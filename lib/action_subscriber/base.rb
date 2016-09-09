@@ -79,7 +79,7 @@ module ActionSubscriber
         $stdout << <<-UNREJECTABLE
           CANNOT ACKNOWLEDGE OR REJECT THE MESSAGE
 
-          This is a exceptional state for RabbitMQ to enter and puts the current
+          This is a exceptional state for ActionSubscriber to enter and puts the current
           Process in the position of "I can't get new work from RabbitMQ, but also
           can't acknowledge or reject the work that I currently have" ... While rare
           this state can happen.
@@ -112,7 +112,7 @@ module ActionSubscriber
         $stdout << <<-UNREJECTABLE
           CANNOT ACKNOWLEDGE OR REJECT THE MESSAGE
 
-          This is a exceptional state for RabbitMQ to enter and puts the current
+          This is a exceptional state for ActionSubscriber to enter and puts the current
           Process in the position of "I can't get new work from RabbitMQ, but also
           can't acknowledge or reject the work that I currently have" ... While rare
           this state can happen.
