@@ -73,6 +73,9 @@ module ActionSubscriber
       rejected_message = reject unless processed_acknowledgement
 
       if !processed_acknowledgement && !rejected_message
+        Process.kill(:TTIN, Process.pid)
+        Process.kill(:USR2, Process.pid)
+
         $stdout << <<-UNREJECTABLE
           CANNOT ACKNOWLEDGE OR REJECT THE MESSAGE
 
@@ -103,6 +106,9 @@ module ActionSubscriber
       rejected_message = reject unless processed_acknowledgement
 
       if !processed_acknowledgement && !rejected_message
+        Process.kill(:TTIN, Process.pid)
+        Process.kill(:USR2, Process.pid)
+
         $stdout << <<-UNREJECTABLE
           CANNOT ACKNOWLEDGE OR REJECT THE MESSAGE
 
