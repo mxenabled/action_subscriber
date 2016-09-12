@@ -11,6 +11,10 @@ module ActionSubscriber
         bunny_consumers.each(&:cancel)
       end
 
+      def create_queue(channel, queue_name, queue_options)
+        ::Bunny::Queue.new(channel, queue_name, queue_options)
+      end
+
       def auto_pop!
         # Because threadpools can be large we want to cap the number
         # of times we will pop each time we poll the broker
