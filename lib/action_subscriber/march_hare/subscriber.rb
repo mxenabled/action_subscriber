@@ -8,7 +8,9 @@ module ActionSubscriber
       end
 
       def create_queue(channel, queue_name, queue_options)
-        ::MarchHare::Queue.new(channel, queue_name, queue_options)
+        queue = ::MarchHare::Queue.new(channel, queue_name, queue_options)
+        queue.declare!
+        queue
       end
 
       def auto_pop!
