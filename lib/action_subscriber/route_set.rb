@@ -26,8 +26,14 @@ module ActionSubscriber
 
     def setup_queue(route)
       channel = ::ActionSubscriber::RabbitConnection.subscriber_connection.create_channel
+      # Make channels threadsafe again! Believe Me!
+      # Accessing channels from multiple threads for messsage acknowledgement will crash
+      # a channel and stop messages from being received on that channel
+      # this isn't very clear in the documentation for march_hare/bunny, but it is
+      # explicitly addresses here: https://github.com/rabbitmq/rabbitmq-java-client/issues/53
+      channel = ::ActionSubscriber::Synchronizer.new(channel)
       exchange = channel.topic(route.exchange)
-      queue = channel.queue(route.queue, :durable => route.durable)
+      queue = create_queue(channel, route.queue, :durable => route.durable)
       queue.bind(exchange, :routing_key => route.routing_key)
       queue
     end

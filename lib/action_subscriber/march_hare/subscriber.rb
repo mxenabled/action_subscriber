@@ -7,6 +7,12 @@ module ActionSubscriber
         march_hare_consumers.each(&:cancel)
       end
 
+      def create_queue(channel, queue_name, queue_options)
+        queue = ::MarchHare::Queue.new(channel, queue_name, queue_options)
+        queue.declare!
+        queue
+      end
+
       def auto_pop!
         # Because threadpools can be large we want to cap the number
         # of times we will pop each time we poll the broker
