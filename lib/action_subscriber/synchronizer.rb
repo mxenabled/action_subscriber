@@ -3,7 +3,7 @@ module ActionSubscriber
   class Synchronizer
     def initialize(delegate)
       @delegate = delegate
-      @mutex = ::Thread::Mutex.new
+      @mutex = ::Mutex.new
     end
 
     def method_missing(name, *args, &block)
