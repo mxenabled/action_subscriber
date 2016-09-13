@@ -1,10 +1,6 @@
 describe ::ActionSubscriber::Configuration do
   describe "default values" do
     specify { expect(subject.allow_low_priority_methods).to eq(false) }
-    specify { expect(subject.async_publisher).to eq("memory") }
-    specify { expect(subject.async_publisher_drop_messages_when_queue_full).to eq(false) }
-    specify { expect(subject.async_publisher_max_queue_size).to eq(1_000_000) }
-    specify { expect(subject.async_publisher_supervisor_interval).to eq(200) }
     specify { expect(subject.default_exchange).to eq("events") }
     specify { expect(subject.heartbeat).to eq(5) }
     specify { expect(subject.host).to eq("localhost") }

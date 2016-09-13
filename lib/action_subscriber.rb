@@ -108,13 +108,9 @@ module ActionSubscriber
   #
   def self.route_set
     @route_set ||= begin
-      if @draw_routes_block
-        routes = Router.draw_routes(&@draw_routes_block)
-        RouteSet.new(routes)
-      else
-        logger.warn "DEPRECATION WARNING: We are inferring your routes by looking at your subscribers. This behavior is deprecated and will be removed in version 2.0. Please see the routing guide at https://github.com/mxenabled/action_subscriber/blob/master/routing.md"
-        RouteSet.new(self.send(:default_routes))
-      end
+      fail "cannot start because no routes have been defined. Please make sure that you call ActionSubscriber.draw_routes when your application loads" unless @draw_routes_block
+      routes = Router.draw_routes(&@draw_routes_block)
+      RouteSet.new(routes)
     end
   end
   private_class_method :route_set
