@@ -12,27 +12,28 @@ module ActionSubscriber
       @routes = routes
     end
 
-    def setup_queues!
+    def setup_subscriptions!
+      fail ::RuntimeError, "you cannot setup queues multiple times, this should only happen once at startup" unless subscriptions.empty?
       routes.each do |route|
-        queues[route] = setup_queue(route)
+        route.concurrency.times do
+          subscriptions << {
+            :route => route,
+            :queue => setup_queue(route),
+          }
+        end
       end
     end
 
   private
 
-    def queues
-      @queues ||= {}
+    def subscriptions
+      @subscriptions ||= []
     end
 
     def setup_queue(route)
-      channel = ::ActionSubscriber::RabbitConnection.subscriber_connection.create_channel
-      # Make channels threadsafe again! Believe Me!
-      # Accessing channels from multiple threads for messsage acknowledgement will crash
-      # a channel and stop messages from being received on that channel
-      # this isn't very clear in the documentation for march_hare/bunny, but it is
-      # explicitly addresses here: https://github.com/rabbitmq/rabbitmq-java-client/issues/53
-      channel = ::ActionSubscriber::Synchronizer.new(channel)
+      channel = route.connection.create_channel
       exchange = channel.topic(route.exchange)
+      # TODO go to back to the old way of creating a queue?
       queue = create_queue(channel, route.queue, :durable => route.durable)
       queue.bind(exchange, :routing_key => route.routing_key)
       queue

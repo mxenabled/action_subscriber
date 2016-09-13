@@ -28,7 +28,7 @@ module ActionSubscriber
       #         :routing_key => String
       def initialize(subscriber, encoded_payload, properties)
         @action = properties.fetch(:action)
-        @channel = properties.fetch(:channel)
+        @channel = properties[:channel]
         @content_type = properties.fetch(:content_type)
         @delivery_tag = properties.fetch(:delivery_tag)
         @encoded_payload = encoded_payload
@@ -41,12 +41,14 @@ module ActionSubscriber
       end
 
       def acknowledge
+        fail ::RuntimeError, "you can't acknowledge messages under the polling API" unless @channel
         acknowledge_multiple_messages = false
         @channel.ack(@delivery_tag, acknowledge_multiple_messages)
         true
       end
 
       def reject
+        fail ::RuntimeError, "you can't acknowledge messages under the polling API" unless @channel
         requeue_message = true
         @channel.reject(@delivery_tag, requeue_message)
         true

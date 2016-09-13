@@ -18,7 +18,9 @@ module ActionSubscriber
         # of times we will pop each time we poll the broker
         times_to_pop = [::ActionSubscriber::Threadpool.ready_size, ::ActionSubscriber.config.times_to_pop].min
         times_to_pop.times do
-          queues.each do |route,queue|
+          subscriptions.each do |subscription|
+            route = subscription[:route]
+            queue = subscription[:queue]
             # Handle busy checks on a per threadpool basis
             next if route.threadpool.busy?
 
@@ -27,7 +29,6 @@ module ActionSubscriber
             ::ActiveSupport::Notifications.instrument "popped_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
               :action => route.action,
-              :channel => queue.channel,
               :content_type => metadata.content_type,
               :delivery_tag => metadata.delivery_tag,
               :exchange => metadata.exchange,
@@ -46,7 +47,9 @@ module ActionSubscriber
       end
 
       def auto_subscribe!
-        queues.each do |route,queue|
+        subscriptions.each do |subscription|
+          route = subscription[:route]
+          queue = subscription[:queue]
           queue.channel.prefetch = route.prefetch if route.acknowledgements?
           consumer = queue.subscribe(route.queue_subscription_options) do |metadata, encoded_payload|
             ::ActiveSupport::Notifications.instrument "received_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
@@ -63,6 +66,10 @@ module ActionSubscriber
             }
             env = ::ActionSubscriber::Middleware::Env.new(route.subscriber, encoded_payload, properties)
             enqueue_env(route.threadpool, env)
+            logger.info "RECEIVED #{env.message_id} from #{env.queue}"
+            ::ActiveSupport::Notifications.instrument "process_event.action_subscriber", :subscriber => env.subscriber.to_s, :routing_key => env.routing_key, :queue => env.queue do
+              ::ActionSubscriber.config.middleware.call(env)
+            end
           end
 
           march_hare_consumers << consumer
