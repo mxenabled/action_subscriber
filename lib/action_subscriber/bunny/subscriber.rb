@@ -66,11 +66,7 @@ module ActionSubscriber
               :queue => queue.name,
             }
             env = ::ActionSubscriber::Middleware::Env.new(route.subscriber, encoded_payload, properties)
-            enqueue_env(route.threadpool, env)
-            logger.info "RECEIVED #{env.message_id} from #{env.queue}"
-            ::ActiveSupport::Notifications.instrument "process_event.action_subscriber", :subscriber => env.subscriber.to_s, :routing_key => env.routing_key, :queue => env.queue do
-              ::ActionSubscriber.config.middleware.call(env)
-            end
+            run_env(env)
           end
           bunny_consumers << consumer
           queue.subscribe_with(consumer)
@@ -86,6 +82,15 @@ module ActionSubscriber
             ::ActionSubscriber.config.middleware.call(env)
           end
         end
+      end
+
+      def run_env(env)
+        logger.info "RECEIVED #{env.message_id} from #{env.queue}"
+        ::ActiveSupport::Notifications.instrument "process_event.action_subscriber", :subscriber => env.subscriber.to_s, :routing_key => env.routing_key, :queue => env.queue do
+          ::ActionSubscriber.config.middleware.call(env)
+        end
+      rescue
+        # no-op
       end
     end
   end

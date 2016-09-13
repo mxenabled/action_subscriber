@@ -22,8 +22,8 @@ describe "A Subscriber With Inferred Routes", :integration => true do
 
     it "registers the routes and sets up the queues" do
       ::ActionSubscriber.auto_subscribe!
-      ::ActionSubscriber::Publisher.publish("kyle.inference.yo", "YO", "events")
-      ::ActionSubscriber::Publisher.publish("other_routing_key.hey", "HEY", "events")
+      ::ActivePublisher.publish("kyle.inference.yo", "YO", "events")
+      ::ActivePublisher.publish("other_routing_key.hey", "HEY", "events")
 
       verify_expectation_within(2.0) do
         expect($messages).to eq(Set.new(["YO","HEY"]))
@@ -33,17 +33,10 @@ describe "A Subscriber With Inferred Routes", :integration => true do
 
   # This is the deprecated behavior we want to keep until version 2.0
   context "no explicit routes" do
-    before do
-      # TEST HACK: Bust any memoized routes.
-      ::ActionSubscriber.instance_variable_set(:@route_set, nil)
-      ::ActionSubscriber.instance_variable_set(:@draw_routes_block, nil)
-      ::ActionSubscriber.setup_queues!
-    end
-
     it "registers the routes and sets up the queues" do
       ::ActionSubscriber.auto_subscribe!
-      ::ActionSubscriber::Publisher.publish("kyle.inference.yo", "YO", "events")
-      ::ActionSubscriber::Publisher.publish("other_routing_key.hey", "HEY", "events")
+      ::ActivePublisher.publish("kyle.inference.yo", "YO", "events")
+      ::ActivePublisher.publish("other_routing_key.hey", "HEY", "events")
 
       verify_expectation_within(2.0) do
         expect($messages).to eq(Set.new(["YO","HEY"]))

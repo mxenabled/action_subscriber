@@ -20,7 +20,7 @@ describe "Payload Decoding", :integration => true do
 
   it "decodes json by default" do
     ::ActionSubscriber.auto_subscribe!
-    ::ActionSubscriber::Publisher.publish("twitter.tweet", json_string, "events", :content_type => "application/json")
+    ::ActivePublisher.publish("twitter.tweet", json_string, "events", :content_type => "application/json")
 
     verify_expectation_within(2.0) do
       expect($messages).to eq Set.new([{
@@ -38,7 +38,7 @@ describe "Payload Decoding", :integration => true do
 
     it "it decodes the payload using the custom decoder" do
       ::ActionSubscriber.auto_subscribe!
-      ::ActionSubscriber::Publisher.publish("twitter.tweet", json_string, "events", :content_type => content_type)
+      ::ActivePublisher.publish("twitter.tweet", json_string, "events", :content_type => content_type)
 
       verify_expectation_within(2.0) do
         expect($messages).to eq Set.new([{

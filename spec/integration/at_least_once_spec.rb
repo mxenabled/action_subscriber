@@ -17,7 +17,7 @@ describe "at_least_once! mode", :integration => true do
 
   it "retries a failed job until it succeeds" do
     ::ActionSubscriber.auto_subscribe!
-    ::ActionSubscriber::Publisher.publish("gorby_puff.grumpy", "GrumpFace", "events")
+    ::ActivePublisher.publish("gorby_puff.grumpy", "GrumpFace", "events")
 
     verify_expectation_within(2.0) do
       expect($messages).to eq Set.new(["GrumpFace::0","GrumpFace::1","GrumpFace::2"])

@@ -17,7 +17,7 @@ describe "at_most_once! mode", :integration => true do
 
   it "does not retry a failed message" do
     ::ActionSubscriber.auto_subscribe!
-    ::ActionSubscriber::Publisher.publish("pokemon.caught_em_all", "All Pokemon have been caught", "events")
+    ::ActivePublisher.publish("pokemon.caught_em_all", "All Pokemon have been caught", "events")
 
     verify_expectation_within(1.0) do
       expect($messages.size).to eq 1
