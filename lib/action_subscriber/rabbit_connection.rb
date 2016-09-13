@@ -3,29 +3,7 @@ require 'thread'
 module ActionSubscriber
   module RabbitConnection
     SUBSCRIBER_CONNECTION_MUTEX = ::Mutex.new
-    PUBLISHER_CONNECTION_MUTEX = ::Mutex.new
     NETWORK_RECOVERY_INTERVAL = 1.freeze
-
-    def self.publisher_connected?
-      publisher_connection.try(:connected?)
-    end
-
-    def self.publisher_connection
-      SUBSCRIBER_CONNECTION_MUTEX.synchronize do
-        return @publisher_connection if @publisher_connection
-        @publisher_connection = create_connection
-      end
-    end
-
-    def self.publisher_disconnect!
-      SUBSCRIBER_CONNECTION_MUTEX.synchronize do
-        if @publisher_connection && @publisher_connection.connected?
-          @publisher_connection.close
-        end
-
-        @publisher_connection = nil
-      end
-    end
 
     def self.subscriber_connected?
       subscriber_connection.try(:connected?)
@@ -42,6 +20,9 @@ module ActionSubscriber
       SUBSCRIBER_CONNECTION_MUTEX.synchronize do
         if @subscriber_connection && @subscriber_connection.connected?
           @subscriber_connection.close
+          loop do
+            break if @subscriber_connection.closed?
+          end
         end
 
         @subscriber_connection = nil

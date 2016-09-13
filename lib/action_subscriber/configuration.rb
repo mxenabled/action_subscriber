@@ -4,10 +4,6 @@ require "action_subscriber/uri"
 module ActionSubscriber
   class Configuration
     attr_accessor :allow_low_priority_methods,
-                  :async_publisher,
-                  :async_publisher_drop_messages_when_queue_full,
-                  :async_publisher_max_queue_size,
-                  :async_publisher_supervisor_interval,
                   :decoder,
                   :default_exchange,
                   :error_handler,
@@ -19,7 +15,6 @@ module ActionSubscriber
                   :pop_interval,
                   :port,
                   :prefetch,
-                  :publisher_confirms,
                   :seconds_to_wait_for_graceful_shutdown,
                   :username,
                   :threadpool_size,
@@ -31,10 +26,6 @@ module ActionSubscriber
 
     DEFAULTS = {
       :allow_low_priority_methods => false,
-      :async_publisher => 'memory',
-      :async_publisher_drop_messages_when_queue_full => false,
-      :async_publisher_max_queue_size => 1_000_000,
-      :async_publisher_supervisor_interval => 200, # in milliseconds
       :default_exchange => 'events',
       :heartbeat => 5,
       :host => 'localhost',
@@ -43,7 +34,6 @@ module ActionSubscriber
       :pop_interval => 100, # in milliseconds
       :port => 5672,
       :prefetch => 5,
-      :publisher_confirms => false,
       :seconds_to_wait_for_graceful_shutdown => 30,
       :threadpool_size => 8,
       :timeout => 1,

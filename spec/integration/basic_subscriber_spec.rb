@@ -13,7 +13,7 @@ describe "A Basic Subscriber", :integration => true do
 
   context "ActionSubscriber.auto_pop!" do
     it "routes messages to the right place" do
-      ::ActionSubscriber::Publisher.publish("basic_push.booked", "Ohai Booked", "events")
+      ::ActivePublisher.publish("basic_push.booked", "Ohai Booked", "events")
 
       verify_expectation_within(2.0) do
         ::ActionSubscriber.auto_pop!
@@ -25,7 +25,7 @@ describe "A Basic Subscriber", :integration => true do
   context "ActionSubscriber.auto_subscribe!" do
     it "routes messages to the right place" do
       ::ActionSubscriber.auto_subscribe!
-      ::ActionSubscriber::Publisher.publish("basic_push.booked", "Ohai Booked", "events")
+      ::ActivePublisher.publish("basic_push.booked", "Ohai Booked", "events")
 
       verify_expectation_within(2.0) do
         expect($messages).to eq(Set.new(["Ohai Booked"]))
