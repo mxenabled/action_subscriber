@@ -8,7 +8,6 @@ module ActionSubscriber
 
     DEFAULT_SETTINGS = {
       :acknowledgements => false,
-      :connection => ::ActionSubscriber::RabbitConnection.subscriber_connection,
       :durable => false,
       :exchange => "events",
     }.freeze

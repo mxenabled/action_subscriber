@@ -7,7 +7,6 @@ class GusSubscriber < ActionSubscriber::Base
 end
 
 describe "Automatically reconnect on connection failure", :integration => true, :slow => true do
-  let(:connection) { subscriber.connection }
   let(:draw_routes) do
     ::ActionSubscriber.draw_routes do
       default_routes_for GusSubscriber
@@ -26,7 +25,7 @@ describe "Automatically reconnect on connection failure", :integration => true, 
     close_all_connections!
     sleep 5.0
     verify_expectation_within(5.0) do
-      expect(connection).to be_open
+      expect(::ActionSubscriber::RabbitConnection.with_connection{|connection| connection.open?}).to eq(true)
     end
 
     ::ActivePublisher.publish("gus.spoke", "Second", "events")

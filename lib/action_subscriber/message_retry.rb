@@ -46,7 +46,7 @@ module ActionSubscriber
     end
 
     def self.with_exchange(env, ttl, retry_queue_name)
-      channel = RabbitConnection.subscriber_connection.create_channel
+      channel = RabbitConnection.with_connection{|connection| connection.create_channel}
       begin
         channel.confirm_select
         # an empty string is the default exchange [see bunny docs](http://rubybunny.info/articles/exchanges.html#default_exchange)

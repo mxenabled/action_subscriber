@@ -24,7 +24,6 @@ RSpec.configure do |config|
   config.before(:each, :integration => true) do
     $messages = Set.new
     draw_routes
-    ::ActionSubscriber::RabbitConnection.subscriber_connection
     ::ActionSubscriber.setup_subscriptions!
   end
   config.after(:each, :integration => true) do

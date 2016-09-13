@@ -26,10 +26,6 @@ module ActionSubscriber
     # Class Methods
     #
 
-    def self.connection
-      ::ActionSubscriber::RabbitConnection.subscriber_connection
-    end
-
     # Inherited callback, save a reference to our descendents
     #
     def self.inherited(klass)

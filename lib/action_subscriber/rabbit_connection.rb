@@ -6,14 +6,7 @@ module ActionSubscriber
     NETWORK_RECOVERY_INTERVAL = 1.freeze
 
     def self.subscriber_connected?
-      subscriber_connection.try(:connected?)
-    end
-
-    def self.subscriber_connection
-      SUBSCRIBER_CONNECTION_MUTEX.synchronize do
-        return @subscriber_connection if @subscriber_connection
-        @subscriber_connection = create_connection
-      end
+      @subscriber_connection.try(:connected?)
     end
 
     def self.subscriber_disconnect!
@@ -26,6 +19,12 @@ module ActionSubscriber
         end
 
         @subscriber_connection = nil
+      end
+    end
+
+    def self.with_connection
+      SUBSCRIBER_CONNECTION_MUTEX.synchronize do
+        yield(subscriber_connection)
       end
     end
 
@@ -56,5 +55,11 @@ module ActionSubscriber
       }
     end
     private_class_method :connection_options
+
+    def self.subscriber_connection
+      return @subscriber_connection if @subscriber_connection
+      @subscriber_connection = create_connection
+    end
+    private_class_method :subscriber_connection
   end
 end
