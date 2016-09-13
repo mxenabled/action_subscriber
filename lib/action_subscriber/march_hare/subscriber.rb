@@ -92,8 +92,6 @@ module ActionSubscriber
         ::ActiveSupport::Notifications.instrument "process_event.action_subscriber", :subscriber => env.subscriber.to_s, :routing_key => env.routing_key, :queue => env.queue do
           ::ActionSubscriber.config.middleware.call(env)
         end
-      rescue
-        #no-op
       end
 
       def _normalized_headers(metadata)
