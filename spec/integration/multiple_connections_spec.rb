@@ -3,7 +3,6 @@ class MultipleConnectionsSubscriber < ::ActionSubscriber::Base
   at_least_once!
 
   def burp
-    sleep 0.1
     MUTEX.synchronize do
       $messages << payload
     end
@@ -26,12 +25,12 @@ describe "Separate connections to get multiple threadpools", :integration => tru
 
   it "spreads the load across multiple threadpools and consumer" do
     ::ActionSubscriber.auto_subscribe!
-    1.upto(2_800).each do |i|
-      ::ActivePublisher.publish("multiple_connections.burp", "belch #{i}", "events")
+    1.upto(10).each do |i|
+      ::ActivePublisher.publish("multiple_connections.burp", "belch#{i}", "events")
     end
 
-    verify_expectation_within(18.0) do
-      expect($messages.size).to eq(2_800)
+    verify_expectation_within(5.0) do
+      expect($messages).to eq(Set.new(["belch1", "belch2", "belch3", "belch4", "belch5", "belch6", "belch7", "belch8", "belch9", "belch10"]))
     end
   end
 end
