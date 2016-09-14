@@ -30,7 +30,7 @@ describe "Separate connections to get multiple threadpools", :integration => tru
       ::ActivePublisher.publish("multiple_connections.burp", "belch #{i}", "events")
     end
 
-    verify_expectation_within(12.0) do
+    verify_expectation_within(18.0) do
       expect($messages.size).to eq(2_800)
     end
   end
