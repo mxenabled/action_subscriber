@@ -25,7 +25,7 @@ describe "Automatically reconnect on connection failure", :integration => true, 
     close_all_connections!
     sleep 5.0
     verify_expectation_within(5.0) do
-      expect(::ActionSubscriber::RabbitConnection.with_connection{|connection| connection.open?}).to eq(true)
+      expect(::ActionSubscriber::RabbitConnection.with_connection(:default){|connection| connection.open?}).to eq(true)
     end
 
     ::ActivePublisher.publish("gus.spoke", "Second", "events")

@@ -1,11 +1,11 @@
 module ActionSubscriber
   module DefaultRouting
-    def routes
+    def routes(route_settings)
       @routes ||= begin
         routes = []
         exchange_names.each do |exchange_name|
           subscribable_methods.each do |method_name|
-            routes << ActionSubscriber::Route.new({
+            settings = {
               acknowledgements: acknowledge_messages?,
               action: method_name,
               durable: false,
@@ -13,7 +13,9 @@ module ActionSubscriber
               routing_key: routing_key_name_for_method(method_name),
               subscriber: self,
               queue: queue_name_for_method(method_name),
-            })
+            }
+            settings.merge!(route_settings)
+            routes << ActionSubscriber::Route.new(settings)
           end
         end
         routes

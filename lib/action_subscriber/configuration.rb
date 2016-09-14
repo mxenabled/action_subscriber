@@ -33,7 +33,7 @@ module ActionSubscriber
       :mode => 'subscribe',
       :pop_interval => 100, # in milliseconds
       :port => 5672,
-      :prefetch => 5,
+      :prefetch => 2,
       :seconds_to_wait_for_graceful_shutdown => 30,
       :threadpool_size => 8,
       :timeout => 1,

@@ -78,18 +78,20 @@ module ActionSubscriber
     end
   end
 
+  def self.setup_default_connection!
+    ::ActionSubscriber::RabbitConnection.setup_connection(:default, {})
+  end
+
   def self.setup_subscriptions!
     route_set.setup_subscriptions!
   end
 
   def self.start_queues
-    ::ActionSubscriber::RabbitConnection.subscriber_connection
     setup_subscriptions!
     print_subscriptions
   end
 
   def self.start_subscribers
-    ::ActionSubscriber::RabbitConnection.subscriber_connection
     setup_subscriptions!
     auto_subscribe!
     print_subscriptions

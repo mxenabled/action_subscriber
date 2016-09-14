@@ -12,6 +12,17 @@ module ActionSubscriber
       :exchange => "events",
     }.freeze
 
+    def initialize
+      @current_connection_name = :default
+    end
+
+    def connection(name, settings)
+      ::ActionSubscriber::RabbitConnection.setup_connection(name, settings)
+      @current_connection_name = name
+      yield
+      @current_connection_name = :default
+    end
+
     def default_routing_key_for(route_settings)
       [
         route_settings[:publisher],
@@ -30,7 +41,7 @@ module ActionSubscriber
     end
 
     def default_routes_for(subscriber)
-      subscriber.routes.each do |route|
+      subscriber.routes({:connection_name => @current_connection_name}).each do |route|
         routes << route
       end
     end
@@ -40,7 +51,7 @@ module ActionSubscriber
     end
 
     def route(subscriber, action, options = {})
-      route_settings = DEFAULT_SETTINGS.merge(options).merge(:subscriber => subscriber, :action => action)
+      route_settings = DEFAULT_SETTINGS.merge(:connection_name => @current_connection_name).merge(options).merge(:subscriber => subscriber, :action => action)
       route_settings[:routing_key] ||= default_routing_key_for(route_settings)
       route_settings[:queue] ||= default_queue_for(route_settings)
       routes << Route.new(route_settings)

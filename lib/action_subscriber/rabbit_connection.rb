@@ -5,35 +5,38 @@ module ActionSubscriber
     SUBSCRIBER_CONNECTION_MUTEX = ::Mutex.new
     NETWORK_RECOVERY_INTERVAL = 1.freeze
 
+    def self.setup_connection(name, settings)
+      SUBSCRIBER_CONNECTION_MUTEX.synchronize do
+        fail ArgumentError, "a #{name} connection already exists" if subscriber_connections[name]
+        subscriber_connections[name] = create_connection(settings)
+      end
+    end
+
     def self.subscriber_connected?
-      @subscriber_connection.try(:connected?)
+      subscriber_connections.all?{|_name, connection| connection.connected?}
     end
 
     def self.subscriber_disconnect!
       SUBSCRIBER_CONNECTION_MUTEX.synchronize do
-        if @subscriber_connection && @subscriber_connection.connected?
-          @subscriber_connection.close
-          loop do
-            break if @subscriber_connection.closed?
-          end
-        end
-
-        @subscriber_connection = nil
+        subscriber_connections.each{|_name, connection| connection.close}
+        @subscriber_connections = []
       end
     end
 
-    def self.with_connection
+    def self.with_connection(name)
       SUBSCRIBER_CONNECTION_MUTEX.synchronize do
-        yield(subscriber_connection)
+        fail ArgumentError, "there is no connection named #{name}" unless subscriber_connections[name]
+        yield(subscriber_connections[name])
       end
     end
 
     # Private API
-    def self.create_connection
+    def self.create_connection(settings)
+      options = connection_options.merge(settings)
       if ::RUBY_PLATFORM == "java"
-        connection = ::MarchHare.connect(connection_options)
+        connection = ::MarchHare.connect(options)
       else
-        connection = ::Bunny.new(connection_options)
+        connection = ::Bunny.new(options)
         connection.start
         connection
       end
@@ -42,24 +45,24 @@ module ActionSubscriber
 
     def self.connection_options
       {
+        :automatically_recover         => true,
         :continuation_timeout          => ::ActionSubscriber.configuration.timeout * 1_000.0, #convert sec to ms
         :heartbeat                     => ::ActionSubscriber.configuration.heartbeat,
         :hosts                         => ::ActionSubscriber.configuration.hosts,
+        :network_recovery_interval     => NETWORK_RECOVERY_INTERVAL,
         :pass                          => ::ActionSubscriber.configuration.password,
         :port                          => ::ActionSubscriber.configuration.port,
+        :recover_from_connection_close => true,
+        :threadpool_size               => ::ActionSubscriber.configuration.threadpool_size,
         :user                          => ::ActionSubscriber.configuration.username,
         :vhost                         => ::ActionSubscriber.configuration.virtual_host,
-        :automatically_recover         => true,
-        :network_recovery_interval     => NETWORK_RECOVERY_INTERVAL,
-        :recover_from_connection_close => true,
       }
     end
     private_class_method :connection_options
 
-    def self.subscriber_connection
-      return @subscriber_connection if @subscriber_connection
-      @subscriber_connection = create_connection
+    def self.subscriber_connections
+      @subscriber_connections ||= {}
     end
-    private_class_method :subscriber_connection
+    private_class_method :subscriber_connections
   end
 end
