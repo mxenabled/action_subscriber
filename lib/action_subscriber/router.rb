@@ -40,8 +40,9 @@ module ActionSubscriber
       ].compact.join(".")
     end
 
-    def default_routes_for(subscriber)
-      subscriber.routes({:connection_name => @current_connection_name}).each do |route|
+    def default_routes_for(subscriber, options = {})
+      options = options.merge({:connection_name => @current_connection_name})
+      subscriber.routes(options).each do |route|
         routes << route
       end
     end
