@@ -1,3 +1,3 @@
 module ActionSubscriber
-  VERSION = "2.5.0.pre2"
+  VERSION = "3.0.0.pre1"
 end
