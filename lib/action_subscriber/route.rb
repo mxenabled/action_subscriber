@@ -2,13 +2,14 @@ module ActionSubscriber
   class Route
     attr_reader :acknowledgements,
                 :action,
-                :durable, 
+                :durable,
                 :exchange,
                 :prefetch,
                 :queue,
                 :routing_key,
                 :subscriber,
-                :threadpool
+                :threadpool,
+                :middleware
 
     def initialize(attributes)
       @acknowledgements = attributes.fetch(:acknowledgements)
@@ -20,6 +21,7 @@ module ActionSubscriber
       @routing_key = attributes.fetch(:routing_key)
       @subscriber = attributes.fetch(:subscriber)
       @threadpool = attributes.fetch(:threadpool) { ::ActionSubscriber::Threadpool.pool(:default) }
+      @middleware = attributes.fetch(:middleware) { ::ActionSubscriber.config.middleware.forked }
     end
 
     def acknowledgements?
@@ -29,5 +31,10 @@ module ActionSubscriber
     def queue_subscription_options
       { :manual_ack => acknowledgements? }
     end
+
+    delegate :use, :to => :middleware
+    delegate :insert, :to => :middleware
+    delegate :insert_after, :to => :middleware
+    delegate :insert_before, :to => :middleware
   end
 end

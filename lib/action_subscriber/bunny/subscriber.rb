@@ -37,6 +37,7 @@ module ActionSubscriber
               :message_id => nil,
               :routing_key => delivery_info.routing_key,
               :queue => queue.name,
+              :middleware => route.middleware
             }
             env = ::ActionSubscriber::Middleware::Env.new(route.subscriber, encoded_payload, properties)
             enqueue_env(route.threadpool, env)
@@ -61,6 +62,7 @@ module ActionSubscriber
               :message_id => properties.message_id,
               :routing_key => delivery_info.routing_key,
               :queue => queue.name,
+              :middleware => route.middleware
             }
             env = ::ActionSubscriber::Middleware::Env.new(route.subscriber, encoded_payload, properties)
             enqueue_env(route.threadpool, env)
@@ -76,7 +78,7 @@ module ActionSubscriber
         logger.info "RECEIVED #{env.message_id} from #{env.queue}"
         threadpool.async(env) do |env|
           ::ActiveSupport::Notifications.instrument "process_event.action_subscriber", :subscriber => env.subscriber.to_s, :routing_key => env.routing_key, :queue => env.queue do
-            ::ActionSubscriber.config.middleware.call(env)
+            env.middleware.call(env)
           end
         end
       end

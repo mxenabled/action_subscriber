@@ -38,9 +38,26 @@ The `route` method supports the following options:
 * `exchange` specify which exchange you expect messages to be published to (default `"events"`)
   * This is the equivalent of calling `exchange :actions` in your subscriber
 * `publisher` this will prefix your queue and routing key with the publishers name
-  * This is the equivalent of puting `publisher :foo` in your subscriber
+  * This is the equivalent of putting `publisher :foo` in your subscriber
 * `queue` specifies which queue you will subscribe to rather than letting ActionSubscriber infer it from the name of the subscriber and action
 * `routing_key` specifies the routing key that will be bound to your queue
+* `stack` Lets you use a custom middleware stack you already defined using the stack method
+
+## Middleware Stacks
+
+This give you the ability to build and apply a middleware stack on a per route basis.
+
+``` ruby
+::ActionSubscriber.draw_routes do
+  stack :resourceful do
+    use ParseResourcePayload
+    use LoadResource
+  end
+
+  default_routes_for ::UserSubscriber
+  route ::NotificationSubscriber, :created, :publisher => :newman, :exchange => :events, :stack => :resourceful
+end
+```
 
 <h3 id="footnotes">Footnotes</h3>
 

@@ -2,6 +2,7 @@ module ActionSubscriber
   class Router
     def self.draw_routes(&block)
       router = self.new
+      ::ActiveSupport.run_load_hooks(:action_subscriber_routes, router)
       router.instance_eval(&block)
       router.routes
     end
@@ -39,11 +40,22 @@ module ActionSubscriber
       route_settings[:subscriber].name.underscore.gsub(/_subscriber/, "").to_s
     end
 
-    def route(subscriber, action, options = {})
+    def stack(name, &block)
+      stacks[name] ||= ::ActionSubscriber.config.middleware.forked.instance_eval(&block)
+    end
+
+    def stacks
+      @stacks ||= {}
+    end
+
+    def route(subscriber, action, options = {}, &block)
       route_settings = DEFAULT_SETTINGS.merge(options).merge(:subscriber => subscriber, :action => action)
       route_settings[:routing_key] ||= default_routing_key_for(route_settings)
       route_settings[:queue] ||= default_queue_for(route_settings)
-      routes << Route.new(route_settings)
+      route_settings[:middleware] = stacks[options[:stack]] if options.key?(:stack)
+      _route = Route.new(route_settings)
+      _route.instance_eval(&block) if block_given?
+      routes << _route
     end
 
     def routes
