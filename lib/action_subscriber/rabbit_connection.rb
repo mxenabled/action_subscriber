@@ -13,13 +13,15 @@ module ActionSubscriber
     end
 
     def self.subscriber_connected?
-      subscriber_connections.all?{|_name, connection| connection.connected?}
+      SUBSCRIBER_CONNECTION_MUTEX.synchronize do
+        subscriber_connections.all?{|_name, connection| connection.connected?}
+      end
     end
 
     def self.subscriber_disconnect!
       SUBSCRIBER_CONNECTION_MUTEX.synchronize do
         subscriber_connections.each{|_name, connection| connection.close}
-        @subscriber_connections = []
+        @subscriber_connections = {}
       end
     end
 
