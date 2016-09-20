@@ -19,4 +19,19 @@ describe ActionSubscriber::Middleware::ErrorHandler do
       subject.call(env)
     end
   end
+
+  context "many concurrent threads" do
+    it "handles the race conditions without raising exceptions" do
+      no_op = lambda{ nil }
+      threads = 1.upto(100).map do
+        ::Thread.new do
+          ::Thread.current.abort_on_exception = true
+          100.times do
+            described_class.new(no_op).call(env)
+          end
+        end
+      end
+      threads.each(&:join)
+    end
+  end
 end

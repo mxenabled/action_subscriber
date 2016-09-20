@@ -33,8 +33,10 @@ RSpec.configure do |config|
     ::ActionSubscriber.instance_variable_set("@route_set_block", nil)
   end
   config.after(:suite) do
-    ::ActionSubscriber.stop_subscribers!
-    ::ActionSubscriber::RabbitConnection.subscriber_disconnect!
+    if ::ActionSubscriber.instance_variable_get("@route_set")
+      ::ActionSubscriber.stop_subscribers!
+      ::ActionSubscriber::RabbitConnection.subscriber_disconnect!
+    end
   end
 end
 
