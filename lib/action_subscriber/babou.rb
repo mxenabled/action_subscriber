@@ -7,7 +7,7 @@ module ActionSubscriber
     def self.auto_pop!
       @pop_mode = true
       reload_active_record
-      load_subscribers unless subscribers_loaded?
+      ::ActionSubscriber.setup_default_connection!
       sleep_time = ::ActionSubscriber.configuration.pop_interval.to_i / 1000.0
 
       ::ActionSubscriber.start_queues
@@ -30,7 +30,7 @@ module ActionSubscriber
     def self.start_subscribers
       @prowl_mode = true
       reload_active_record
-      load_subscribers unless subscribers_loaded?
+      ::ActionSubscriber.setup_default_connection!
 
       ::ActionSubscriber.start_subscribers
       logger.info "Action Subscriber connected"
@@ -43,29 +43,6 @@ module ActionSubscriber
 
     def self.prowl?
       !!@prowl_mode
-    end
-
-    def self.load_subscribers
-      subscription_paths = ["subscriptions", "subscribers"]
-      path_prefixes = ["lib", "app"]
-      cloned_paths = subscription_paths.dup
-
-      path_prefixes.each do |prefix|
-        cloned_paths.each { |path| subscription_paths << "#{prefix}/#{path}" }
-      end
-
-      absolute_subscription_paths = subscription_paths.map{ |path| ::File.expand_path(path) }
-      absolute_subscription_paths.each do |path|
-        if ::File.exists?("#{path}.rb")
-          load("#{path}.rb")
-        end
-
-        if ::File.directory?(path)
-          ::Dir[::File.join(path, "**", "*.rb")].sort.each do |file|
-            load file
-          end
-        end
-      end
     end
 
     def self.logger
@@ -107,10 +84,6 @@ module ActionSubscriber
       end
 
       puts "threadpool empty. Shutting down"
-    end
-
-    def self.subscribers_loaded?
-      !::ActionSubscriber::Base.inherited_classes.empty?
     end
   end
 end

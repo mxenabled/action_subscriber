@@ -22,7 +22,7 @@ describe "Manual Message Acknowledgment", :integration => true do
 
   it "retries rejected messages and stops retrying acknowledged messages" do
     ::ActionSubscriber.auto_subscribe!
-    ::ActionSubscriber::Publisher.publish("bacon.served", "BACON!", "events")
+    ::ActivePublisher.publish("bacon.served", "BACON!", "events")
 
     verify_expectation_within(2.0) do
       expect($messages).to eq(Set.new(["BACON!::0", "BACON!::1", "BACON!::2"]))

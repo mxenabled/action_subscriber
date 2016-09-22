@@ -18,11 +18,11 @@ describe "Separate Threadpools for Different Message", :integration => true do
   end
 
   it "processes messages in separate threadpools based on the routes" do
-    ::ActionSubscriber.auto_subscribe!
-    ::ActionSubscriber::Publisher.publish("different_threadpools.one", "ONE", "events")
-    ::ActionSubscriber::Publisher.publish("different_threadpools.two", "TWO", "events")
+    ::ActivePublisher.publish("different_threadpools.one", "ONE", "events")
+    ::ActivePublisher.publish("different_threadpools.two", "TWO", "events")
 
     verify_expectation_within(2.0) do
+      ::ActionSubscriber.auto_pop!
       expect($messages).to eq(Set.new(["ONE","TWO"]))
     end
   end
