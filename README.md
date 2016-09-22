@@ -24,8 +24,6 @@ A subscriber is set up by creating a class that inherits from ActionSubscriber::
 
 ```ruby
 class UserSubscriber < ::ActionSubscriber::Base
-  publisher :user_hq
-
   def created
     # do something when a user is created
   end
@@ -36,35 +34,29 @@ checkout the examples dir for more detailed examples.
 
 Usage
 -----------------
-ActionSubscriber is inspired by rails observers, and if you are familiar with rails
-observers the ActionSubscriber DSL should make you feel right at home!
 
-First, create a subscriber the inherits from ActionSubscriber::Base
-
-Then, when your app starts up, you will need to load your subscriber code and then do
+In your application setup you will draw your subscription routes. In a rails app this is usually done in `config/initializers/action_subscriber.rb`.
 
 ```ruby
-ActionSubscriber.start_subscribers
-while true
-  sleep 1.0
+::ActionSubscriber.draw_routes do
+  # you can define routes one-by-one for fine-grained controled
+  route UserSubscriber, :created
+
+  # or you can setup default routes for all the public methods in a subscriber
+  default_routes_for UserSubscriber
 end
 ```
 
-or
+Now you can start your subscriber process with:
 
-```ruby
-::ActionSubscriber.start_queues
-while true
-  ::ActionSubscriber.auto_pop!
-  sleep 1.0
-end
+
+```
+$ bundle exec action_subscriber start --mode=subscribe
 ```
 
-Any public methods on your subscriber will be registered as queues with rabbit with
-routing keys named intelligently.
+This will start your subscribers in a mode where they connect to rabbitmq and let the broker push messages down to them.
 
-Once ActionSubscriber receives a message, it will call the associated method and the
-parameter you recieve will be a decoded message.
+You can also start in `--mode=pop` where your process will poll the broker for messages.
 
 Configuration
 -----------------
@@ -80,11 +72,11 @@ In an initializer, you can set the host and the port like this :
 Other configuration options include :
 
 * config.add_decoder - add a custom decoder for a custom content type
-* config.allow_low_priority_methods - subscribe to queues for methods suffixed with "_low"
 * config.default_exchange - set the default exchange that your queues will use, using the default RabbitMQ exchange is not recommended
 * config.error_handler - handle error like you want to handle them!
 * config.heartbeat - number of seconds between hearbeats (default 5) [see bunny documentation for more details](http://rubybunny.info/articles/connecting.html)
-* config.hosts - an array of hostnames in your cluster
+* config.hosts - an array of hostnames in your cluster (ie `["rabbit1.myapp.com", "rabbit2.myapp.com"]`)
+* config.pop_interval - how long to wait between polling for messages in `--mode=pop`. It should be a number of milliseconds
 * config.threadpool_size - set the number of threads availiable to action_subscriber
 * config.timeout - how many seconds to allow rabbit to respond before timing out
 * config.times_to_pop - when using RabbitMQ's pull API, the number of messages we will grab each time we pool the broker
