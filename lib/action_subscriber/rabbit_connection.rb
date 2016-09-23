@@ -5,6 +5,16 @@ module ActionSubscriber
     SUBSCRIBER_CONNECTION_MUTEX = ::Mutex.new
     NETWORK_RECOVERY_INTERVAL = 1.freeze
 
+    def self.connection_threadpools
+      if ::RUBY_PLATFORM == "java"
+        subscriber_connections.each_with_object({}) do |(name, connection), hash|
+          hash[name] = connection.instance_variable_get("@executor")
+        end
+      else
+        [] # TODO can I get a hold of the thredpool that bunny uses?
+      end
+    end
+
     def self.setup_connection(name, settings)
       SUBSCRIBER_CONNECTION_MUTEX.synchronize do
         fail ArgumentError, "a #{name} connection already exists" if subscriber_connections[name]
