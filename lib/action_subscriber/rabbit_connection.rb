@@ -36,6 +36,9 @@ module ActionSubscriber
     def self.create_connection(settings)
       options = connection_options.merge(settings)
       if ::RUBY_PLATFORM == "java"
+        options[:executor_factory] = ::Proc.new do
+          ::MarchHare::ThreadPools.fixed_of_size(options[:threadpool_size])
+        end
         connection = ::MarchHare.connect(options)
       else
         connection = ::Bunny.new(options)
