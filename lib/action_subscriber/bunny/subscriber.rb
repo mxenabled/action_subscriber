@@ -73,6 +73,15 @@ module ActionSubscriber
         end
       end
 
+      def wait_to_finish_with_timeout(timeout)
+        puts <<-MSG
+          Currently bunny doesn't have any sort of a graceful shutdown or
+          the ability to check on the status of its ConsumerWorkPool objects.
+          For now we just wait for #{timeout}sec to let the worker pools drain.
+        MSG
+        sleep(timeout)
+      end
+
       private
 
       def enqueue_env(threadpool, env)

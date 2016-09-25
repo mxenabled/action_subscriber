@@ -101,6 +101,12 @@ module ActionSubscriber
     route_set.cancel_consumers!
   end
 
+  def self.wait_for_threadpools_to_finish_with_timeout(timeout)
+    puts "waiting for threadpools to empty (maximum wait of #{::ActionSubscriber.configuration.seconds_to_wait_for_graceful_shutdown}sec)"
+    ::ActionSubscriber::Threadpool.wait_to_finish_with_timeout(timeout)
+    route_set.wait_to_finish_with_timeout(timeout)
+  end
+
   # Execution is delayed until after app loads when used with bin/action_subscriber
   require "action_subscriber/railtie" if defined?(Rails)
   ::ActiveSupport.run_load_hooks(:action_subscriber, Base)
