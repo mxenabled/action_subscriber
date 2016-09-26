@@ -7,12 +7,6 @@ module ActionSubscriber
         march_hare_consumers.each(&:cancel)
       end
 
-      def create_queue(channel, queue_name, queue_options)
-        queue = ::MarchHare::Queue.new(channel, queue_name, queue_options)
-        queue.declare!
-        queue
-      end
-
       def march_hare_consumers
         @march_hare_consumers ||= []
       end
@@ -29,6 +23,18 @@ module ActionSubscriber
             logger.info "    --       queue: #{route.queue}"
             logger.info "    -- routing_key: #{route.routing_key}"
             logger.info "    --    prefetch: #{route.prefetch} per consumer (#{route.prefetch * route.concurrency} total)"
+          end
+        end
+      end
+
+      def setup_subscriptions!
+        fail ::RuntimeError, "you cannot setup queues multiple times, this should only happen once at startup" unless subscriptions.empty?
+        routes.each do |route|
+          route.concurrency.times do
+            subscriptions << {
+              :route => route,
+              :queue => setup_queue(route),
+            }
           end
         end
       end
@@ -81,11 +87,12 @@ module ActionSubscriber
 
       private
 
-      def run_env(env)
-        logger.info "RECEIVED #{env.message_id} from #{env.queue}"
-        ::ActiveSupport::Notifications.instrument "process_event.action_subscriber", :subscriber => env.subscriber.to_s, :routing_key => env.routing_key, :queue => env.queue do
-          ::ActionSubscriber.config.middleware.call(env)
-        end
+      def setup_queue(route)
+        channel = ::ActionSubscriber::RabbitConnection.with_connection(route.connection_name){ |connection| connection.create_channel }
+        exchange = channel.topic(route.exchange)
+        queue = channel.queue(route.queue, :durable => route.durable)
+        queue.bind(exchange, :routing_key => route.routing_key)
+        queue
       end
 
       def _normalized_headers(metadata)

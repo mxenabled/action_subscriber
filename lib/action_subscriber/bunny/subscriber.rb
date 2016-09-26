@@ -11,10 +11,6 @@ module ActionSubscriber
         bunny_consumers.each(&:cancel)
       end
 
-      def create_queue(channel, queue_name, queue_options)
-        ::Bunny::Queue.new(channel, queue_name, queue_options)
-      end
-
       def print_subscriptions
         routes.group_by(&:subscriber).each do |subscriber, routes|
           logger.info subscriber.name
@@ -26,7 +22,18 @@ module ActionSubscriber
             logger.info "    --       queue: #{route.queue}"
             logger.info "    -- routing_key: #{route.routing_key}"
             logger.info "    --    prefetch: #{route.prefetch}"
+            logger.error "WARNING having a prefetch lower than your concurrency will prevent your subscriber from fully utilizing its threadpool" if route.prefetch < route.concurrency
           end
+        end
+      end
+
+      def setup_subscriptions!
+        fail ::RuntimeError, "you cannot setup queues multiple times, this should only happen once at startup" unless subscriptions.empty?
+        routes.each do |route|
+          subscriptions << {
+            :route => route,
+            :queue => setup_queue(route),
+          }
         end
       end
 
@@ -69,11 +76,12 @@ module ActionSubscriber
 
       private
 
-      def run_env(env)
-        logger.info "RECEIVED #{env.message_id} from #{env.queue}"
-        ::ActiveSupport::Notifications.instrument "process_event.action_subscriber", :subscriber => env.subscriber.to_s, :routing_key => env.routing_key, :queue => env.queue do
-          ::ActionSubscriber.config.middleware.call(env)
-        end
+      def setup_queue(route)
+        channel = ::ActionSubscriber::RabbitConnection.with_connection(route.connection_name){ |connection| connection.create_channel(nil, route.concurrency) }
+        exchange = channel.topic(route.exchange)
+        queue = channel.queue(route.queue, :durable => route.durable)
+        queue.bind(exchange, :routing_key => route.routing_key)
+        queue
       end
     end
   end

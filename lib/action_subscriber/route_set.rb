@@ -12,31 +12,17 @@ module ActionSubscriber
       @routes = routes
     end
 
-    def setup_subscriptions!
-      fail ::RuntimeError, "you cannot setup queues multiple times, this should only happen once at startup" unless subscriptions.empty?
-      routes.each do |route|
-        route.concurrency.times do
-          subscriptions << {
-            :route => route,
-            :queue => setup_queue(route),
-          }
-        end
-      end
-    end
-
   private
 
     def subscriptions
       @subscriptions ||= []
     end
 
-    def setup_queue(route)
-      channel = ::ActionSubscriber::RabbitConnection.with_connection(route.connection_name){ |connection| connection.create_channel }
-      exchange = channel.topic(route.exchange)
-      # TODO go to back to the old way of creating a queue?
-      queue = create_queue(channel, route.queue, :durable => route.durable)
-      queue.bind(exchange, :routing_key => route.routing_key)
-      queue
+    def run_env(env)
+      logger.info "RECEIVED #{env.message_id} from #{env.queue}"
+      ::ActiveSupport::Notifications.instrument "process_event.action_subscriber", :subscriber => env.subscriber.to_s, :routing_key => env.routing_key, :queue => env.queue do
+        ::ActionSubscriber.config.middleware.call(env)
+      end
     end
   end
 end

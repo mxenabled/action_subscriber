@@ -34,10 +34,10 @@ module ActionSubscriber
     def self.stop_server!
       # this method is called from within a TRAP context so we can't use the logger
       @shutting_down = true
-      puts "Stopping subscribers..."
-      ::ActionSubscriber.stop_subscribers!
-      puts "Shutting down"
       ::Thread.new do
+        puts "Stopping subscribers..."
+        ::ActionSubscriber.stop_subscribers!
+        puts "Shutting down"
         ::ActionSubscriber::RabbitConnection.subscriber_disconnect!
       end.join
     end
