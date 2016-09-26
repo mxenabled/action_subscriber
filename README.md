@@ -51,12 +51,10 @@ Now you can start your subscriber process with:
 
 
 ```
-$ bundle exec action_subscriber start --mode=subscribe
+$ bundle exec action_subscriber
 ```
 
-This will start your subscribers in a mode where they connect to rabbitmq and let the broker push messages down to them.
-
-You can also start in `--mode=pop` where your process will poll the broker for messages.
+This will connect your subscribers to the rabbitmq broker and allow it to push messages down to your subscribers.
 
 Configuration
 -----------------
@@ -76,16 +74,18 @@ Other configuration options include :
 * config.error_handler - handle error like you want to handle them!
 * config.heartbeat - number of seconds between hearbeats (default 5) [see bunny documentation for more details](http://rubybunny.info/articles/connecting.html)
 * config.hosts - an array of hostnames in your cluster (ie `["rabbit1.myapp.com", "rabbit2.myapp.com"]`)
-* config.pop_interval - how long to wait between polling for messages in `--mode=pop`. It should be a number of milliseconds
 * config.threadpool_size - set the number of threads availiable to action_subscriber
 * config.timeout - how many seconds to allow rabbit to respond before timing out
-* config.times_to_pop - when using RabbitMQ's pull API, the number of messages we will grab each time we pool the broker
 
 Message Acknowledgment
 ----------------------
 ### no_acknolwedgement!
 
 This mode is the default. Rabbit is told to not expect any message acknowledgements so messages will be lost if an error occurs.
+This also allows the broker to send messages as quickly as it wants down to your subscriber.
+
+> Warning: If messages arrive very quickly this could cause your process to crash as your memory fills up with unprocessed message.
+> We highly recommend you use `at_least_once!` mode to provide a throttle so the broker does not overwhelm your process with messages.
 
 ### manual_acknowledgement!
 
@@ -97,7 +97,9 @@ Rabbit is told to expect message acknowledgements, but sending the acknowledgeme
 
 ### at_least_once!
 
-Rabbit is told to expect message acknowledgements, but sending the acknowledgement is left up to ActionSubscriber. We send the acknowledgement right after calling your subscriber. If an error is raised by your subscriber we reject the message instead of acknowledging it. Rejected messages go back to rabbit and will be re-delivered.
+Rabbit is told to expect message acknowledgements, but sending the acknowledgement is left up to ActionSubscriber.
+We send the acknowledgement right after calling your subscriber.
+If an error is raised your message will be retried on a sent back to rabbitmq and retried on an exponential backoff schedule.
 
 Testing
 -----------------
