@@ -21,7 +21,7 @@ describe "Manual Message Acknowledgment", :integration => true do
   let(:subscriber) { BaconSubscriber }
 
   it "retries rejected messages and stops retrying acknowledged messages" do
-    ::ActionSubscriber.auto_subscribe!
+    ::ActionSubscriber.start_subscribers!
     ::ActivePublisher.publish("bacon.served", "BACON!", "events")
 
     verify_expectation_within(2.0) do

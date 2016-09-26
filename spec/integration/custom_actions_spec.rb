@@ -14,7 +14,7 @@ describe "A subscriber with a custom action", :integration => true do
   end
 
   it "routes the message to the selected action" do
-    ::ActionSubscriber.auto_subscribe!
+    ::ActionSubscriber.start_subscribers!
     ::ActivePublisher.publish("react.javascript_framework", "Another?!?!", "events")
 
     verify_expectation_within(2.0) do

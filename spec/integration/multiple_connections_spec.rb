@@ -24,7 +24,7 @@ describe "Separate connections to get multiple threadpools", :integration => tru
   end
 
   it "spreads the load across multiple threadpools and consumer" do
-    ::ActionSubscriber.auto_subscribe!
+    ::ActionSubscriber.start_subscribers!
     1.upto(10).each do |i|
       ::ActivePublisher.publish("multiple_connections.burp", "belch#{i}", "events")
     end

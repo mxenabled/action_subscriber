@@ -28,12 +28,12 @@ RSpec.configure do |config|
     ::ActionSubscriber.setup_subscriptions!
   end
   config.after(:each, :integration => true) do
-    ::ActionSubscriber.stop_subscribers!
+    ::ActionSubscriber.stop_subscribers!(0.1)
     ::ActionSubscriber.instance_variable_set("@route_set", nil)
     ::ActionSubscriber.instance_variable_set("@route_set_block", nil)
   end
   config.after(:suite) do
-    ::ActionSubscriber.stop_subscribers!
+    ::ActionSubscriber.stop_subscribers!(0.1)
     ::ActionSubscriber::RabbitConnection.subscriber_disconnect!
   end
 end

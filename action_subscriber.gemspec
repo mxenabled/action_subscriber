@@ -26,7 +26,6 @@ Gem::Specification.new do |spec|
   else
     spec.add_dependency 'bunny', '>= 1.5.0'
   end
-  spec.add_dependency 'lifeguard', '>= 0.0.9'
   spec.add_dependency 'middleware'
   spec.add_dependency 'thor'
 

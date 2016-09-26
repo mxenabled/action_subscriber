@@ -13,17 +13,9 @@ describe "Custom Headers Are Published and Received", :integration => true do
     end
   end
   let(:headers) { { "Custom" => "content/header" } }
-
-  it "works for auto_pop!" do
-    ::ActivePublisher.publish("pikitis.prank.pulled", "Yo Knope!", "events", :headers => headers)
-    verify_expectation_within(2.0) do
-      ::ActionSubscriber.auto_pop!
-      expect($messages).to eq(Set.new([headers]))
-    end
-  end
-
-  it "works for auto_subscriber!" do
-    ::ActionSubscriber.auto_subscribe!
+  
+  it "passes custom headers through" do
+    ::ActionSubscriber.start_subscribers!
     ::ActivePublisher.publish("pikitis.prank.pulled", "Yo Knope!", "events", :headers => headers)
     verify_expectation_within(2.0) do
       expect($messages).to eq(Set.new([headers]))

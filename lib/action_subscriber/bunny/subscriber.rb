@@ -15,37 +15,7 @@ module ActionSubscriber
         ::Bunny::Queue.new(channel, queue_name, queue_options)
       end
 
-      def auto_pop!
-        # Because threadpools can be large we want to cap the number
-        # of times we will pop each time we poll the broker
-        times_to_pop = [::ActionSubscriber::Threadpool.ready_size, ::ActionSubscriber.config.times_to_pop].min
-        times_to_pop.times do
-          subscriptions.each do |subscription|
-            route = subscription[:route]
-            queue = subscription[:queue]
-            # Handle busy checks on a per threadpool basis
-            next if route.threadpool.busy?
-
-            delivery_info, properties, encoded_payload = queue.pop(route.queue_subscription_options)
-            next unless encoded_payload # empty queue
-            ::ActiveSupport::Notifications.instrument "popped_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
-            properties = {
-              :action => route.action,
-              :content_type => properties[:content_type],
-              :delivery_tag => delivery_info.delivery_tag,
-              :exchange => delivery_info.exchange,
-              :headers => properties.headers,
-              :message_id => nil,
-              :routing_key => delivery_info.routing_key,
-              :queue => queue.name,
-            }
-            env = ::ActionSubscriber::Middleware::Env.new(route.subscriber, encoded_payload, properties)
-            enqueue_env(route.threadpool, env)
-          end
-        end
-      end
-
-      def auto_subscribe!
+      def start_subscribers!
         subscriptions.each do |subscription|
           route = subscription[:route]
           queue = subscription[:queue]
@@ -83,15 +53,6 @@ module ActionSubscriber
       end
 
       private
-
-      def enqueue_env(threadpool, env)
-        logger.info "RECEIVED #{env.message_id} from #{env.queue}"
-        threadpool.async(env) do |env|
-          ::ActiveSupport::Notifications.instrument "process_event.action_subscriber", :subscriber => env.subscriber.to_s, :routing_key => env.routing_key, :queue => env.queue do
-            ::ActionSubscriber.config.middleware.call(env)
-          end
-        end
-      end
 
       def run_env(env)
         logger.info "RECEIVED #{env.message_id} from #{env.queue}"

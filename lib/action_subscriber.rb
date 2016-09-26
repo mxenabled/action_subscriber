@@ -5,7 +5,6 @@ if ::RUBY_PLATFORM == "java"
 else
   require "bunny"
 end
-require "lifeguard"
 require "middleware"
 require "thread"
 
@@ -28,28 +27,12 @@ require "action_subscriber/babou"
 require "action_subscriber/route"
 require "action_subscriber/route_set"
 require "action_subscriber/router"
-require "action_subscriber/threadpool"
 require "action_subscriber/base"
 
 module ActionSubscriber
   ##
   # Public Class Methods
   #
-
-  # Loop over all subscribers and pull messages if there are
-  # any waiting in the queue for us.
-  #
-  def self.auto_pop!
-    return if ::ActionSubscriber::Threadpool.busy?
-    route_set.auto_pop!
-  end
-
-  # Loop over all subscribers and register each as
-  # a subscriber.
-  #
-  def self.auto_subscribe!
-    route_set.auto_subscribe!
-  end
 
   def self.configure
     yield(configuration) if block_given?
@@ -66,16 +49,7 @@ module ActionSubscriber
 
   def self.print_subscriptions
     logger.info configuration.inspect
-    route_set.routes.group_by(&:subscriber).each do |subscriber, routes|
-      logger.info subscriber.name
-      routes.each do |route|
-        logger.info "  -- method: #{route.action}"
-        logger.info "    --    exchange: #{route.exchange}"
-        logger.info "    --       queue: #{route.queue}"
-        logger.info "    -- routing_key: #{route.routing_key}"
-        logger.info "    --  threadpool: #{route.threadpool.name}, pool_size: #{route.threadpool.pool_size}"
-      end
-    end
+    route_set.print_subscriptions
   end
 
   def self.setup_default_connection!
@@ -86,24 +60,14 @@ module ActionSubscriber
     route_set.setup_subscriptions!
   end
 
-  def self.start_queues
-    setup_subscriptions!
-    print_subscriptions
+  def self.start_subscribers!
+    route_set.start_subscribers!
   end
 
-  def self.start_subscribers
-    setup_subscriptions!
-    auto_subscribe!
-    print_subscriptions
-  end
-
-  def self.stop_subscribers!
+  def self.stop_subscribers!(timeout = nil)
+    timeout ||= ::ActionSubscriber.configuration.seconds_to_wait_for_graceful_shutdown
     route_set.cancel_consumers!
-  end
-
-  def self.wait_for_threadpools_to_finish_with_timeout(timeout)
-    puts "waiting for threadpools to empty (maximum wait of #{::ActionSubscriber.configuration.seconds_to_wait_for_graceful_shutdown}sec)"
-    ::ActionSubscriber::Threadpool.wait_to_finish_with_timeout(timeout)
+    puts "waiting for threadpools to empty (maximum wait of #{timeout}sec)"
     route_set.wait_to_finish_with_timeout(timeout)
   end
 
@@ -122,11 +86,4 @@ module ActionSubscriber
     end
   end
   private_class_method :route_set
-
-  def self.default_routes
-    ::ActionSubscriber::Base.inherited_classes.flat_map do |klass|
-      klass.routes
-    end
-  end
-  private_class_method :default_routes
 end

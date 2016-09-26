@@ -16,7 +16,7 @@ describe "at_most_once! mode", :integration => true do
   let(:subscriber) { PokemonSubscriber }
 
   it "does not retry a failed message" do
-    ::ActionSubscriber.auto_subscribe!
+    ::ActionSubscriber.start_subscribers!
     ::ActivePublisher.publish("pokemon.caught_em_all", "All Pokemon have been caught", "events")
 
     verify_expectation_within(1.0) do

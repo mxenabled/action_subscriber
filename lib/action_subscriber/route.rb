@@ -23,7 +23,6 @@ module ActionSubscriber
       @queue = attributes.fetch(:queue)
       @routing_key = attributes.fetch(:routing_key)
       @subscriber = attributes.fetch(:subscriber)
-      @threadpool = attributes.fetch(:threadpool) { ::ActionSubscriber::Threadpool.pool(:default) }
     end
 
     def acknowledgements?

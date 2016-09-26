@@ -31,7 +31,7 @@ describe "subscriber filters", :integration => true do
 
   it "runs multiple around filters" do
     $messages = []  #testing the order of things
-    ::ActionSubscriber.auto_subscribe!
+    ::ActionSubscriber.start_subscribers!
     ::ActivePublisher.publish("insta.first", "hEY Guyz!", "events")
 
     verify_expectation_within(1.0) do

@@ -4,14 +4,11 @@ describe ::ActionSubscriber::Configuration do
     specify { expect(subject.default_exchange).to eq("events") }
     specify { expect(subject.heartbeat).to eq(5) }
     specify { expect(subject.host).to eq("localhost") }
-    specify { expect(subject.mode).to eq('subscribe') }
-    specify { expect(subject.pop_interval).to eq(100) }
     specify { expect(subject.port).to eq(5672) }
     specify { expect(subject.prefetch).to eq(2) }
     specify { expect(subject.seconds_to_wait_for_graceful_shutdown).to eq(30) }
     specify { expect(subject.threadpool_size).to eq(8) }
     specify { expect(subject.timeout).to eq(1) }
-    specify { expect(subject.times_to_pop).to eq(8) }
   end
 
   describe "add_decoder" do

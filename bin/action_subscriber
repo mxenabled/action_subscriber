@@ -7,7 +7,6 @@ module ActionSubscriber
   class CLI < ::Thor
     class_option :allow_low_priority_methods, :type => :boolean, :desc => "subscribe to low priority queues in addition to the normal queues", :default => false
     class_option :app, :default => "./config/environment.rb"
-    class_option :mode
     class_option :host
     class_option :hosts
     class_option :prefetch, :type => :numeric, :desc => "how many messages to hold in the local queue in subscribe mode"
@@ -36,14 +35,7 @@ module ActionSubscriber
       # Require action_subscriber if the application did not.
       require "action_subscriber"
 
-      case ::ActionSubscriber.configuration.mode
-      when /pop/i then
-        ::ActionSubscriber::Babou.auto_pop!
-      when /subscribe/i then
-        ::ActionSubscriber::Babou.start_subscribers
-      else
-        fail "ActionSubscriber.configuration.mode must be 'pop' or 'subscribe'.  Currently set to '#{::ActionSubscriber.configuration.mode}'"
-      end
+      ::ActionSubscriber::Babou.start_subscribers
     end
   end
 

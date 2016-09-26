@@ -10,16 +10,13 @@ module ActionSubscriber
                   :heartbeat,
                   :host,
                   :hosts,
-                  :mode,
                   :password,
-                  :pop_interval,
                   :port,
                   :prefetch,
                   :seconds_to_wait_for_graceful_shutdown,
                   :username,
                   :threadpool_size,
                   :timeout,
-                  :times_to_pop,
                   :virtual_host
 
     CONFIGURATION_MUTEX = ::Mutex.new
@@ -30,14 +27,11 @@ module ActionSubscriber
       :heartbeat => 5,
       :host => 'localhost',
       :hosts => [],
-      :mode => 'subscribe',
-      :pop_interval => 100, # in milliseconds
       :port => 5672,
       :prefetch => 2,
       :seconds_to_wait_for_graceful_shutdown => 30,
       :threadpool_size => 8,
       :timeout => 1,
-      :times_to_pop => 8,
       :username => "guest",
       :password => "guest",
       :virtual_host => "/"

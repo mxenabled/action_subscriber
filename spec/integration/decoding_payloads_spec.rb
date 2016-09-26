@@ -19,7 +19,7 @@ describe "Payload Decoding", :integration => true do
   let(:json_string) { '{"foo": "bar"}' }
 
   it "decodes json by default" do
-    ::ActionSubscriber.auto_subscribe!
+    ::ActionSubscriber.start_subscribers!
     ::ActivePublisher.publish("twitter.tweet", json_string, "events", :content_type => "application/json")
 
     verify_expectation_within(2.0) do
@@ -37,7 +37,7 @@ describe "Payload Decoding", :integration => true do
     after { ::ActionSubscriber.config.decoder.delete(content_type) }
 
     it "it decodes the payload using the custom decoder" do
-      ::ActionSubscriber.auto_subscribe!
+      ::ActionSubscriber.start_subscribers!
       ::ActivePublisher.publish("twitter.tweet", json_string, "events", :content_type => content_type)
 
       verify_expectation_within(2.0) do
