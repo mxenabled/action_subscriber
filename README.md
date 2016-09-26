@@ -13,6 +13,38 @@ I test on Ruby 2.2.1 and Jruby 9.x.  MRI 1.9 and jRuby 1.7 are still supported.
 
 If you want to use MRI 1.9 you will need to lock down the `amq-protocol` and `bunny` gems to `< 2.0` since they both require ruby 2.0+.
 
+Migrating from ActionSubscriber 3.X or earlier
+----------------------------------------------
+
+If you were using the `--mode=pop` from the 2.X or 3.X version of ActionSubscriber you can get the same sort of behavior by drawing your routes like this:
+
+```ruby
+::ActionSubscriber.draw_routes do
+  # instead of creating custom threadpools you set the threadpool size of your connection here in the routes
+  # you can set the threadpool size for the default connection via the `::ActionSubscriber.configuration.threadpool_size = 16`
+  route UserSubscriber, :created,
+    :prefetch => 1,
+    :concurrency => 16,
+    :acknowledgements => true
+
+  # in user_subscriber.rb make sure to set `at_most_once!` like this
+  #
+  # class UserSubscriber < ::ActionSubscriber::Base
+  #   at_most_once!
+  # end
+
+  # If you were previously using custom threadpools for different routes you can mimic that behavior by opening multiple connections
+  connection(:slow_work, :threadpool_size => 32) do
+    route UserSubscriber, :created,
+      :prefetch => 1,
+      :concurrency => 32,
+      :acknowledgements => true
+  end
+end
+```
+
+That will give you a similar behavior to the old `--mode=pop` where messages polled from the server, but with reduced latency.
+
 Supported Message Types
 -----------------
 ActionSubscriber support JSON and plain text out of the box, but you can easily
@@ -51,7 +83,7 @@ Now you can start your subscriber process with:
 
 
 ```
-$ bundle exec action_subscriber
+$ bundle exec action_subscriber start
 ```
 
 This will connect your subscribers to the rabbitmq broker and allow it to push messages down to your subscribers.
