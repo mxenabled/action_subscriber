@@ -76,6 +76,26 @@ module ActionSubscriber
         @march_hare_consumers ||= []
       end
 
+      def wait_to_finish_with_timeout(timeout)
+        wait_loops = 0
+        loop do
+          wait_loops = wait_loops + 1
+          any_threadpools_busy = false
+          ::ActionSubscriber::RabbitConnection.connection_threadpools.each do |name, executor|
+            next if executor.get_active_count <= 0
+            puts "  -- Connection #{name} (remaining: #{executor.get_active_count})"
+            any_threadpools_busy = true
+          end
+          if !any_threadpools_busy
+            puts "Connection threadpools empty"
+            break
+          end
+          break if wait_loops >= timeout
+          Thread.pass
+          sleep 1
+        end
+      end
+
       private
 
       def enqueue_env(threadpool, env)

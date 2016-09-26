@@ -70,20 +70,12 @@ module ActionSubscriber
     def self.stop_server!
       # this method is called from within a TRAP context so we can't use the logger
       puts "Stopping server..."
-      wait_loops = 0
       ::ActionSubscriber::Babou.stop_receving_messages!
-
-      while ::ActionSubscriber::Threadpool.busy? && wait_loops < ::ActionSubscriber.configuration.seconds_to_wait_for_graceful_shutdown
-        puts "waiting for threadpools to empty:"
-        ::ActionSubscriber::Threadpool.pools.each do |name, pool|
-          puts "  -- #{name} (remaining: #{pool.busy_size})" if pool.busy_size > 0
-        end
-        Thread.pass
-        wait_loops = wait_loops + 1
-        sleep 1
-      end
-
-      puts "threadpool empty. Shutting down"
+      ::ActionSubscriber.wait_for_threadpools_to_finish_with_timeout(::ActionSubscriber.configuration.seconds_to_wait_for_graceful_shutdown)
+      puts "Shutting down"
+      ::Thread.new do
+        ::ActionSubscriber::RabbitConnection.subscriber_disconnect!
+      end.join
     end
   end
 end

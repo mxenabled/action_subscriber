@@ -38,5 +38,25 @@ module ActionSubscriber
         total_ready + [0, pool.pool_size - pool.busy_size].max
       end
     end
+
+    def self.wait_to_finish_with_timeout(timeout)
+      wait_loops = 0
+      loop do
+        wait_loops = wait_loops + 1
+        any_threadpools_busy = false
+        pools.each do |name, pool|
+          next if pool.busy_size <= 0
+          puts "  -- #{name} (remaining: #{pool.busy_size})"
+          any_threadpools_busy = true
+        end
+        if !any_threadpools_busy
+          puts "  -- Lifeguard threadpools empty"
+          break
+        end
+        break if wait_loops >= timeout
+        Thread.pass
+        sleep 1
+      end
+    end
   end
 end
