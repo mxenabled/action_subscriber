@@ -27,6 +27,24 @@ module ActionSubscriber
         end
       end
 
+      def print_threadpool_stats
+        logger.info "*DISCLAIMER* the number of running jobs is just a best guess. We don't have a good way to introspect the bunny threadpools so jobs that are sleeping or waiting on IO won't show up as running"
+        subscriptions.group_by{|subscription| subscription[:route].subscriber}.each do |subscriber, subscriptions|
+          logger.info subscriber.name
+          subscriptions.each do |subscription|
+            route = subscription[:route]
+            work_pool = subscription[:queue].channel.work_pool
+            running_threads = work_pool.threads.select{|thread| thread.status == "run"}.count
+            routes.each do |route|
+              logger.info "  -- method: #{route.action}"
+              logger.info "    --  concurrency: #{route.concurrency}"
+              logger.info "    -- running jobs: #{running_threads}"
+              logger.info "    --      backlog: #{work_pool.backlog}"
+            end
+          end
+        end
+      end
+
       def setup_subscriptions!
         fail ::RuntimeError, "you cannot setup queues multiple times, this should only happen once at startup" unless subscriptions.empty?
         routes.each do |route|

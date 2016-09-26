@@ -27,6 +27,15 @@ module ActionSubscriber
         end
       end
 
+      def print_threadpool_stats
+        ::ActionSubscriber::RabbitConnection.connection_threadpools.each do |name, executor|
+          logger.info "Connection #{name}"
+          logger.info "  -- available threads: #{executor.get_maximum_pool_size}"
+          logger.info "  --    running thread: #{executor.get_active_count}"
+          logger.info "  --           backlog: #{executor.get_queue.size}"
+        end
+      end
+
       def setup_subscriptions!
         fail ::RuntimeError, "you cannot setup queues multiple times, this should only happen once at startup" unless subscriptions.empty?
         routes.each do |route|
@@ -72,7 +81,7 @@ module ActionSubscriber
           any_threadpools_busy = false
           ::ActionSubscriber::RabbitConnection.connection_threadpools.each do |name, executor|
             next if executor.get_active_count <= 0
-            puts "  -- Connection #{name} (remaining: #{executor.get_active_count})"
+            puts "  -- Connection #{name} (active: #{executor.get_active_count}, queued: #{executor.get_queue.size})"
             any_threadpools_busy = true
           end
           if !any_threadpools_busy

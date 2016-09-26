@@ -52,6 +52,10 @@ module ActionSubscriber
     route_set.print_subscriptions
   end
 
+  def self.print_threadpool_stats
+    route_set.print_threadpool_stats
+  end
+
   def self.setup_default_connection!
     ::ActionSubscriber::RabbitConnection.setup_connection(:default, {})
   end

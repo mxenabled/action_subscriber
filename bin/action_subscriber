@@ -54,15 +54,15 @@ module ActionSubscriber
 end
 
 trap(:TTIN) {
-  ::ActionSubscriber.print_subscriptions
+  ::Thread.new do
+    ::ActionSubscriber.print_subscriptions
+  end
 }
 
 trap(:USR2) {
-  puts <<-CONFIG.strip_heredoc
-  Action Subscriber Stats
-    Pool Size: #{ ::ActionSubscriber.config.threadpool_size }
-    Ready Size: #{ ::ActionSubscriber::Threadpool.ready_size }
-  CONFIG
+  ::Thread.new do
+    ::ActionSubscriber.print_threadpool_stats
+  end.join
 }
 
 ::ActionSubscriber::CLI.start(ARGV)
