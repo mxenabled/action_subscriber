@@ -2,12 +2,20 @@ module ActionSubscriber
   module DSL
     def at_least_once!
       @_acknowledge_messages = true
-      around_filter :_at_least_once_filter
+      @_at_least_once = true
+    end
+
+    def at_least_once?
+      !!@_at_least_once
     end
 
     def at_most_once!
       @_acknowledge_messages = true
-      around_filter :_at_most_once_filter
+      @_at_most_once = true
+    end
+
+    def at_most_once?
+      !!@_at_most_once
     end
 
     def acknowledge_messages?
@@ -80,7 +88,13 @@ module ActionSubscriber
       subscriber_instance = self.new(env)
       final_block = Proc.new { subscriber_instance.public_send(action) }
 
-      first_proc = around_filters.reverse.reduce(final_block) do |block, filter|
+      # Make sure that acknowledgement filters are the first ones we push on
+      # if we are using them via the DSL
+      _around_filters = around_filters
+      _around_filters.unshift(:_at_least_once_filter) if at_least_once?
+      _around_filters.unshift(:_at_most_once_filter) if at_most_once?
+
+      first_proc = _around_filters.reverse.reduce(final_block) do |block, filter|
         Proc.new { subscriber_instance.send(filter, &block) }
       end
       first_proc.call
