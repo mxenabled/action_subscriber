@@ -109,7 +109,7 @@ module ActionSubscriber
 
     def inspect
       inspection_string  = <<-INSPECT.strip_heredoc
-        Rabbit Host: #{host}
+        Rabbit Hosts: #{hosts}
         Rabbit Port: #{port}
         Threadpool Size: #{threadpool_size}
         Low Priority Subscriber: #{allow_low_priority_methods}
