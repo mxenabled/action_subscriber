@@ -13,6 +13,26 @@ module ActionSubscriber
         queue
       end
 
+      def march_hare_consumers
+        @march_hare_consumers ||= []
+      end
+
+      def print_subscriptions
+        routes.group_by(&:subscriber).each do |subscriber, routes|
+          logger.info subscriber.name
+          routes.each do |route|
+            executor = ::ActionSubscriber::RabbitConnection.connection_threadpools[route.connection_name]
+            logger.info "  -- method: #{route.action}"
+            logger.info "    --  connection: #{route.connection_name} (#{executor.get_maximum_pool_size} threads)"
+            logger.info "    -- concurrency: #{route.concurrency}"
+            logger.info "    --    exchange: #{route.exchange}"
+            logger.info "    --       queue: #{route.queue}"
+            logger.info "    -- routing_key: #{route.routing_key}"
+            logger.info "    --    prefetch: #{route.prefetch} per consumer (#{route.prefetch * route.concurrency} total)"
+          end
+        end
+      end
+
       def start_subscribers!
         subscriptions.each do |subscription|
           route = subscription[:route]
@@ -37,10 +57,6 @@ module ActionSubscriber
 
           march_hare_consumers << consumer
         end
-      end
-
-      def march_hare_consumers
-        @march_hare_consumers ||= []
       end
 
       def wait_to_finish_with_timeout(timeout)

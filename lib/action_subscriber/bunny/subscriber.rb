@@ -15,6 +15,21 @@ module ActionSubscriber
         ::Bunny::Queue.new(channel, queue_name, queue_options)
       end
 
+      def print_subscriptions
+        routes.group_by(&:subscriber).each do |subscriber, routes|
+          logger.info subscriber.name
+          routes.each do |route|
+            logger.info "  -- method: #{route.action}"
+            logger.info "    --  connection: #{route.connection_name}"
+            logger.info "    -- concurrency: #{route.concurrency}"
+            logger.info "    --    exchange: #{route.exchange}"
+            logger.info "    --       queue: #{route.queue}"
+            logger.info "    -- routing_key: #{route.routing_key}"
+            logger.info "    --    prefetch: #{route.prefetch}"
+          end
+        end
+      end
+
       def start_subscribers!
         subscriptions.each do |subscription|
           route = subscription[:route]
