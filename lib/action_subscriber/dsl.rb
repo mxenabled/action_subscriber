@@ -46,6 +46,11 @@ module ActionSubscriber
 
     def manual_acknowledgement!
       @_acknowledge_messages = true
+      @_manual_acknowedgement = true
+    end
+
+    def manual_acknowledgement?
+      !!@_manual_acknowedgement
     end
 
     def no_acknowledgement!
@@ -84,20 +89,93 @@ module ActionSubscriber
       @_routing_key_names ||= {}
     end
 
-    def run_action_with_filters(env, action)
+    def _run_action_with_filters(env, action)
       subscriber_instance = self.new(env)
       final_block = Proc.new { subscriber_instance.public_send(action) }
 
-      # Make sure that acknowledgement filters are the first ones we push on
-      # if we are using them via the DSL
-      _around_filters = around_filters
-      _around_filters.unshift(:_at_least_once_filter) if at_least_once?
-      _around_filters.unshift(:_at_most_once_filter) if at_most_once?
-
-      first_proc = _around_filters.reverse.reduce(final_block) do |block, filter|
+      first_proc = around_filters.reverse.reduce(final_block) do |block, filter|
         Proc.new { subscriber_instance.send(filter, &block) }
       end
       first_proc.call
+    end
+
+    def _run_action_at_most_once_with_filters(env, action)
+      processed_acknowledgement = false
+      rejected_message = false
+      processed_acknowledgement = env.acknowledge
+
+      _run_action_with_filters(env, action)
+    ensure
+      rejected_message = env.reject if !processed_acknowledgement
+
+      if !rejected_message && !processed_acknowledgement
+        $stdout << <<-UNREJECTABLE
+          CANNOT ACKNOWLEDGE OR REJECT THE MESSAGE
+
+          This is a exceptional state for ActionSubscriber to enter and puts the current
+          Process in the position of "I can't get new work from RabbitMQ, but also
+          can't acknowledge or reject the work that I currently have" ... While rare
+          this state can happen.
+
+          Instead of continuing to try to process the message ActionSubscriber is
+          sending a Kill signal to the current running process to gracefully shutdown
+          so that the RabbitMQ server will purge any outstanding acknowledgements. If
+          you are running a process monitoring tool (like Upstart) the Subscriber
+          process will be restarted and be able to take on new work.
+
+          ** Running a process monitoring tool like Upstart is recommended for this reason **
+        UNREJECTABLE
+
+        Process.kill(:TERM, Process.pid)
+      end
+    end
+
+    def _run_action_at_least_once_with_filters(env, action)
+      processed_acknowledgement = false
+      rejected_message = false
+
+      _run_action_with_filters(env, action)
+
+      processed_acknowledgement = env.acknowledge
+    rescue
+      ::ActionSubscriber::MessageRetry.redeliver_message_with_backoff(env)
+      processed_acknowledgement = env.acknowledge
+
+      raise
+    ensure
+      rejected_message = env.reject if !processed_acknowledgement
+
+      if !rejected_message && !processed_acknowledgement
+        $stdout << <<-UNREJECTABLE
+          CANNOT ACKNOWLEDGE OR REJECT THE MESSAGE
+
+          This is a exceptional state for ActionSubscriber to enter and puts the current
+          Process in the position of "I can't get new work from RabbitMQ, but also
+          can't acknowledge or reject the work that I currently have" ... While rare
+          this state can happen.
+
+          Instead of continuing to try to process the message ActionSubscriber is
+          sending a Kill signal to the current running process to gracefully shutdown
+          so that the RabbitMQ server will purge any outstanding acknowledgements. If
+          you are running a process monitoring tool (like Upstart) the Subscriber
+          process will be restarted and be able to take on new work.
+
+          ** Running a process monitoring tool like Upstart is recommended for this reason **
+        UNREJECTABLE
+
+        Process.kill(:TERM, Process.pid)
+      end
+    end
+
+    def run_action_with_filters(env, action)
+      case
+      when at_least_once?
+        _run_action_at_least_once_with_filters(env, action)
+      when at_most_once?
+        _run_action_at_most_once_with_filters(env, action)
+      else
+        _run_action_with_filters(env, action)
+      end
     end
   end
 end
