@@ -9,11 +9,13 @@ module ActionSubscriber
     class_option :app, :default => "./config/environment.rb"
     class_option :host
     class_option :hosts
+    class_option :password
     class_option :prefetch, :type => :numeric, :desc => "how many messages to hold in the local queue in subscribe mode"
     class_option :pop_interval, :type => :numeric, :desc => "how long to wait between asking for messages (in milliseconds)"
     class_option :port, :type => :numeric
     class_option :threadpool_size, :type => :numeric
     class_option :times_to_pop, :type => :numeric, :desc => "how many messages to get from each queue each time we ask rabbit"
+    class_option :username
 
     desc "start", "Start the action subscriber subscription server"
     long_desc <<-BABOUDESC.strip_heredoc
