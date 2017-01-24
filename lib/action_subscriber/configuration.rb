@@ -14,9 +14,14 @@ module ActionSubscriber
                   :port,
                   :prefetch,
                   :seconds_to_wait_for_graceful_shutdown,
-                  :username,
                   :threadpool_size,
                   :timeout,
+                  :tls,
+                  :tls_ca_certificates,
+                  :tls_cert,
+                  :tls_key,
+                  :username,
+                  :verify_peer,
                   :virtual_host
 
     CONFIGURATION_MUTEX = ::Mutex.new
@@ -32,6 +37,7 @@ module ActionSubscriber
       :seconds_to_wait_for_graceful_shutdown => 30,
       :threadpool_size => 8,
       :timeout => 1,
+      :tls => false,
       :username => "guest",
       :password => "guest",
       :virtual_host => "/"
