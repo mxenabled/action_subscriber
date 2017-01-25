@@ -108,6 +108,13 @@ Other configuration options include :
 * config.hosts - an array of hostnames in your cluster (ie `["rabbit1.myapp.com", "rabbit2.myapp.com"]`)
 * config.threadpool_size - set the number of threads availiable to action_subscriber
 * config.timeout - how many seconds to allow rabbit to respond before timing out
+* config.tls - true/false whether to use TLS when connecting to the server
+* config.tls_ca_certificats - a list of ca certificates to use for verifying the servers TLS certificate
+* config.tls_cert - a client certificate to use during the TLS handshake
+* config.tls_key - a key to use during the TLS handshake
+* config.verify_peer - whether to attempt to validate the server's TLS certificate
+
+> Note: TLS is not handled identically in `bunny` and `march_hare`. The configuration options we provide are passed through as provided. For details on expected behavior please check the `bunny` or `march_hare` documentation based on whether you are running in MRI or jRuby.
 
 Message Acknowledgment
 ----------------------
