@@ -155,3 +155,20 @@ easily test your public methods without dependence on data from Rabbit.  You can
 optionally pass data for your mock subscriber to consume if you wish.
 
 ``` subject { mock_subscriber(:header => "test_header", :payload => "payload") } ```
+
+Development
+===========
+
+If you want to work on `action_subscriber` you will need to have a rabbitmq instance running locally on port 5672 with a management plugin enabled on port 15672. Usually the easiest way to accomplish this is to use docker and run the command:
+
+```
+$ docker run --net=host --rm=true --hostname diagon --name rabbit rabbitmq:3.6.6-management
+```
+
+Now that rabbitmq is running you can clone this project and run:
+
+```
+$ cd action_subscriber
+$ bundle install
+$ bundle exec rspec
+```
