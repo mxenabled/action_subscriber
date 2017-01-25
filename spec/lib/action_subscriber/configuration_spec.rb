@@ -9,6 +9,7 @@ describe ::ActionSubscriber::Configuration do
     specify { expect(subject.seconds_to_wait_for_graceful_shutdown).to eq(30) }
     specify { expect(subject.threadpool_size).to eq(8) }
     specify { expect(subject.timeout).to eq(1) }
+    specify { expect(subject.tls).to eq(false) }
   end
 
   describe "add_decoder" do

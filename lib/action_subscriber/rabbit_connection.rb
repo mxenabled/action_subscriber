@@ -69,7 +69,12 @@ module ActionSubscriber
         :port                          => ::ActionSubscriber.configuration.port,
         :recover_from_connection_close => true,
         :threadpool_size               => ::ActionSubscriber.configuration.threadpool_size,
+        :tls                           => ::ActionSubscriber.configuration.tls,
+        :tls_ca_certificates           => ::ActionSubscriber.configuration.tls_ca_certificates,
+        :tls_cert                      => ::ActionSubscriber.configuration.tls_cert,
+        :tls_key                       => ::ActionSubscriber.configuration.tls_key,
         :user                          => ::ActionSubscriber.configuration.username,
+        :verify_peer                   => ::ActionSubscriber.configuration.verify_peer,
         :vhost                         => ::ActionSubscriber.configuration.virtual_host,
       }
     end
