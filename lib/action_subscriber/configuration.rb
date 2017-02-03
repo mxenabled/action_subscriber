@@ -32,14 +32,18 @@ module ActionSubscriber
       :heartbeat => 5,
       :host => 'localhost',
       :hosts => [],
+      :password => "guest",
       :port => 5672,
       :prefetch => 2,
       :seconds_to_wait_for_graceful_shutdown => 30,
       :threadpool_size => 8,
       :timeout => 1,
       :tls => false,
+      :tls_ca_certificates => [],
+      :tls_cert => nil,
+      :tls_key => nil,
       :username => "guest",
-      :password => "guest",
+      :verify_peer => true,
       :virtual_host => "/"
     }
 
