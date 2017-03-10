@@ -2,7 +2,7 @@ module ActionSubscriber
   module Middleware
     module ActiveRecord
       class QueryCache
-        CURRENT_CONNECTION = "_protobuf_active_record_current_connection".freeze
+        CURRENT_CONNECTION = "_action_subscriber_query_cache_current_connection".freeze
 
         def initialize(app)
           @app = app
