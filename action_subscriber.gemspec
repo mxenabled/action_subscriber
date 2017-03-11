@@ -26,6 +26,7 @@ Gem::Specification.new do |spec|
   else
     spec.add_dependency 'bunny', '>= 1.5.0'
   end
+  spec.add_dependency 'concurrent-ruby'
   spec.add_dependency 'middleware'
   spec.add_dependency 'thor'
 

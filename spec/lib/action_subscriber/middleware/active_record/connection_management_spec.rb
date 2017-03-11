@@ -9,8 +9,8 @@ describe ActionSubscriber::Middleware::ActiveRecord::ConnectionManagement do
 
   it_behaves_like 'an action subscriber middleware'
 
-  it "clears active connections" do
-    expect(ActiveRecord::Base).to receive(:clear_active_connections!)
+  it "starts async task to clear connections" do
+    expect(ActionSubscriber::Middleware::ActiveRecord::ConnectionManagement).to receive(:start_timed_task!)
     subject.call(env)
   end
 end

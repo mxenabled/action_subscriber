@@ -4,6 +4,8 @@ require "action_subscriber/uri"
 module ActionSubscriber
   class Configuration
     attr_accessor :allow_low_priority_methods,
+                  :connection_reaping_interval,
+                  :connection_reaping_timeout_interval,
                   :decoder,
                   :default_exchange,
                   :error_handler,
@@ -28,6 +30,8 @@ module ActionSubscriber
 
     DEFAULTS = {
       :allow_low_priority_methods => false,
+      :connection_reaping_interval => 6,
+      :connection_reaping_timeout_interval => 5,
       :default_exchange => 'events',
       :heartbeat => 5,
       :host => 'localhost',
