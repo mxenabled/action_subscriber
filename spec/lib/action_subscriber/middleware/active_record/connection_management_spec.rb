@@ -3,7 +3,12 @@ require 'action_subscriber/middleware/active_record/connection_management'
 describe ActionSubscriber::Middleware::ActiveRecord::ConnectionManagement do
   include_context 'action subscriber middleware env'
 
-  before { allow(ActiveRecord::Base).to receive(:clear_active_connections!) }
+  before {
+    pool = double("pool")
+    allow(pool).to receive(:with_connection).and_yield
+    allow(ActiveRecord::Base).to receive(:clear_active_connections!)
+    allow(ActiveRecord::Base).to receive(:connection_pool).and_return(pool)
+  }
 
   subject { described_class.new(app) }
 
