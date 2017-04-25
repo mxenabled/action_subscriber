@@ -42,6 +42,7 @@ module ActionSubscriber
 
     def default_routes_for(subscriber, options = {})
       options = options.merge({:connection_name => @current_connection_name})
+      ::ActionSubscriber.logger.info "Discrepancy in message acknowledgments in #{subscriber}" if discrepancy_in_acknowledgment_settings?(subscriber, options)
       subscriber.routes(options).each do |route|
         routes << route
       end
@@ -52,6 +53,7 @@ module ActionSubscriber
     end
 
     def route(subscriber, action, options = {})
+      ::ActionSubscriber.logger.info "Discrepancy in message acknowledgments in #{subscriber}" if discrepancy_in_acknowledgment_settings?(subscriber, options)
       route_settings = DEFAULT_SETTINGS.merge(:connection_name => @current_connection_name).merge(options).merge(:subscriber => subscriber, :action => action)
       route_settings[:routing_key] ||= default_routing_key_for(route_settings)
       route_settings[:queue] ||= default_queue_for(route_settings)
@@ -74,6 +76,10 @@ module ActionSubscriber
                                  end
         local_application_name.downcase
       end
+  private
+
+    def discrepancy_in_acknowledgment_settings?(subscriber, options)
+      subscriber.acknowledge_messages? != !!options[:acknowledgements]
     end
   end
 end
