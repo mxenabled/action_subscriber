@@ -23,6 +23,9 @@ module ActionSubscriber
             logger.info "    -- routing_key: #{route.routing_key}"
             logger.info "    --    prefetch: #{route.prefetch}"
             logger.error "WARNING having a prefetch lower than your concurrency will prevent your subscriber from fully utilizing its threadpool" if route.prefetch < route.concurrency
+            if route.acknowledgements != subscriber.acknowledge_messages?
+              logger.error "WARNING subscriber has acknowledgements as #{subscriber.acknowledge_messages?} and route has acknowledgements as #{route.acknowledgements}"
+            end
           end
         end
       end
