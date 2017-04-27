@@ -23,6 +23,9 @@ module ActionSubscriber
             logger.info "    --       queue: #{route.queue}"
             logger.info "    -- routing_key: #{route.routing_key}"
             logger.info "    --    prefetch: #{route.prefetch} per consumer (#{route.prefetch * route.concurrency} total)"
+            if route.acknowledgements != subscriber.acknowledge_messages?
+              logger.error "WARNING subscriber has acknowledgements as #{subscriber.acknowledge_messages?} and route has acknowledgements as #{route.acknowledgements}"
+            end
           end
         end
       end

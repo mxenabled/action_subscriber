@@ -1,11 +1,5 @@
 describe ActionSubscriber::Router do
-  class FakeSubscriber < ActionSubscriber::Base; end
-  class AcknowledgeSubscriber < ActionSubscriber::Base
-    at_most_once!
-  end
-
-  let(:logger) { double(:logger, :info => nil) }
-  before { allow(::ActionSubscriber).to receive(:logger).and_return(logger) }
+  class FakeSubscriber; end
 
   it "can specify basic routes" do
     routes = described_class.draw_routes do
@@ -61,33 +55,6 @@ describe ActionSubscriber::Router do
     expect(routes.first.routing_key).to eq("fake.foo")
     expect(routes.first.subscriber).to eq(FakeSubscriber)
     expect(routes.first.queue).to eq("alice.fake.foo")
-
-  end
-
-  context "when the class specifies acknowledgements and route drawing does not" do
-    it "gives a warning if default_routes_for is used" do
-      expect(::ActionSubscriber).to receive(:logger).and_return(logger)
-
-      described_class.draw_routes do
-        default_routes_for ::AcknowledgeSubscriber
-      end
-    end
-
-    it "gives a warning if route is used" do
-      expect(::ActionSubscriber).to receive(:logger).and_return(logger)
-
-      described_class.draw_routes do
-        route ::AcknowledgeSubscriber, :foo
-      end
-    end
-
-    it "does not give a warning if they match" do
-      expect(::ActionSubscriber).to_not receive(:logger)
-
-      described_class.draw_routes do
-        route ::AcknowledgeSubscriber, :foo, :acknowledgements => true
-      end
-    end
   end
 
   it "can specify a queue is durable" do
