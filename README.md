@@ -88,6 +88,29 @@ $ bundle exec action_subscriber start
 
 This will connect your subscribers to the rabbitmq broker and allow it to push messages down to your subscribers.
 
+### Around Filters
+"around" filters are responsible for running their associated actions by yielding, similar to how Rack middlewares work (and Rails around filters work)
+
+```ruby
+class UserSubscriber < ::ActionSubscriber::Base
+  around_filter :log_things
+
+  def created
+    # do something when a user is created
+  end
+
+  private
+
+  def log_things
+    puts "before I do some stuff"
+    yield
+    puts "I did some stuff"
+  end
+end
+```
+
+> Warning: an around filter will only be added once to the chain, duplicate around filters are not supported
+
 Configuration
 -----------------
 ActionSubscriber needs to know how to connect to your rabbit server to start getting messages.

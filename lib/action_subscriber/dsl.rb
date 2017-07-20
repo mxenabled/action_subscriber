@@ -23,7 +23,8 @@ module ActionSubscriber
     end
 
     def around_filter(filter_method)
-      around_filters << filter_method
+      around_filters << filter_method unless around_filters.include?(filter_method)
+      around_filters
     end
 
     def around_filters
