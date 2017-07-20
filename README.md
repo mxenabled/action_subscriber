@@ -161,6 +161,9 @@ takes a "backoff schedule" which is a hash of backoff milliseconds for each retr
 
 when the schedule "returns" `nil` the message will not be retried
 
+> Warning: If you use `retry` you need to handle reject/acknowledge according how errors are handled; if an error is caught and the
+> ack/reject is already done then you may duplicate the message in `at_least_once!` mode
+
 Testing
 -----------------
 ActionSubscriber includes support for easy unit testing with RSpec.
