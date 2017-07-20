@@ -59,5 +59,9 @@ module ActionSubscriber
     def reject
       env.reject
     end
+
+    def retry(backoff_schedule = ::ActionSubscriber::MessageRetry::SCHEDULE)
+      ::ActionSubscriber::MessageRetry::redeliver_message_with_backoff(env, backoff_schedule)
+    end
   end
 end

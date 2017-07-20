@@ -12,9 +12,9 @@ module ActionSubscriber
       10 => 39_062_500,
     }.freeze
 
-    def self.redeliver_message_with_backoff(env)
+    def self.redeliver_message_with_backoff(env, backoff_schedule = SCHEDULE)
       next_attempt = get_last_attempt_number(env) + 1
-      ttl = SCHEDULE[next_attempt]
+      ttl = backoff_schedule[next_attempt]
       return unless ttl
       retry_queue_name = "#{env.queue}.retry_#{ttl}"
       with_exchange(env, ttl, retry_queue_name) do |exchange|
