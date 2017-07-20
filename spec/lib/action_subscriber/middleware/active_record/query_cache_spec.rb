@@ -11,7 +11,8 @@ describe ActionSubscriber::Middleware::ActiveRecord::QueryCache do
     allow(connection).to receive(:enable_query_cache!)
 
     allow(ActiveRecord::Base).to receive(:connection).and_return(connection)
-    allow(ActiveRecord::Base).to receive(:connection_id)
+    # Rails 5 "compat"
+    allow(ActiveRecord::Base).to receive(:connection_id) if ::ActiveRecord::Base.respond_to?(:connection_id)
   end
 
   subject { described_class.new(app) }
