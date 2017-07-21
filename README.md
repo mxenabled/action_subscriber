@@ -163,10 +163,10 @@ Rabbit is told to expect message acknowledgements, but sending the acknowledgeme
 We send the acknowledgement right after calling your subscriber.
 If an error is raised your message will be retried on a sent back to rabbitmq and retried on an exponential backoff schedule.
 
-### retry
+### redeliver
 
-A message can be sent to "retry" with `::ActionSubscriber::MessageRetry.redeliver_message_with_backoff` or the DSL method `retry` and optionally
-takes a "backoff schedule" which is a hash of backoff milliseconds for each retry, the default:
+A message can be sent to "redeliver" with `::ActionSubscriber::MessageRetry.redeliver_message_with_backoff` or the DSL method `redeliver` and optionally
+takes a "backoff schedule" which is a hash of backoff milliseconds for each redeliver, the default:
 
 ```ruby
   SCHEDULE = {
@@ -184,7 +184,7 @@ takes a "backoff schedule" which is a hash of backoff milliseconds for each retr
 
 when the schedule "returns" `nil` the message will not be retried
 
-> Warning: If you use `retry` you need to handle reject/acknowledge according how errors are handled; if an error is caught and the
+> Warning: If you use `redeliver` you need to handle reject/acknowledge according how errors are handled; if an error is caught and the
 > ack/reject is already done then you may duplicate the message in `at_least_once!` mode
 
 Testing
