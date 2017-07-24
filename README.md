@@ -88,6 +88,29 @@ $ bundle exec action_subscriber start
 
 This will connect your subscribers to the rabbitmq broker and allow it to push messages down to your subscribers.
 
+### Around Filters
+"around" filters are responsible for running their associated actions by yielding, similar to how Rack middlewares work (and Rails around filters work)
+
+```ruby
+class UserSubscriber < ::ActionSubscriber::Base
+  around_filter :log_things
+
+  def created
+    # do something when a user is created
+  end
+
+  private
+
+  def log_things
+    puts "before I do some stuff"
+    yield
+    puts "I did some stuff"
+  end
+end
+```
+
+> Warning: an around filter will only be added once to the chain, duplicate around filters are not supported
+
 Configuration
 -----------------
 ActionSubscriber needs to know how to connect to your rabbit server to start getting messages.
@@ -139,6 +162,30 @@ Rabbit is told to expect message acknowledgements, but sending the acknowledgeme
 Rabbit is told to expect message acknowledgements, but sending the acknowledgement is left up to ActionSubscriber.
 We send the acknowledgement right after calling your subscriber.
 If an error is raised your message will be retried on a sent back to rabbitmq and retried on an exponential backoff schedule.
+
+### redeliver
+
+A message can be sent to "redeliver" with `::ActionSubscriber::MessageRetry.redeliver_message_with_backoff` or the DSL method `redeliver` and optionally
+takes a "backoff schedule" which is a hash of backoff milliseconds for each redeliver, the default:
+
+```ruby
+  SCHEDULE = {
+    2  =>        100,
+    3  =>        500,
+    4  =>      2_500,
+    5  =>     12_500,
+    6  =>     62_500,
+    7  =>    312_500,
+    8  =>  1_562_500,
+    9  =>  7_812_500,
+    10 => 39_062_500,
+  }
+```
+
+when the schedule "returns" `nil` the message will not be retried
+
+> Warning: If you use `redeliver` you need to handle reject/acknowledge according how errors are handled; if an error is caught and the
+> ack/reject is already done then you may duplicate the message in `at_least_once!` mode
 
 Testing
 -----------------

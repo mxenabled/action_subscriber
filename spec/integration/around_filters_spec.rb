@@ -1,6 +1,9 @@
 class InstaSubscriber < ActionSubscriber::Base
   around_filter :whisper
   around_filter :yell
+  around_filter :whisper
+  around_filter :whisper
+  around_filter :yell
 
   def first
     $messages << payload
@@ -28,6 +31,10 @@ describe "subscriber filters", :integration => true do
     end
   end
   let(:subscriber) { InstaSubscriber }
+
+  it "does not allow an around filter to be pushed on twice" do
+    expect(InstaSubscriber.around_filters).to eq([:whisper, :yell])
+  end
 
   it "runs multiple around filters" do
     $messages = []  #testing the order of things
