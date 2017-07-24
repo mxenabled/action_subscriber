@@ -40,11 +40,11 @@ module ActionSubscriber
       ::ActionSubscriber::Babou.start_subscribers
     end
   end
+end
 
-  [:INT, :QUIT, :TERM].each do |signal|
-    trap(signal) do
-      ::ActionSubscriber::Babou.stop_server!
-    end
+[:INT, :QUIT, :TERM].each do |signal|
+  trap(signal) do
+    ::ActionSubscriber::Babou.stop_server!
   end
 end
 
