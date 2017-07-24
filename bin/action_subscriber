@@ -41,16 +41,9 @@ module ActionSubscriber
     end
   end
 
-  if ::RUBY_PLATFORM == "java"
-    at_exit do
+  [:INT, :QUIT, :TERM].each do |signal|
+    trap(signal) do
       ::ActionSubscriber::Babou.stop_server!
-    end
-  else
-    [:INT, :QUIT, :TERM].each do |signal|
-      trap(signal) do
-        ::ActionSubscriber::Babou.stop_server!
-        exit 0
-      end
     end
   end
 end
