@@ -16,10 +16,11 @@ module ActionSubscriber
         break if shutting_down?
       end
 
-      puts "Stopping subscribers..."
+      logger.info "Stopping subscribers..."
       ::ActionSubscriber.stop_subscribers!
-      puts "Shutting down"
+      logger.info "Shutting down"
       ::ActionSubscriber::RabbitConnection.subscriber_disconnect!
+      logger.info "Shutdown complete"
     end
 
     def self.logger
