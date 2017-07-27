@@ -15,6 +15,11 @@ module ActionSubscriber
         sleep 1.0 #just hang around waiting for messages
         break if shutting_down?
       end
+
+      puts "Stopping subscribers..."
+      ::ActionSubscriber.stop_subscribers!
+      puts "Shutting down"
+      ::ActionSubscriber::RabbitConnection.subscriber_disconnect!
     end
 
     def self.logger
@@ -32,14 +37,7 @@ module ActionSubscriber
     end
 
     def self.stop_server!
-      # this method is called from within a TRAP context so we can't use the logger
       @shutting_down = true
-      ::Thread.new do
-        puts "Stopping subscribers..."
-        ::ActionSubscriber.stop_subscribers!
-        puts "Shutting down"
-        ::ActionSubscriber::RabbitConnection.subscriber_disconnect!
-      end.join
     end
   end
 end
