@@ -84,11 +84,11 @@ module ActionSubscriber
           any_threadpools_busy = false
           ::ActionSubscriber::RabbitConnection.connection_threadpools.each do |name, executor|
             next if executor.get_active_count <= 0
-            puts "  -- Connection #{name} (active: #{executor.get_active_count}, queued: #{executor.get_queue.size})"
+            logger.info "  -- Connection #{name} (active: #{executor.get_active_count}, queued: #{executor.get_queue.size})"
             any_threadpools_busy = true
           end
           if !any_threadpools_busy
-            puts "Connection threadpools empty"
+            logger.info "Connection threadpools empty"
             break
           end
           break if wait_loops >= timeout

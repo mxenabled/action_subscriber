@@ -71,7 +71,7 @@ module ActionSubscriber
   def self.stop_subscribers!(timeout = nil)
     timeout ||= ::ActionSubscriber.configuration.seconds_to_wait_for_graceful_shutdown
     route_set.cancel_consumers!
-    puts "waiting for threadpools to empty (maximum wait of #{timeout}sec)"
+    logger.info "waiting for threadpools to empty (maximum wait of #{timeout}sec)"
     route_set.wait_to_finish_with_timeout(timeout)
   end
 
