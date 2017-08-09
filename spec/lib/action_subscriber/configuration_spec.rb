@@ -43,4 +43,21 @@ describe ::ActionSubscriber::Configuration do
       expect(subject.virtual_host).to eq("vhost")
     end
   end
+
+  describe "error_handler" do
+    let(:logger) { ::ActionSubscriber::Logging.logger }
+
+    it "by default logs the error" do
+      expect(logger).to receive(:error).with("I'm confused")
+      expect(logger).to receive(:error).with("ArgumentError")
+      # Lame way of looking for the backtrace.
+      expect(logger).to receive(:error).with(/\.rb/)
+
+      begin
+        fail ::ArgumentError, "I'm confused"
+      rescue => error
+        subject.error_handler.call(error, {})
+      end
+    end
+  end
 end
