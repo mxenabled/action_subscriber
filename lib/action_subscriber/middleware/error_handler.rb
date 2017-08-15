@@ -8,25 +8,18 @@ module ActionSubscriber
       end
 
       def call(env)
-        job_mutex = ::Mutex.new
-        job_complete = ::ConditionVariable.new
+        @app.call(env)
+      rescue => error
+        logger.error "FAILED #{env.message_id}"
 
-        job_mutex.synchronize do
-          ::Thread.new do
-            job_mutex.synchronize do
-              begin
-                @app.call(env)
-              rescue => error
-                logger.error "FAILED #{env.message_id}"
-                ::ActionSubscriber.configuration.error_handler.call(error, env.to_h)
-              ensure
-                job_complete.signal
-              end
-            end
-          end
-
-          # TODO we might want to pass a timeout to this wait so we can handle jobs that get frozen
-          job_complete.wait(job_mutex)
+        # There is more to this rescue than meets the eye. MarchHare's java library will rescue errors
+        # and attempt to close the channel with its default exception handler. To avoid this, we will
+        # stop errors right here. If you want to handle errors, you must do it in the error handler and
+        # it should not re-raise. As a bonus, not killing these threads is better for your runtime :).
+        begin
+          ::ActionSubscriber.configuration.error_handler.call(error, env.to_h)
+        rescue => error
+          logger.error "ActionSubscriber error handler raised error, but should never raise. Error: #{error}"
         end
       end
     end

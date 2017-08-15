@@ -85,7 +85,13 @@ module ActionSubscriber
         'text/plain' => lambda { |payload| payload.dup }
       }
 
-      self.error_handler = lambda { |error, env_hash| raise }
+      self.error_handler = lambda do |error, env_hash|
+        logger = ::ActionSubscriber::Logging.logger
+
+        logger.error(error.message)
+        logger.error(error.class.to_s)
+        logger.error(error.backtrace.join("\n")) if error.try(:backtrace) && error.backtrace.is_a?(::Array)
+      end
 
       DEFAULTS.each_pair do |key, value|
         self.__send__("#{key}=", value)
