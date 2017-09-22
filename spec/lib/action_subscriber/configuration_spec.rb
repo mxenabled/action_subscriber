@@ -12,6 +12,19 @@ describe ::ActionSubscriber::Configuration do
     specify { expect(subject.tls).to eq(false) }
   end
 
+  describe ".configure_from_yaml_and_cli" do
+    context "when using a yaml file" do
+      let!(:sample_yaml_location) { ::File.expand_path(::File.join("spec", "support", "sample_config.yml")) }
+
+      before { allow(::File).to receive(:expand_path) { sample_yaml_location } }
+
+      it "parses any ERB in the yaml" do
+        expect(::ActionSubscriber.configuration).to receive(:password=).with("WAT").and_return(true)
+        ::ActionSubscriber::Configuration.configure_from_yaml_and_cli({}, true)
+      end
+    end
+  end
+
   describe "add_decoder" do
     it "add the decoder to the registry" do
       subject.add_decoder({"application/protobuf" => lambda { |payload| "foo"} })
