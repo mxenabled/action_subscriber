@@ -21,6 +21,7 @@ require "action_subscriber/message_retry"
 require "action_subscriber/middleware"
 require "action_subscriber/rabbit_connection"
 require "action_subscriber/subscribable"
+require "action_subscriber/thread_pools"
 require "action_subscriber/bunny/subscriber"
 require "action_subscriber/march_hare/subscriber"
 require "action_subscriber/babou"
@@ -58,6 +59,10 @@ module ActionSubscriber
 
   def self.setup_default_connection!
     ::ActionSubscriber::RabbitConnection.setup_connection(:default, {})
+  end
+
+  def self.setup_default_threadpool!
+    ::ActionSubscriber::ThreadPools.setup_threadpool(:default, {})
   end
 
   def self.setup_subscriptions!
