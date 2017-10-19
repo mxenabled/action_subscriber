@@ -26,7 +26,7 @@ module ActionSubscriber
 
     def self.create_threadpool(settings)
       settings = THREADPOOL_DEFAULTS.merge(settings)
-      num_threads = settings.delete(:num_threads) || ::ActionSubscriber.configuration.threadpool_size
+      num_threads = settings.delete(:threadpool_size) || ::ActionSubscriber.configuration.threadpool_size
       ::Concurrent::FixedThreadPool.new(num_threads, settings)
     end
     private_class_method :create_threadpool

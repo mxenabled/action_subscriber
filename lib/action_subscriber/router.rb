@@ -17,7 +17,7 @@ module ActionSubscriber
     end
 
     def threadpool(name, settings)
-      ::ActionSubscriber::RabbitConnection.setup_connection(name, settings)
+      ::ActionSubscriber::ThreadPools.setup_threadpool(name, settings)
       @current_threadpool_name = name
       yield
       @current_threadpool_name = :default
