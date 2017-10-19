@@ -5,46 +5,27 @@ module ActionSubscriber
     SUBSCRIBER_CONNECTION_MUTEX = ::Mutex.new
     NETWORK_RECOVERY_INTERVAL = 1.freeze
 
-    def self.connection_threadpools
-      if ::RUBY_PLATFORM == "java"
-        subscriber_connections.each_with_object({}) do |(name, connection), hash|
-          hash[name] = connection.instance_variable_get("@executor")
-        end
-      else
-        [] # TODO can I get a hold of the thredpool that bunny uses?
-      end
-    end
-
-    def self.setup_connection(name, settings)
-      SUBSCRIBER_CONNECTION_MUTEX.synchronize do
-        fail ArgumentError, "a #{name} connection already exists" if subscriber_connections[name]
-        subscriber_connections[name] = create_connection(settings)
-      end
-    end
-
     def self.subscriber_connected?
-      SUBSCRIBER_CONNECTION_MUTEX.synchronize do
-        subscriber_connections.all?{|_name, connection| connection.connected?}
-      end
+      with_connection{|connection| connection.connected? }
     end
 
     def self.subscriber_disconnect!
       SUBSCRIBER_CONNECTION_MUTEX.synchronize do
-        subscriber_connections.each{|_name, connection| connection.close}
-        @subscriber_connections = {}
+        @subscriber_connection.close if @subscriber_connection
+        @subscriber_connection = nil
       end
     end
 
-    def self.with_connection(name)
+    def self.with_connection
       SUBSCRIBER_CONNECTION_MUTEX.synchronize do
-        fail ArgumentError, "there is no connection named #{name}" unless subscriber_connections[name]
-        yield(subscriber_connections[name])
+        @subscriber_connection ||= create_connection
+        yield(@subscriber_connection)
       end
     end
 
     # Private API
-    def self.create_connection(settings)
-      options = connection_options.merge(settings)
+    def self.create_connection
+      options = connection_options
       if ::RUBY_PLATFORM == "java"
         options[:executor_factory] = ::Proc.new do
           ::MarchHare::ThreadPools.fixed_of_size(options[:threadpool_size])
@@ -79,10 +60,5 @@ module ActionSubscriber
       }
     end
     private_class_method :connection_options
-
-    def self.subscriber_connections
-      @subscriber_connections ||= {}
-    end
-    private_class_method :subscriber_connections
   end
 end

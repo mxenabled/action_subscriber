@@ -5,7 +5,6 @@ module ActionSubscriber
     #
     def self.start_subscribers
       reload_active_record
-      ::ActionSubscriber.setup_default_connection!
       ::ActionSubscriber.setup_default_threadpool!
       ::ActionSubscriber.setup_subscriptions!
       ::ActionSubscriber.print_subscriptions

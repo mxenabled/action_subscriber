@@ -57,10 +57,6 @@ module ActionSubscriber
     route_set.print_threadpool_stats
   end
 
-  def self.setup_default_connection!
-    ::ActionSubscriber::RabbitConnection.setup_connection(:default, {})
-  end
-
   def self.setup_default_threadpool!
     ::ActionSubscriber::ThreadPools.setup_threadpool(:default, {})
   end

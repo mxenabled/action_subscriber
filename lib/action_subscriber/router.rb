@@ -41,7 +41,7 @@ module ActionSubscriber
     end
 
     def default_routes_for(subscriber, options = {})
-      options = options.merge({:threadpool_name => @threadpool_name})
+      options = options.merge({:threadpool_name => @current_threadpool_name})
       subscriber.routes(options).each do |route|
         routes << route
       end
