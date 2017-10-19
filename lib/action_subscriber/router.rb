@@ -13,14 +13,14 @@ module ActionSubscriber
     }.freeze
 
     def initialize
-      @current_connection_name = :default
+      @current_threadpool_name = :default
     end
 
-    def connection(name, settings)
+    def threadpool(name, settings)
       ::ActionSubscriber::RabbitConnection.setup_connection(name, settings)
-      @current_connection_name = name
+      @current_threadpool_name = name
       yield
-      @current_connection_name = :default
+      @current_threadpool_name = :default
     end
 
     def default_routing_key_for(route_settings)
@@ -41,7 +41,7 @@ module ActionSubscriber
     end
 
     def default_routes_for(subscriber, options = {})
-      options = options.merge({:connection_name => @current_connection_name})
+      options = options.merge({:threadpool_name => @threadpool_name})
       subscriber.routes(options).each do |route|
         routes << route
       end
@@ -66,7 +66,7 @@ module ActionSubscriber
     end
 
     def route(subscriber, action, options = {})
-      route_settings = DEFAULT_SETTINGS.merge(:connection_name => @current_connection_name).merge(options).merge(:subscriber => subscriber, :action => action)
+      route_settings = DEFAULT_SETTINGS.merge(:threadpool_name => @current_threadpool_name).merge(options).merge(:subscriber => subscriber, :action => action)
       route_settings[:routing_key] ||= default_routing_key_for(route_settings)
       route_settings[:queue] ||= default_queue_for(route_settings)
       routes << Route.new(route_settings)
