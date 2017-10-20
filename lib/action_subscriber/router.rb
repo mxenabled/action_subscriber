@@ -16,6 +16,11 @@ module ActionSubscriber
       @current_threadpool_name = :default
     end
 
+    def connection(name, settings, &block)
+      ::ActionSubscriber.print_deprecation_warning("setting up a threadpool for #{name} instead of a new connection")
+      threadpool(name, settings, &block)
+    end
+
     def threadpool(name, settings)
       ::ActionSubscriber::ThreadPools.setup_threadpool(name, settings)
       @current_threadpool_name = name

@@ -20,6 +20,11 @@ module ActionSubscriber
       @routing_key = attributes.fetch(:routing_key)
       @subscriber = attributes.fetch(:subscriber)
       @threadpool_name = attributes.fetch(:threadpool_name)
+      if attributes.has_key?(:concurrency)
+        concurrency = attributes[:concurrency]
+        ::ActionSubscriber.print_deprecation_warning("setting prefetch for #{@queue} to #{concurrency}")
+        @prefetch = concurrency
+      end
     end
 
     def acknowledgements?

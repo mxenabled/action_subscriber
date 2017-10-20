@@ -48,6 +48,16 @@ module ActionSubscriber
     @draw_routes_block = block
   end
 
+  def self.print_deprecation_warning(specific_warning)
+    logger.info ("#"*50)
+    logger.info ("# DEPRECATION NOTICE ")
+    logger.info ("# #{specific_warning}")
+    logger.info ("# The usage of multiple connections and the :concurrency setting have been deprecated in favor of using threadpools")
+    logger.info ("# Please see https://github.com/mxenabled/action_subscriber#connections-deprecated for details")
+    logger.info ("# If this change is a problem for your usage of action_subscriber please let us know here: https://github.com/mxenabled/action_subscriber/issues/92")
+    logger.info ("#"*50)
+  end
+
   def self.print_subscriptions
     logger.info configuration.inspect
     route_set.print_subscriptions
