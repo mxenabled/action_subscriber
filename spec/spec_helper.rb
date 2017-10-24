@@ -15,7 +15,7 @@ require 'action_subscriber/rspec'
 # Silence the Logger
 $TESTING = true
 ::ActionSubscriber::Logging.initialize_logger(nil)
-::ActionSubscriber.setup_default_connection!
+::ActionSubscriber.setup_default_threadpool!
 
 RSpec.configure do |config|
   config.mock_with :rspec do |mocks|

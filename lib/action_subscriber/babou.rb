@@ -5,7 +5,7 @@ module ActionSubscriber
     #
     def self.start_subscribers
       reload_active_record
-      ::ActionSubscriber.setup_default_connection!
+      ::ActionSubscriber.setup_default_threadpool!
       ::ActionSubscriber.setup_subscriptions!
       ::ActionSubscriber.print_subscriptions
       ::ActionSubscriber.start_subscribers!
@@ -21,6 +21,7 @@ module ActionSubscriber
       logger.info "Shutting down"
       ::ActionSubscriber::RabbitConnection.subscriber_disconnect!
       logger.info "Shutdown complete"
+      exit(0)
     end
 
     def self.logger
