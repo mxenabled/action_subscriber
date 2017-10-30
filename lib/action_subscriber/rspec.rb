@@ -1,5 +1,3 @@
-require 'rspec'
-
 module ActionSubscriber
   module RSpec
     class FakeChannel # A class that quacks like a RabbitMQ Channel

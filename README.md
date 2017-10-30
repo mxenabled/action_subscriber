@@ -197,7 +197,7 @@ In your spec_helper.rb:
 require 'action_subscriber/rspec'
 
 RSpec.configure do |config|
-  config.include ::ActionSubscriber::Rspec
+  config.include ::ActionSubscriber::RSpec
 end
 ```
 
