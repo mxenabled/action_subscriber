@@ -23,6 +23,11 @@ module ActionSubscriber
           logger.info "    --       queue: #{route.queue}"
           logger.info "    -- routing_key: #{route.routing_key}"
           logger.info "    --    prefetch: #{route.prefetch}"
+          if route.prefetch < subscriber.ack_every_n_messages
+            # https://www.rabbitmq.com/blog/2011/09/24/sizing-your-rabbits/
+            logger.error "ERROR Subscriber has ack_every_n_messages as #{subscriber.ack_every_n_messages} and route has prefetch as #{route.prefetch}"
+            fail "prefetch < ack_every_n_messages, deadlock will occur"
+          end
           if route.acknowledgements != subscriber.acknowledge_messages?
             logger.error "WARNING subscriber has acknowledgements as #{subscriber.acknowledge_messages?} and route has acknowledgements as #{route.acknowledgements}"
           end
