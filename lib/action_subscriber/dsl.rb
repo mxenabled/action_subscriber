@@ -56,7 +56,7 @@ module ActionSubscriber
     end
 
     def ack_every_n_messages
-      @_ack_every_n_messages
+      @_ack_every_n_messages || 1
     end
 
     def no_acknowledgement!
