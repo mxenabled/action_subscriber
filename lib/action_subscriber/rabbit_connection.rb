@@ -3,7 +3,6 @@ require 'thread'
 module ActionSubscriber
   module RabbitConnection
     SUBSCRIBER_CONNECTION_MUTEX = ::Mutex.new
-    NETWORK_RECOVERY_INTERVAL = 1.freeze
 
     def self.subscriber_connected?
       with_connection{|connection| connection.connected? }
@@ -45,7 +44,7 @@ module ActionSubscriber
         :continuation_timeout          => ::ActionSubscriber.configuration.timeout * 1_000.0, #convert sec to ms
         :heartbeat                     => ::ActionSubscriber.configuration.heartbeat,
         :hosts                         => ::ActionSubscriber.configuration.hosts,
-        :network_recovery_interval     => NETWORK_RECOVERY_INTERVAL,
+        :network_recovery_interval     => ::ActionSubscriber.configuration.network_recovery_interval,
         :pass                          => ::ActionSubscriber.configuration.password,
         :port                          => ::ActionSubscriber.configuration.port,
         :recover_from_connection_close => true,

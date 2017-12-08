@@ -125,17 +125,26 @@ In an initializer, you can set the host and the port like this :
 Other configuration options include :
 
 * config.add_decoder - add a custom decoder for a custom content type
+* config.allow_low_priority_methods - Subscribe to `*_low` queues in addition to normal queues.
+* config.connection_reaping_interval - Connection reaping interval when using a project ActiveRecord
+* config.connection_reaping_timeout_interval - Connection reaping timeout interval when using a project ActiveRecord
 * config.default_exchange - set the default exchange that your queues will use, using the default RabbitMQ exchange is not recommended
 * config.error_handler - handle error like you want to handle them!
 * config.heartbeat - number of seconds between hearbeats (default 5) [see bunny documentation for more details](http://rubybunny.info/articles/connecting.html)
 * config.hosts - an array of hostnames in your cluster (ie `["rabbit1.myapp.com", "rabbit2.myapp.com"]`)
-* config.threadpool_size - set the number of threads availiable to action_subscriber
+* config.network_recovery_interval - reconnection interval for TCP connection failures (default 1)
+* config.password - RabbitMQ password (default "guest")
+* config.prefetch - number of messages to hold in the local queue in subscriber mode
+* config.seconds_to_wait_for_graceful_shutdown - time to wait before force stopping server after shutdown signal
+* config.threadpool_size - set the number of threads available to action_subscriber
 * config.timeout - how many seconds to allow rabbit to respond before timing out
 * config.tls - true/false whether to use TLS when connecting to the server
 * config.tls_ca_certificats - a list of ca certificates to use for verifying the servers TLS certificate
 * config.tls_cert - a client certificate to use during the TLS handshake
 * config.tls_key - a key to use during the TLS handshake
+* config.username - RabbitMQ username (default "guest")
 * config.verify_peer - whether to attempt to validate the server's TLS certificate
+* config.virtual_host - RabbitMQ virtual host (default "/")
 
 > Note: TLS is not handled identically in `bunny` and `march_hare`. The configuration options we provide are passed through as provided. For details on expected behavior please check the `bunny` or `march_hare` documentation based on whether you are running in MRI or jRuby.
 

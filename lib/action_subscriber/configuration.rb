@@ -12,6 +12,7 @@ module ActionSubscriber
                   :heartbeat,
                   :host,
                   :hosts,
+                  :network_recovery_interval,
                   :password,
                   :port,
                   :prefetch,
@@ -27,6 +28,7 @@ module ActionSubscriber
                   :virtual_host
 
     CONFIGURATION_MUTEX = ::Mutex.new
+    NETWORK_RECOVERY_INTERVAL = 1.freeze
 
     DEFAULTS = {
       :allow_low_priority_methods => false,
@@ -36,6 +38,7 @@ module ActionSubscriber
       :heartbeat => 5,
       :host => 'localhost',
       :hosts => [],
+      :network_recovery_interval => NETWORK_RECOVERY_INTERVAL,
       :password => "guest",
       :port => 5672,
       :prefetch => 2,

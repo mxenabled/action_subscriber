@@ -4,6 +4,7 @@ describe ::ActionSubscriber::Configuration do
     specify { expect(subject.default_exchange).to eq("events") }
     specify { expect(subject.heartbeat).to eq(5) }
     specify { expect(subject.host).to eq("localhost") }
+    specify { expect(subject.network_recovery_interval).to eq(1) }
     specify { expect(subject.port).to eq(5672) }
     specify { expect(subject.prefetch).to eq(2) }
     specify { expect(subject.seconds_to_wait_for_graceful_shutdown).to eq(30) }
