@@ -23,7 +23,7 @@ module ActionSubscriber
           logger.info "    --       queue: #{route.queue}"
           logger.info "    -- routing_key: #{route.routing_key}"
           logger.info "    --    prefetch: #{route.prefetch}"
-          if route.prefetch < subscriber.ack_every_n_messages
+          if subscriber.at_most_once? && (route.prefetch < subscriber.ack_every_n_messages || subscriber.ack_every_n_messages <= 0)
             # https://www.rabbitmq.com/blog/2011/09/24/sizing-your-rabbits/
             logger.error "ERROR Subscriber has ack_every_n_messages as #{subscriber.ack_every_n_messages} and route has prefetch as #{route.prefetch}"
             fail "prefetch < ack_every_n_messages, deadlock will occur"
