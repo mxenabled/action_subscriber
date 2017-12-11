@@ -9,9 +9,10 @@ module ActionSubscriber
       !!@_at_least_once
     end
 
-    def at_most_once!
+    def at_most_once!(ack_every_n_messages = 1)
       @_acknowledge_messages = true
       @_at_most_once = true
+      @_ack_every_n_messages = ack_every_n_messages
     end
 
     def at_most_once?
@@ -52,6 +53,10 @@ module ActionSubscriber
 
     def manual_acknowledgement?
       !!@_manual_acknowedgement
+    end
+
+    def ack_every_n_messages
+      @_ack_every_n_messages || 1
     end
 
     def no_acknowledgement!
@@ -131,6 +136,41 @@ module ActionSubscriber
       end
     end
 
+    def _run_action_at_most_once_multiple_with_filters(env, action)
+      processed_acknowledgement = false
+      rejected_message = false
+      if env.delivery_tag % ack_every_n_messages == 0 # tags are monotonically increasing integers
+        processed_acknowledgement = env.acknowledge(true)
+      else
+        processed_acknowledgement = true # we are not acknowledging on this message and will wait for the offset to acknowledge
+      end
+
+      _run_action_with_filters(env, action)
+    ensure
+      rejected_message = env.reject if !processed_acknowledgement
+
+      if !rejected_message && !processed_acknowledgement
+        $stdout << <<-UNREJECTABLE
+          CANNOT ACKNOWLEDGE OR REJECT THE MESSAGE
+
+          This is a exceptional state for ActionSubscriber to enter and puts the current
+          Process in the position of "I can't get new work from RabbitMQ, but also
+          can't acknowledge or reject the work that I currently have" ... While rare
+          this state can happen.
+
+          Instead of continuing to try to process the message ActionSubscriber is
+          sending a Kill signal to the current running process to gracefully shutdown
+          so that the RabbitMQ server will purge any outstanding acknowledgements. If
+          you are running a process monitoring tool (like Upstart) the Subscriber
+          process will be restarted and be able to take on new work.
+
+          ** Running a process monitoring tool like Upstart is recommended for this reason **
+        UNREJECTABLE
+
+        Process.kill(:TERM, Process.pid)
+      end
+    end
+
     def _run_action_at_least_once_with_filters(env, action)
       processed_acknowledgement = false
       rejected_message = false
@@ -172,8 +212,10 @@ module ActionSubscriber
       case
       when at_least_once?
         _run_action_at_least_once_with_filters(env, action)
-      when at_most_once?
+      when at_most_once? && ack_every_n_messages <= 1 # Acknowledging every single message
         _run_action_at_most_once_with_filters(env, action)
+      when at_most_once? && ack_every_n_messages > 1 # Acknowledging messages in offset groups (every 10 messages or whatever the offset is)
+        _run_action_at_most_once_multiple_with_filters(env, action)
       else
         _run_action_with_filters(env, action)
       end
