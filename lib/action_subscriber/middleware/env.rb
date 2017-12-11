@@ -41,9 +41,8 @@ module ActionSubscriber
         @subscriber = subscriber
       end
 
-      def acknowledge(acknowledge_multiple_messages = nil)
+      def acknowledge(acknowledge_multiple_messages = false)
         fail ::RuntimeError, "you can't acknowledge messages under the polling API" unless @channel
-        acknowledge_multiple_messages = false if acknowledge_multiple_messages.nil?
         @channel.ack(@delivery_tag, acknowledge_multiple_messages)
         true
       end
