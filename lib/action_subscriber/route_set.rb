@@ -58,10 +58,8 @@ module ActionSubscriber
 
     def run_env(env, threadpool)
       logger.info "RECEIVED #{env.message_id} from #{env.queue}"
-      ::ActiveSupport::Notifications.instrument "process_event.action_subscriber", :subscriber => env.subscriber.to_s, :routing_key => env.routing_key, :queue => env.queue do
-        threadpool << lambda do
-          ::ActionSubscriber.config.middleware.call(env)
-        end
+      threadpool << lambda do
+        ::ActionSubscriber.config.middleware.call(env)
       end
     end
   end
