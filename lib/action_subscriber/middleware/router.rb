@@ -9,9 +9,9 @@ module ActionSubscriber
 
       def call(env)
         logger.info { "START #{env.message_id} #{env.subscriber}##{env.action}" }
-        started_at = ::Time.now
-        env.subscriber.run_action_with_filters(env, env.action)
-        ::ActiveSupport::Notifications.instrument("action_subscriber.duration.#{env.queue}", (::Time.now - started_at))
+        ::ActiveSupport::Notifications.instrument "process_event.action_subscriber", :subscriber => env.subscriber.to_s, :routing_key => env.routing_key, :queue => env.queue do
+          env.subscriber.run_action_with_filters(env, env.action)
+        end
         logger.info { "FINISHED #{env.message_id}" }
       end
     end
