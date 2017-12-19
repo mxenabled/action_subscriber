@@ -10,6 +10,7 @@ module ActionSubscriber
       :acknowledgements => false,
       :durable => false,
       :exchange => "events",
+      :exchange_durable => false
     }.freeze
 
     def initialize

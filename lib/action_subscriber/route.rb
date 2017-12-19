@@ -4,6 +4,7 @@ module ActionSubscriber
                 :action,
                 :durable,
                 :exchange,
+                :exchange_durable,
                 :prefetch,
                 :queue,
                 :routing_key,
@@ -15,6 +16,7 @@ module ActionSubscriber
       @action = attributes.fetch(:action)
       @durable = attributes.fetch(:durable)
       @exchange = attributes.fetch(:exchange).to_s
+      @exchange_durable = attributes.fetch(:exchange_durable, false)
       @prefetch = attributes.fetch(:prefetch) { ::ActionSubscriber.config.prefetch }
       @queue = attributes.fetch(:queue)
       @routing_key = attributes.fetch(:routing_key)
