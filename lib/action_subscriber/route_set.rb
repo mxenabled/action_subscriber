@@ -12,7 +12,12 @@ module ActionSubscriber
       @routes = routes
     end
 
+    def print_middleware_stack
+      ::ActionSubscriber.config.middleware.print_middleware_stack
+    end
+
     def print_subscriptions
+      print_middleware_stack
       routes.group_by(&:subscriber).each do |subscriber, routes|
         logger.info subscriber.name
         routes.each do |route|
