@@ -9,8 +9,8 @@ module ActionSubscriber
     def self.initialize_stack
       builder = ::Middleware::Builder.new(:runner_class => ::ActionSubscriber::Middleware::Runner)
 
-      builder.use ErrorHandler
-      builder.use Decoder
+      builder.use ::ActionSubscriber::Middleware::ErrorHandler
+      builder.use ::ActionSubscriber::Middleware::Decoder
 
       builder
     end

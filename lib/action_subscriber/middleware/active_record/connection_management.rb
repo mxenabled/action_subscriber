@@ -38,7 +38,7 @@ module ActionSubscriber
         end
 
         def call(env)
-          def call(env)
+          def call(env) # redefines so it only gets called once
             ::ActiveRecord::Base.connection_pool.with_connection do
               @app.call(env)
             end

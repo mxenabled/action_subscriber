@@ -33,6 +33,9 @@ module ActionSubscriber
         @delivery_tag = properties.fetch(:delivery_tag)
         @encoded_payload = encoded_payload
         @exchange = properties.fetch(:exchange)
+        @has_been_acked = false
+        @has_been_nacked = false
+        @has_been_rejected = false
         @headers = properties.fetch(:headers) || {}
         @message_id = properties.fetch(:message_id) || ::SecureRandom.hex(3)
         @queue = properties.fetch(:queue)
@@ -43,15 +46,38 @@ module ActionSubscriber
       def acknowledge
         fail ::RuntimeError, "you can't acknowledge messages under the polling API" unless @channel
         acknowledge_multiple_messages = false
+        @has_been_acked = true
         @channel.ack(@delivery_tag, acknowledge_multiple_messages)
+        true
+      end
+
+      def nack
+        fail ::RuntimeError, "you can't acknowledge messages under the polling API" unless @channel
+        nack_multiple_messages = false
+        requeue_message = true
+        @has_been_nacked = true
+        @channel.nack(@delivery_tag, nack_multiple_messages, requeue_message)
         true
       end
 
       def reject
         fail ::RuntimeError, "you can't acknowledge messages under the polling API" unless @channel
         requeue_message = true
+        @has_been_rejected = true
         @channel.reject(@delivery_tag, requeue_message)
         true
+      end
+
+      def safe_acknowledge
+        acknowledge if @channel && !has_used_delivery_tag?
+      end
+
+      def safe_nack
+        nack if @channel && !has_used_delivery_tag?
+      end
+
+      def safe_reject
+        reject if @channel && !has_used_delivery_tag?
       end
 
       def to_hash
@@ -64,6 +90,12 @@ module ActionSubscriber
         }
       end
       alias_method :to_h, :to_hash
+
+    private
+
+      def has_used_delivery_tag?
+        @has_been_acked || @has_been_nacked || @has_been_rejected
+      end
 
     end
   end

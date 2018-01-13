@@ -7,6 +7,10 @@ module ActionSubscriber
         true
       end
 
+      def nack(delivery_tag, acknowledge_multiple, requeue_message)
+        true
+      end
+
       def reject(delivery_tag, requeue_message)
         true
       end
