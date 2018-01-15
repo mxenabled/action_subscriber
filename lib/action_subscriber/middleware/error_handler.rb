@@ -11,7 +11,6 @@ module ActionSubscriber
         @app.call(env)
       rescue Exception => error # make sure we capture any exception from the top of the hierarchy
         logger.error { "FAILED #{env.message_id}" }
-        env.safe_nack # Make sure we attempt to `nack` a message that did not get processed if something fails
 
         # There is more to this rescue than meets the eye. MarchHare's java library will rescue errors
         # and attempt to close the channel with its default exception handler. To avoid this, we will
@@ -22,6 +21,8 @@ module ActionSubscriber
         rescue Exception => inner_error
           logger.error { "ActionSubscriber error handler raised error, but should never raise. Error: #{inner_error}" }
         end
+      ensure
+        env.safe_nack # Make sure we attempt to `nack` a message that did not get processed if something fails
       end
     end
   end
