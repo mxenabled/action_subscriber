@@ -36,11 +36,12 @@ module ActionSubscriber
         @has_been_acked = false
         @has_been_nacked = false
         @has_been_rejected = false
-        @headers = properties.fetch(:headers) || {}
-        @message_id = properties.fetch(:message_id) || ::SecureRandom.hex(3)
+        @headers = properties.fetch(:headers, {})
+        @message_id = properties.fetch(:message_id, ::SecureRandom.hex(3))
         @queue = properties.fetch(:queue)
         @routing_key = properties.fetch(:routing_key)
         @subscriber = subscriber
+        @uses_acknowledgements = properties.fetch(:uses_acknowledgements, false)
       end
 
       def acknowledge
@@ -69,15 +70,15 @@ module ActionSubscriber
       end
 
       def safe_acknowledge
-        acknowledge if @channel && !has_used_delivery_tag?
+        acknowledge if uses_acknowledgements? && @channel && !has_used_delivery_tag?
       end
 
       def safe_nack
-        nack if @channel && !has_used_delivery_tag?
+        nack if uses_acknowledgements? && @channel && !has_used_delivery_tag?
       end
 
       def safe_reject
-        reject if @channel && !has_used_delivery_tag?
+        reject if uses_acknowledgements? && @channel && !has_used_delivery_tag?
       end
 
       def to_hash
@@ -97,6 +98,9 @@ module ActionSubscriber
         @has_been_acked || @has_been_nacked || @has_been_rejected
       end
 
+      def uses_acknowledgements?
+        @uses_acknowledgements
+      end
     end
   end
 end

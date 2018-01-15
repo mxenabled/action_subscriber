@@ -44,6 +44,7 @@ module ActionSubscriber
               :message_id => properties.message_id,
               :routing_key => delivery_info.routing_key,
               :queue => queue.name,
+              :uses_acknowledgements => route.acknowledgements?,
             }
             env = ::ActionSubscriber::Middleware::Env.new(route.subscriber, encoded_payload, properties)
             run_env(env, threadpool)
