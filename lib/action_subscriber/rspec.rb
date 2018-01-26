@@ -7,6 +7,10 @@ module ActionSubscriber
         true
       end
 
+      def nack(delivery_tag, acknowledge_multiple, requeue_message)
+        true
+      end
+
       def reject(delivery_tag, requeue_message)
         true
       end
@@ -22,6 +26,7 @@ module ActionSubscriber
       :message_id => "MSG-123",
       :routing_key => "amigo.user.created",
       :queue => "test.amigo.user.created",
+      :uses_acknoledgements => false,
     }.freeze
 
     # Create a new subscriber instance. Available options are:

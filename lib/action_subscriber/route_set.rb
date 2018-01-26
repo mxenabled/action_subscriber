@@ -12,7 +12,12 @@ module ActionSubscriber
       @routes = routes
     end
 
+    def print_middleware_stack
+      ::ActionSubscriber.config.middleware.print_middleware_stack
+    end
+
     def print_subscriptions
+      print_middleware_stack
       routes.group_by(&:subscriber).each do |subscriber, routes|
         logger.info subscriber.name
         routes.each do |route|
@@ -39,15 +44,20 @@ module ActionSubscriber
     end
 
     def wait_to_finish_with_timeout(timeout)
+      finisher_threads = []
+
       ::ActionSubscriber::ThreadPools.threadpools.map do |name, threadpool|
         logger.info "  -- Threadpool #{name} (queued: #{threadpool.queue_length})"
-        ::Thread.new do
-          completed = threadpool.wait_for_termination(timeout)
+        finisher_threads << ::Thread.new(threadpool, timeout, name) do |internal_pool, internal_timeout, internal_name|
+          completed = internal_pool.wait_for_termination(internal_timeout)
+
           unless completed
-            logger.error "  -- FAILED #{name} did not finish shutting down within #{timeout}sec"
+            logger.error "  -- FAILED #{internal_name} did not finish shutting down within #{internal_timeout}sec"
           end
         end
-      end.each(&:join)
+      end
+
+      finisher_threads.each(&:join)
     end
 
   private

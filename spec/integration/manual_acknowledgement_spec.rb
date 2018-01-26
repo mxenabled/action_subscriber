@@ -3,8 +3,10 @@ class BaconSubscriber < ActionSubscriber::Base
 
   def served
     $messages << "#{payload}::#{$messages.size}"
-    if $messages.size > 2
+    if $messages.size > 3
       acknowledge
+    elsif $messages.size > 2
+      nack
     else
       reject
     end
@@ -20,12 +22,12 @@ describe "Manual Message Acknowledgment", :integration => true do
   end
   let(:subscriber) { BaconSubscriber }
 
-  it "retries rejected messages and stops retrying acknowledged messages" do
+  it "retries rejected/nacked messages and stops retrying acknowledged messages" do
     ::ActionSubscriber.start_subscribers!
     ::ActivePublisher.publish("bacon.served", "BACON!", "events")
 
-    verify_expectation_within(2.0) do
-      expect($messages).to eq(Set.new(["BACON!::0", "BACON!::1", "BACON!::2"]))
+    verify_expectation_within(2.5) do
+      expect($messages).to eq(Set.new(["BACON!::0", "BACON!::1", "BACON!::2", "BACON!::3"]))
     end
   end
 end

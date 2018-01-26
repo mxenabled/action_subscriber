@@ -160,7 +160,7 @@ This also allows the broker to send messages as quickly as it wants down to your
 
 ### manual_acknowledgement!
 
-This mode leaves it up to the subscriber to handle acknowledging or rejecting messages. In your subscriber you can just call <code>acknowledge</code> or <code>reject</code>.
+This mode leaves it up to the subscriber to handle acknowledging or rejecting messages. In your subscriber you can just call <code>acknowledge</code>, <code>reject</code>, or <code>nack</code>.
 
 ### at_most_once!
 
@@ -171,6 +171,11 @@ Rabbit is told to expect message acknowledgements, but sending the acknowledgeme
 Rabbit is told to expect message acknowledgements, but sending the acknowledgement is left up to ActionSubscriber.
 We send the acknowledgement right after calling your subscriber.
 If an error is raised your message will be retried on a sent back to rabbitmq and retried on an exponential backoff schedule.
+
+### safe_nack
+If you turn on acknowledgements and a message is not acknowledged by your code manually or using one of the filters above the `ErrorHandler` middleware
+which wraps the entire block with call <code>nack</code> this is a last resort so the connection does not get backed up in cases of unexpected or
+unhandled errors.
 
 ### redeliver
 

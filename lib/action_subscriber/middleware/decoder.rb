@@ -18,7 +18,7 @@ module ActionSubscriber
       private
 
       def decoder
-        ActionSubscriber.config.decoder[env.content_type]
+        ::ActionSubscriber.config.decoder[env.content_type]
       end
 
       def decoder?
