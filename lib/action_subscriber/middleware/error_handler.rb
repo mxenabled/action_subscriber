@@ -22,7 +22,14 @@ module ActionSubscriber
           logger.error { "ActionSubscriber error handler raised error, but should never raise. Error: #{inner_error}" }
         end
       ensure
-        env.safe_nack # Make sure we attempt to `nack` a message that did not get processed if something fails
+        # This second rescue is a little extreme, but we need to be very cautious here to avoid errors
+        # being sent back to bunny or march_hare land.
+        begin
+          # Make sure we attempt to `nack` a message that did not get processed if something fails
+          env.safe_nack
+        rescue Exception => inner_error
+          logger.error { "ActionSubscriber error handler raised error while nack-ing message. Error: #{inner_error}" }
+        end
       end
     end
   end
