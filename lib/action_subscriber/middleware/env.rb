@@ -52,6 +52,11 @@ module ActionSubscriber
         true
       end
 
+      def channel_open?
+        return false unless @channel
+        @channel.open?
+      end
+
       def nack
         fail ::RuntimeError, "you can't acknowledge messages under the polling API" unless @channel
         nack_multiple_messages = false
@@ -70,15 +75,15 @@ module ActionSubscriber
       end
 
       def safe_acknowledge
-        acknowledge if uses_acknowledgements? && @channel && !has_used_delivery_tag?
+        acknowledge if uses_acknowledgements? && channel_open? && !has_used_delivery_tag?
       end
 
       def safe_nack
-        nack if uses_acknowledgements? && @channel && !has_used_delivery_tag?
+        nack if uses_acknowledgements? && channel_open? && !has_used_delivery_tag?
       end
 
       def safe_reject
-        reject if uses_acknowledgements? && @channel && !has_used_delivery_tag?
+        reject if uses_acknowledgements? && channel_open? && !has_used_delivery_tag?
       end
 
       def to_hash
