@@ -46,6 +46,7 @@ module ActionSubscriber
 
       def acknowledge
         fail ::RuntimeError, "you can't acknowledge messages under the polling API" unless @channel
+        return if @has_been_acked
         acknowledge_multiple_messages = false
         @has_been_acked = true
         @channel.ack(@delivery_tag, acknowledge_multiple_messages)
@@ -59,6 +60,7 @@ module ActionSubscriber
 
       def nack
         fail ::RuntimeError, "you can't acknowledge messages under the polling API" unless @channel
+        return if @has_been_nacked
         nack_multiple_messages = false
         requeue_message = true
         @has_been_nacked = true
@@ -68,6 +70,7 @@ module ActionSubscriber
 
       def reject
         fail ::RuntimeError, "you can't acknowledge messages under the polling API" unless @channel
+        return if @has_been_rejected
         requeue_message = true
         @has_been_rejected = true
         @channel.reject(@delivery_tag, requeue_message)
