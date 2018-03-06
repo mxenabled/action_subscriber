@@ -3,8 +3,16 @@ require 'rspec/core'
 module ActionSubscriber
   module RSpec
     class FakeChannel # A class that quacks like a RabbitMQ Channel
+      def initialize(opts = {})
+        @open = opts.fetch(:open, true)
+      end
+
       def ack(delivery_tag, acknowledge_multiple)
         true
+      end
+
+      def open?
+        @open
       end
 
       def nack(delivery_tag, acknowledge_multiple, requeue_message)
@@ -76,9 +84,10 @@ end
   shared_context 'action subscriber middleware env' do
     let(:app) { Proc.new { |inner_env| inner_env } }
     let(:env) { ActionSubscriber::Middleware::Env.new(UserSubscriber, 'encoded payload', message_properties) }
+    let(:channel) { ::ActionSubscriber::RSpec::FakeChannel.new }
     let(:message_properties) {{
       :action => :created,
-      :channel => ::ActionSubscriber::RSpec::FakeChannel.new,
+      :channel => channel,
       :content_type => "text/plain",
       :delivery_tag => "XYZ",
       :exchange => "events",

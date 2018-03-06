@@ -9,6 +9,26 @@ describe ActionSubscriber::Middleware::ErrorHandler do
 
   let(:load_error) { ::LoadError.new("Boom!") }
   let(:runtime_error) { ::RuntimeError.new("Boom!") }
+  let(:message_properties) {{
+    :action => :created,
+    :channel => channel,
+    :content_type => "text/plain",
+    :delivery_tag => "XYZ",
+    :exchange => "events",
+    :headers => {},
+    :message_id => "MSG-123",
+    :routing_key => "amigo.user.created",
+    :queue => "test.amigo.user.created",
+    :uses_acknowledgements => true,
+  }}
+
+  it "calls safe_nack after successful execution" do
+    expect(env).to receive(:safe_nack).and_call_original
+    expect(env).to_not receive(:nack)
+
+    env.acknowledge
+    subject.call(env)
+  end
 
   context "when an exception occurs" do
     context "LoadError" do
@@ -23,18 +43,31 @@ describe ActionSubscriber::Middleware::ErrorHandler do
 
     context "RuntimError" do
       before { allow(app).to receive(:call).and_raise(runtime_error) }
+
       it "calls the exception handler with a RuntimeError" do
         handler = ::ActionSubscriber.configuration.error_handler
         expect(handler).to receive(:call).with(runtime_error, env.to_h)
 
         subject.call(env)
       end
-    end
 
-    it "calls safe_nack after execution" do
-      expect(env).to receive(:safe_nack)
+      it "calls safe_nack after execution" do
+        expect(env).to receive(:safe_nack).and_call_original
+        expect(env).to receive(:nack)
 
-      subject.call(env)
+        subject.call(env)
+      end
+
+      context "when the channel is closed without an ack" do
+        let(:channel) { ::ActionSubscriber::RSpec::FakeChannel.new(:open => false) }
+
+        it "calls safe_nack after execution" do
+          expect(env).to receive(:safe_nack).and_call_original
+          expect(env).to_not receive(:nack)
+
+          subject.call(env)
+        end
+      end
     end
   end
 end
