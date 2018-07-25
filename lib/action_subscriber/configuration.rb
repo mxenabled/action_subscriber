@@ -66,7 +66,12 @@ module ActionSubscriber
           yaml_config = {}
           absolute_config_path = ::File.expand_path(::File.join("config", "action_subscriber.yml"))
           if ::File.exists?(absolute_config_path)
-            yaml_config = ::YAML.load(::ERB.new(::File.read(absolute_config_path)).result, :safe => true)[env]
+            erb = ::ERB.new(::File.read(absolute_config_path)).result
+            if defined?(SafeYAML)
+              yaml_config = ::YAML.load(erb, :safe => true)[env]
+            else
+              yaml_config = ::YAML.load(erb)[env]
+            end
           end
 
           ::ActionSubscriber::Configuration::DEFAULTS.each_pair do |key, value|
