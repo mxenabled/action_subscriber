@@ -7,15 +7,15 @@ module ActionSubscriber
         @bunny_consumers ||= []
       end
 
-      def set_bunny_consumers(consumers)
-        @bunny_consumers = consumers
-      end
-
       def cancel_consumers!
         bunny_consumers.each(&:cancel)
         ::ActionSubscriber::ThreadPools.threadpools.each do |name, threadpool|
           threadpool.shutdown
         end
+      end
+
+      def set_bunny_consumers(consumers)
+        @bunny_consumers = consumers
       end
 
       def setup_subscriptions!
@@ -28,44 +28,44 @@ module ActionSubscriber
         end
       end
 
-      def start_subscription!(subscription)
-        route = subscription[:route]
-          queue = subscription[:queue]
-          channel = queue.channel
-          threadpool = ::ActionSubscriber::ThreadPools.threadpools.fetch(route.threadpool_name)
-          channel.prefetch(route.prefetch) if route.acknowledgements?
-          consumer = ::Bunny::Consumer.new(channel, queue, channel.generate_consumer_tag, !route.acknowledgements?)
-          consumer.on_cancellation do |_basic_cancel|
-            set_bunny_consumers(bunny_consumers.reject { |bunny_consumer| bunny_consumer == consumer })
-            subscription[:queue] = setup_queue(route)
-            start_subscription!(subscription)
-          end
-          
-          consumer.on_delivery do |delivery_info, properties, encoded_payload|
-            ::ActiveSupport::Notifications.instrument "received_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
-            properties = {
-              :action => route.action,
-              :channel => queue.channel,
-              :content_type => properties.content_type,
-              :delivery_tag => delivery_info.delivery_tag,
-              :exchange => delivery_info.exchange,
-              :headers => properties.headers,
-              :message_id => properties.message_id,
-              :routing_key => delivery_info.routing_key,
-              :queue => queue.name,
-              :uses_acknowledgements => route.acknowledgements?,
-            }
-            env = ::ActionSubscriber::Middleware::Env.new(route.subscriber, encoded_payload, properties)
-            run_env(env, threadpool)
-          end
-          bunny_consumers << consumer
-          queue.subscribe_with(consumer)
-      end
-
       def start_subscribers!
         subscriptions.each do |subscription|
           start_subscription!(subscription)
         end
+      end
+
+      def start_subscription!(subscription)
+        route = subscription[:route]
+        queue = subscription[:queue]
+        channel = queue.channel
+        threadpool = ::ActionSubscriber::ThreadPools.threadpools.fetch(route.threadpool_name)
+        channel.prefetch(route.prefetch) if route.acknowledgements?
+        consumer = ::Bunny::Consumer.new(channel, queue, channel.generate_consumer_tag, !route.acknowledgements?)
+        consumer.on_cancellation do |_basic_cancel|
+          set_bunny_consumers(bunny_consumers.reject { |bunny_consumer| bunny_consumer == consumer })
+          subscription[:queue] = setup_queue(route)
+          start_subscription!(subscription)
+        end
+        
+        consumer.on_delivery do |delivery_info, properties, encoded_payload|
+          ::ActiveSupport::Notifications.instrument "received_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
+          properties = {
+            :action => route.action,
+            :channel => queue.channel,
+            :content_type => properties.content_type,
+            :delivery_tag => delivery_info.delivery_tag,
+            :exchange => delivery_info.exchange,
+            :headers => properties.headers,
+            :message_id => properties.message_id,
+            :routing_key => delivery_info.routing_key,
+            :queue => queue.name,
+            :uses_acknowledgements => route.acknowledgements?,
+          }
+          env = ::ActionSubscriber::Middleware::Env.new(route.subscriber, encoded_payload, properties)
+          run_env(env, threadpool)
+        end
+        bunny_consumers << consumer
+        queue.subscribe_with(consumer)
       end
 
       private
