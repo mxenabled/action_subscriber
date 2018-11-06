@@ -13,6 +13,10 @@ module ActionSubscriber
       def march_hare_consumers
         @march_hare_consumers ||= []
       end
+      
+      def set_march_hare_consumers(consumers)
+        @march_hare_consumers = consumers
+      end
 
       def setup_subscriptions!
         fail ::RuntimeError, "you cannot setup queues multiple times, this should only happen once at startup" unless subscriptions.empty?
@@ -23,14 +27,23 @@ module ActionSubscriber
           }
         end
       end
-
-      def start_subscribers!
-        subscriptions.each do |subscription|
+      
+      def start_subscription!(subscription)
           route = subscription[:route]
           queue = subscription[:queue]
           queue.channel.prefetch = route.prefetch if route.acknowledgements?
           threadpool = ::ActionSubscriber::ThreadPools.threadpools.fetch(route.threadpool_name)
-          consumer = queue.subscribe(route.queue_subscription_options) do |metadata, encoded_payload|
+
+          cancel = {
+            :on_cancellation => Proc.new { |channel, consumer| 
+              channel.close
+              set_march_hare_consumers(march_hare_consumers.reject { |march_hare_consumer| march_hare_consumer == consumer })
+
+              subscription[:queue] = setup_queue(route)
+              start_subscription!(subscription)
+            }
+          }
+          consumer = queue.subscribe(cancel.merge(route.queue_subscription_options)) do |metadata, encoded_payload|
             ::ActiveSupport::Notifications.instrument "received_event.action_subscriber", :payload_size => encoded_payload.bytesize, :queue => queue.name
             properties = {
               :action => route.action,
@@ -49,6 +62,12 @@ module ActionSubscriber
           end
 
           march_hare_consumers << consumer
+      end
+
+      def start_subscribers!
+        route_set = self
+        subscriptions.each do |subscription|
+          start_subscription! subscription
         end
       end
 
