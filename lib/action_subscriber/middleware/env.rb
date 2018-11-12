@@ -6,6 +6,7 @@ module ActionSubscriber
       attr_accessor :payload
 
       attr_reader :action,
+                  :channel,
                   :content_type,
                   :encoded_payload,
                   :exchange,

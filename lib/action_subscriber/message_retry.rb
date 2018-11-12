@@ -46,7 +46,7 @@ module ActionSubscriber
     end
 
     def self.with_exchange(env, ttl, retry_queue_name)
-      channel = RabbitConnection.with_connection{|connection| connection.create_channel}
+      channel = env.channel
       begin
         channel.confirm_select
         # an empty string is the default exchange [see bunny docs](http://rubybunny.info/articles/exchanges.html#default_exchange)
@@ -54,8 +54,6 @@ module ActionSubscriber
         queue = channel.queue(retry_queue_name, :arguments => {"x-dead-letter-exchange" => "", "x-message-ttl" => ttl, "x-dead-letter-routing-key" => env.queue})
         yield(exchange)
         channel.wait_for_confirms
-      ensure
-        channel.close rescue nil
       end
     end
   end
