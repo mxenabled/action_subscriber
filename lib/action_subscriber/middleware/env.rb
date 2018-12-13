@@ -38,7 +38,7 @@ module ActionSubscriber
         @has_been_nacked = false
         @has_been_rejected = false
         @headers = properties.fetch(:headers, {})
-        @message_id = properties.fetch(:message_id, ::SecureRandom.hex(3))
+        @message_id = properties[:message_id].presence || ::SecureRandom.hex(3)
         @queue = properties.fetch(:queue)
         @routing_key = properties.fetch(:routing_key)
         @subscriber = subscriber
