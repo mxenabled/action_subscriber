@@ -3,6 +3,10 @@ require "securerandom"
 module ActionSubscriber
   module Middleware
     class Env
+      ACK_INSTRUMENT_KEY = "message_acked.action_subscriber".freeze
+      NACK_INSTRUMENT_KEY = "message_nacked.action_subscriber".freeze
+      REJECT_INSTRUMENT_KEY = "message_rejected.action_subscriber".freeze
+
       attr_accessor :payload
 
       attr_reader :action,
@@ -50,7 +54,9 @@ module ActionSubscriber
         return true if @has_been_acked
         acknowledge_multiple_messages = false
         @has_been_acked = true
-        @channel.ack(@delivery_tag, acknowledge_multiple_messages)
+        instrument_for(ACK_INSTRUMENT_KEY) do
+          @channel.ack(@delivery_tag, acknowledge_multiple_messages)
+        end
         true
       end
 
@@ -65,7 +71,9 @@ module ActionSubscriber
         nack_multiple_messages = false
         requeue_message = true
         @has_been_nacked = true
-        @channel.nack(@delivery_tag, nack_multiple_messages, requeue_message)
+        instrument_for(NACK_INSTRUMENT_KEY) do
+          @channel.nack(@delivery_tag, nack_multiple_messages, requeue_message)
+        end
         true
       end
 
@@ -74,7 +82,9 @@ module ActionSubscriber
         return true if @has_been_rejected
         requeue_message = true
         @has_been_rejected = true
-        @channel.reject(@delivery_tag, requeue_message)
+        instrument_for(REJECT_INSTRUMENT_KEY) do
+          @channel.reject(@delivery_tag, requeue_message)
+        end
         true
       end
 
@@ -105,6 +115,12 @@ module ActionSubscriber
 
       def has_used_delivery_tag?
         @has_been_acked || @has_been_nacked || @has_been_rejected
+      end
+
+      def instrument_for(instrumentation_key)
+        ::ActiveSupport::Notifications.instrument(instrumentation_key, :subscriber => subscriber.to_s, :routing_key => routing_key, :queue => queue) do
+          yield
+        end
       end
 
       def uses_acknowledgements?

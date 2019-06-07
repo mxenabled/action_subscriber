@@ -30,12 +30,49 @@ describe ActionSubscriber::Middleware::Env do
       expect(channel).to receive(:ack).with(properties[:delivery_tag], false)
       subject.acknowledge
     end
+
+    it "instruments an acknowedgement" do
+      expect(channel).to receive(:ack).with(properties[:delivery_tag], false)
+      duration = nil
+      work = lambda { |_name, start, finish, _id, _payload|  duration = finish - start }
+      with_instrumentation_subscription("message_acked.action_subscriber", work) do
+        subject.acknowledge
+      end
+      expect(duration).to_not be_nil
+    end
+  end
+
+  describe "#nack" do
+    it "sends a nack to rabbitmq" do
+      expect(channel).to receive(:nack).with(properties[:delivery_tag], false, true)
+      subject.nack
+    end
+
+    it "instruments a nack" do
+      expect(channel).to receive(:nack).with(properties[:delivery_tag], false, true)
+      duration = nil
+      work = lambda { |_name, start, finish, _id, _payload|  duration = finish - start }
+      with_instrumentation_subscription("message_nacked.action_subscriber", work) do |c|
+        subject.nack
+      end
+      expect(duration).to_not be_nil
+    end
   end
 
   describe "#reject" do
     it "sends an rejection to rabbitmq" do
       expect(channel).to receive(:reject).with(properties[:delivery_tag], true)
       subject.reject
+    end
+
+    it "instruments a rejection" do
+      expect(channel).to receive(:reject).with(properties[:delivery_tag], true)
+      duration = nil
+      work = lambda { |_name, start, finish, _id, _payload|  duration = finish - start }
+      with_instrumentation_subscription("message_rejected.action_subscriber", work) do
+        subject.reject
+      end
+      expect(duration).to_not be_nil
     end
   end
 

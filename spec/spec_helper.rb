@@ -51,3 +51,15 @@ def verify_expectation_within(number_of_seconds, check_every = 0.02)
     end
   end
 end
+
+# This helper method allows us to verify a subscription is cleaned up after every test.
+# Its arguments are the instrumentation key and a proc that contains the work to be
+# performed for each notification.
+def with_instrumentation_subscription(instrumentation_key, work)
+  subscription = ::ActiveSupport::Notifications.subscribe(instrumentation_key) do |name, start, finish, id, payload|
+    work.call(name, start, finish, id, payload)
+  end
+  yield
+ensure
+  ::ActiveSupport::Notifications.unsubscribe(subscription)
+end
