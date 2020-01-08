@@ -1,3 +1,54 @@
+require "pry"
+
+class Filter
+  attr_accessor :method
+  attr_accessor :included_actions
+  attr_accessor :excluded_actions
+
+  def initialize(method, options)
+    @method = method
+    @included_actions = @excluded_actions = []
+    parse_options(options)
+  end
+
+  def matches(action)
+    unless included_actions.empty?
+      return included_actions.include?(action)
+    end
+
+    unless excluded_actions.empty?
+      return false if excluded_actions.include?(action)
+    end
+
+    true
+  end
+
+private
+
+  def matches_excluded?(action)
+    return false if excluded_actions.empty?
+
+    return excluded_actions.include?(action)
+  end
+
+  def matches_included?(action)
+    return true if included_actions.empty?
+
+    return included_actions.include?(action)
+  end
+
+  def no_conditions
+    included_actions.empty? && excluded_actions.empty?
+  end
+
+  def parse_options(options)
+    return unless options
+
+    @included_actions  = options.fetch(:if, [])
+    @excluded_actions = options.fetch(:unless, [])
+  end
+end
+
 module ActionSubscriber
   module DSL
     def at_least_once!
@@ -22,9 +73,14 @@ module ActionSubscriber
       !!@_acknowledge_messages
     end
 
-    def around_filter(filter_method)
-      around_filters << filter_method unless around_filters.include?(filter_method)
+    def around_filter(filter_method, options = nil)
+      filter = Filter.new(filter_method, options)
+      conditionally_add_filter!(filter)
       around_filters
+    end
+
+    def conditionally_add_filter!(filter)
+      around_filters << filter unless around_filters.any? { |f| f.method == filter.method }
     end
 
     def around_filters
@@ -95,7 +151,12 @@ module ActionSubscriber
       final_block = Proc.new { subscriber_instance.public_send(action) }
 
       first_proc = around_filters.reverse.reduce(final_block) do |block, filter|
-        Proc.new { subscriber_instance.send(filter, &block) }
+        if filter.matches(action)
+          p = Proc.new { subscriber_instance.send(filter.method, &block) } if filter.matches(action)
+          p
+        else
+          block
+        end
       end
       first_proc.call
     end
