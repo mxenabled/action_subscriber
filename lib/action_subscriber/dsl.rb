@@ -1,56 +1,54 @@
-require "pry"
-
-class Filter
-  attr_accessor :method
-  attr_accessor :included_actions
-  attr_accessor :excluded_actions
-
-  def initialize(method, options)
-    @method = method
-    @included_actions = @excluded_actions = []
-    parse_options(options)
-  end
-
-  def matches(action)
-    unless included_actions.empty?
-      return included_actions.include?(action)
-    end
-
-    unless excluded_actions.empty?
-      return false if excluded_actions.include?(action)
-    end
-
-    true
-  end
-
-private
-
-  def matches_excluded?(action)
-    return false if excluded_actions.empty?
-
-    return excluded_actions.include?(action)
-  end
-
-  def matches_included?(action)
-    return true if included_actions.empty?
-
-    return included_actions.include?(action)
-  end
-
-  def no_conditions
-    included_actions.empty? && excluded_actions.empty?
-  end
-
-  def parse_options(options)
-    return unless options
-
-    @included_actions  = options.fetch(:if, [])
-    @excluded_actions = options.fetch(:unless, [])
-  end
-end
 
 module ActionSubscriber
   module DSL
+    class Filter
+      attr_accessor :method
+      attr_accessor :included_actions
+      attr_accessor :excluded_actions
+
+      def initialize(method, options)
+        @method = method
+        @included_actions = @excluded_actions = []
+        parse_options(options)
+      end
+
+      def matches(action)
+        unless included_actions.empty?
+          return included_actions.include?(action)
+        end
+
+        unless excluded_actions.empty?
+          return false if excluded_actions.include?(action)
+        end
+
+        true
+      end
+
+    private
+
+      def matches_excluded?(action)
+        return false if excluded_actions.empty?
+
+        return excluded_actions.include?(action)
+      end
+
+      def matches_included?(action)
+        return true if included_actions.empty?
+
+        return included_actions.include?(action)
+      end
+
+      def no_conditions
+        included_actions.empty? && excluded_actions.empty?
+      end
+
+      def parse_options(options)
+        return unless options
+
+        @included_actions  = options.fetch(:if, [])
+        @excluded_actions = options.fetch(:unless, [])
+      end
+    end
     def at_least_once!
       @_acknowledge_messages = true
       @_at_least_once = true
