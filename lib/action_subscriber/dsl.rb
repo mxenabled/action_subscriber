@@ -1,13 +1,12 @@
-
 module ActionSubscriber
   module DSL
     class Filter
-      attr_accessor :method
+      attr_accessor :action
       attr_accessor :included_actions
       attr_accessor :excluded_actions
 
-      def initialize(method, options)
-        @method = method
+      def initialize(action, options)
+        @action = action
         @included_actions = @excluded_actions = []
         parse_options(options)
       end
@@ -26,22 +25,6 @@ module ActionSubscriber
 
     private
 
-      def matches_excluded?(action)
-        return false if excluded_actions.empty?
-
-        return excluded_actions.include?(action)
-      end
-
-      def matches_included?(action)
-        return true if included_actions.empty?
-
-        return included_actions.include?(action)
-      end
-
-      def no_conditions
-        included_actions.empty? && excluded_actions.empty?
-      end
-
       def parse_options(options)
         return unless options
 
@@ -49,6 +32,7 @@ module ActionSubscriber
         @excluded_actions = options.fetch(:unless, [])
       end
     end
+
     def at_least_once!
       @_acknowledge_messages = true
       @_at_least_once = true
@@ -72,13 +56,13 @@ module ActionSubscriber
     end
 
     def around_filter(filter_method, options = nil)
-      filter = Filter.new(filter_method, options)
+      filter = ::DSL::Filter.new(filter_method, options)
       conditionally_add_filter!(filter)
       around_filters
     end
 
     def conditionally_add_filter!(filter)
-      around_filters << filter unless around_filters.any? { |f| f.method == filter.method }
+      around_filters << filter unless around_filters.any? { |f| f.action == filter.action }
     end
 
     def around_filters
@@ -150,8 +134,7 @@ module ActionSubscriber
 
       first_proc = around_filters.reverse.reduce(final_block) do |block, filter|
         if filter.matches(action)
-          p = Proc.new { subscriber_instance.send(filter.method, &block) } if filter.matches(action)
-          p
+          Proc.new { subscriber_instance.send(filter.method, &block) } if filter.matches(action)
         else
           block
         end
