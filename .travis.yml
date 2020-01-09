@@ -2,7 +2,7 @@ language: ruby
 os:
   linux
 dist:
-  trusty
+  xenial
 rvm:
  - 2.2.6
  - 2.3.3
@@ -10,6 +10,9 @@ rvm:
  - jruby-9.1.7.0
  - jruby-9.1.12.0
  - jruby-head
+addons:
+  packages:
+    - rabbitmq-server
 services:
  - rabbitmq
 sudo: false
