@@ -1,12 +1,12 @@
 module ActionSubscriber
   module DSL
     class Filter
-      attr_accessor :action
+      attr_accessor :callback_method
       attr_accessor :included_actions
       attr_accessor :excluded_actions
 
-      def initialize(action, options)
-        @action = action
+      def initialize(callback_method, options)
+        @callback_method = callback_method
         @included_actions = @excluded_actions = []
         parse_options(options)
       end
@@ -55,14 +55,14 @@ module ActionSubscriber
       !!@_acknowledge_messages
     end
 
-    def around_filter(filter_method, options = nil)
-      filter = Filter.new(filter_method, options)
+    def around_filter(callback_method, options = nil)
+      filter = Filter.new(callback_method, options)
       conditionally_add_filter!(filter)
       around_filters
     end
 
     def conditionally_add_filter!(filter)
-      around_filters << filter unless around_filters.any? { |f| f.action == filter.action }
+      around_filters << filter unless around_filters.any? { |f| f.callback_method == filter.callback_method }
     end
 
     def around_filters
@@ -134,7 +134,7 @@ module ActionSubscriber
 
       first_proc = around_filters.reverse.reduce(final_block) do |block, filter|
         if filter.matches(action)
-          Proc.new { subscriber_instance.send(filter.method, &block) } if filter.matches(action)
+          Proc.new { subscriber_instance.send(filter.callback_method, &block) } if filter.matches(action)
         else
           block
         end

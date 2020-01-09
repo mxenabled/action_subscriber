@@ -33,7 +33,7 @@ describe "subscriber filters", :integration => true do
   let(:subscriber) { InstaSubscriber }
 
   it "does not allow an around filter to be pushed on twice" do
-    expect(InstaSubscriber.around_filters.map(&:method)).to eq([:whisper, :yell])
+    expect(InstaSubscriber.around_filters.map(&:callback_method)).to eq([:whisper, :yell])
   end
 
   it "runs multiple around filters" do
@@ -48,15 +48,12 @@ describe "subscriber filters", :integration => true do
 end
 
 class OptionsSubscriber < ActionSubscriber::Base
-  around_filter :whisper, :if => [:primero, :segundo, :private_action]
+  around_filter :whisper, :if => [:primero, :segundo]
   around_filter :yell, :if => [:primero]
   around_filter :gossip, :unless => [:private_action]
+  around_filter :everybody
 
   def primero
-    $messages << payload
-  end
-
-  def segundo
     $messages << payload
   end
 
@@ -64,7 +61,23 @@ class OptionsSubscriber < ActionSubscriber::Base
     $messages << payload
   end
 
+  def segundo
+    $messages << payload
+  end
+
   private
+
+  def everybody
+    $messages << :everybody_before
+    yield
+    $messages << :everybody_after
+  end
+
+  def gossip
+    $messages << :gossip_before
+    yield
+    $messages << :gossip_after
+  end
 
   def whisper
     $messages << :whisper_before
@@ -76,12 +89,6 @@ class OptionsSubscriber < ActionSubscriber::Base
     $messages << :yell_before
     yield
     $messages << :yell_after
-  end
-
-  def gossip
-    $messages << :gossip_before
-    yield
-    $messages << :gossip_after
   end
 end
 
@@ -100,7 +107,7 @@ describe "subscriber filters with conditions", :integration => true do
       ::ActivePublisher.publish("options.primero", "Howdy!", "events")
 
       verify_expectation_within(1.0) do
-        expect($messages).to eq [:whisper_before, :yell_before, :gossip_before, "Howdy!", :gossip_after, :yell_after, :whisper_after]
+        expect($messages).to eq [:whisper_before, :yell_before, :gossip_before, :everybody_before, "Howdy!", :everybody_after, :gossip_after, :yell_after, :whisper_after]
       end
     end
 
@@ -110,7 +117,7 @@ describe "subscriber filters with conditions", :integration => true do
       ::ActivePublisher.publish("options.segundo", "Howdy!", "events")
 
       verify_expectation_within(1.0) do
-        expect($messages).to eq [:whisper_before, :gossip_before, "Howdy!", :gossip_after, :whisper_after]
+        expect($messages).to eq [:whisper_before, :gossip_before, :everybody_before, "Howdy!", :everybody_after, :gossip_after, :whisper_after]
       end
     end
 
@@ -120,7 +127,7 @@ describe "subscriber filters with conditions", :integration => true do
       ::ActivePublisher.publish("options.private_action", "Howdy!", "events")
 
       verify_expectation_within(1.0) do
-        expect($messages).to eq [:whisper_before, "Howdy!", :whisper_after]
+        expect($messages).to eq [:everybody_before, "Howdy!", :everybody_after]
       end
     end
   end
