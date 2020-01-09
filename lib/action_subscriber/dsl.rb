@@ -56,7 +56,7 @@ module ActionSubscriber
     end
 
     def around_filter(filter_method, options = nil)
-      filter = ::DSL::Filter.new(filter_method, options)
+      filter = Filter.new(filter_method, options)
       conditionally_add_filter!(filter)
       around_filters
     end
