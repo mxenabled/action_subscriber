@@ -11,8 +11,9 @@ rvm:
  - jruby-9.1.12.0
  - jruby-head
 addons:
-  packages:
-    - rabbitmq-server
+  apt:
+    packages:
+      - rabbitmq-server
 services:
  - rabbitmq
 sudo: false
