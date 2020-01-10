@@ -134,7 +134,7 @@ module ActionSubscriber
 
       first_proc = around_filters.reverse.reduce(final_block) do |block, filter|
         if filter.matches(action)
-          Proc.new { subscriber_instance.send(filter.callback_method, &block) } if filter.matches(action)
+          Proc.new { subscriber_instance.send(filter.callback_method, &block) }
         else
           block
         end
