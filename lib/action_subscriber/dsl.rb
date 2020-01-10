@@ -1,5 +1,38 @@
 module ActionSubscriber
   module DSL
+    class Filter
+      attr_accessor :callback_method
+      attr_accessor :included_actions
+      attr_accessor :excluded_actions
+
+      def initialize(callback_method, options)
+        @callback_method = callback_method
+        @included_actions = @excluded_actions = []
+        parse_options(options)
+      end
+
+      def matches(action)
+        unless included_actions.empty?
+          return included_actions.include?(action)
+        end
+
+        unless excluded_actions.empty?
+          return false if excluded_actions.include?(action)
+        end
+
+        true
+      end
+
+    private
+
+      def parse_options(options)
+        return unless options
+
+        @included_actions  = options.fetch(:if, [])
+        @excluded_actions = options.fetch(:unless, [])
+      end
+    end
+
     def at_least_once!
       @_acknowledge_messages = true
       @_at_least_once = true
@@ -22,9 +55,14 @@ module ActionSubscriber
       !!@_acknowledge_messages
     end
 
-    def around_filter(filter_method)
-      around_filters << filter_method unless around_filters.include?(filter_method)
+    def around_filter(callback_method, options = nil)
+      filter = Filter.new(callback_method, options)
+      conditionally_add_filter!(filter)
       around_filters
+    end
+
+    def conditionally_add_filter!(filter)
+      around_filters << filter unless around_filters.any? { |f| f.callback_method == filter.callback_method }
     end
 
     def around_filters
@@ -95,7 +133,11 @@ module ActionSubscriber
       final_block = Proc.new { subscriber_instance.public_send(action) }
 
       first_proc = around_filters.reverse.reduce(final_block) do |block, filter|
-        Proc.new { subscriber_instance.send(filter, &block) }
+        if filter.matches(action)
+          Proc.new { subscriber_instance.send(filter.callback_method, &block) }
+        else
+          block
+        end
       end
       first_proc.call
     end
