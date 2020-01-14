@@ -35,7 +35,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", ">= 1.6"
   spec.add_development_dependency "pry-coolline"
   spec.add_development_dependency "pry-nav"
-  spec.add_development_dependency "rabbitmq_http_api_client", "~> 1.2.0"
+  spec.add_development_dependency "rabbitmq_http_api_client", "~> 1.9.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "rake"
 end
