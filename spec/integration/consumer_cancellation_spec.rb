@@ -39,9 +39,9 @@ describe "Automatically handles consumer cancellation", :integration => true, :s
    end
  end
 
- context "when recover on consumer cancellation is disabled" do
+ context "when resubscribe on consumer cancellation is disabled" do
    before do
-     allow(::ActionSubscriber.configuration).to receive(:recover_on_consumer_cancellation).and_return(false)
+     allow(::ActionSubscriber.configuration).to receive(:resubscribe_on_consumer_cancellation).and_return(false)
    end
 
    it "does not resubscribe on cancellation" do
@@ -64,7 +64,7 @@ describe "Automatically handles consumer cancellation", :integration => true, :s
 
      ::ActivePublisher.publish("yolo.created", "Second", "events")
 
-     # Force sleep 2 seconds to ensure a recovery did not happen and messages were not processed.
+     # Force sleep 2 seconds to ensure a resubscribe did not happen and messages were not processed.
      sleep 2.0
      expect($messages).to eq(Set.new(["First"]))
    end

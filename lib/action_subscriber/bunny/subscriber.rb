@@ -40,7 +40,7 @@ module ActionSubscriber
         channel.prefetch(route.prefetch) if route.acknowledgements?
         consumer = ::Bunny::Consumer.new(channel, queue, channel.generate_consumer_tag, !route.acknowledgements?)
 
-        if ::ActionSubscriber.configuration.recover_on_consumer_cancellation
+        if ::ActionSubscriber.configuration.resubscribe_on_consumer_cancellation
           # Add cancellation callback to rebuild subscriber on cancel.
           consumer.on_cancellation do
             ::ActionSubscriber.logger.warn "Cancelation received for queue consumer: #{queue.name}, rebuilding subscription..."

@@ -39,7 +39,7 @@ module ActionSubscriber
         threadpool = ::ActionSubscriber::ThreadPools.threadpools.fetch(route.threadpool_name)
         opts = route.queue_subscription_options
 
-        if ::ActionSubscriber.configuration.recover_on_consumer_cancellation
+        if ::ActionSubscriber.configuration.resubscribe_on_consumer_cancellation
           # Add cancellation callback to rebuild subscriber on cancel.
           opts[:on_cancellation] = lambda do
             ::ActionSubscriber.logger.warn "Cancelation received for queue consumer: #{queue.name}, rebuilding subscription..."

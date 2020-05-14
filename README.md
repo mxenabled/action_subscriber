@@ -135,6 +135,7 @@ Other configuration options include :
 * config.network_recovery_interval - reconnection interval for TCP connection failures (default 1)
 * config.password - RabbitMQ password (default "guest")
 * config.prefetch - number of messages to hold in the local queue in subscriber mode
+* config.resubscribe_on_consumer_cancellation - resubscribe when the consumer is cancelled (queue deleted or cluster fails)
 * config.seconds_to_wait_for_graceful_shutdown - time to wait before force stopping server after shutdown signal
 * config.threadpool_size - set the number of threads available to action_subscriber
 * config.timeout - how many seconds to allow rabbit to respond before timing out
