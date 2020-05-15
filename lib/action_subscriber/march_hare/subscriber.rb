@@ -4,7 +4,8 @@ module ActionSubscriber
       include ::ActionSubscriber::Logging
 
       def cancel_consumers!
-        march_hare_consumers.each(&:cancel)
+        # Cancel any non-cancelled consumers.
+        march_hare_consumers.reject(&:cancelled?).each(&:cancel)
         ::ActionSubscriber::ThreadPools.threadpools.each do |name, threadpool|
           threadpool.shutdown
         end
@@ -41,9 +42,9 @@ module ActionSubscriber
 
         if ::ActionSubscriber.configuration.resubscribe_on_consumer_cancellation
           # Add cancellation callback to rebuild subscriber on cancel.
-          opts[:on_cancellation] = lambda do
+          opts[:on_cancellation] = lambda do |the_consumer|
             ::ActionSubscriber.logger.warn "Cancelation received for queue consumer: #{queue.name}, rebuilding subscription..."
-            march_hare_consumers.delete(consumer)
+            march_hare_consumers.delete(the_consumer)
             queue.channel.close
             queue = subscription[:queue] = setup_queue(route)
             start_subscriber_for_subscription(subscription)
