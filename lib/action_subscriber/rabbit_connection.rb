@@ -30,9 +30,22 @@ module ActionSubscriber
           ::MarchHare::ThreadPools.fixed_of_size(options[:threadpool_size])
         end
         connection = ::MarchHare.connect(options)
+        connection.on_blocked do |reason|
+          on_blocked(reason)
+        end
+        connection.on_unblocked do
+          on_unblocked
+        end
+        connection
       else
         connection = ::Bunny.new(options)
         connection.start
+        connection.on_blocked do |blocked_message|
+          on_blocked(blocked_message.reason)
+        end
+        connection.on_unblocked do
+          on_unblocked
+        end
         connection
       end
     end
@@ -59,5 +72,15 @@ module ActionSubscriber
       }
     end
     private_class_method :connection_options
+
+    def self.on_blocked(reason)
+      ::ActiveSupport::Notifications.instrument("connection_blocked.action_subscriber", :reason => reason)
+    end
+    private_class_method :on_blocked
+
+    def self.on_unblocked
+      ::ActiveSupport::Notifications.instrument("connection_unblocked.action_subscriber")
+    end
+    private_class_method :on_unblocked
   end
 end
