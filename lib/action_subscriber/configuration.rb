@@ -77,14 +77,23 @@ module ActionSubscriber
           end
 
           ::ActionSubscriber::Configuration::DEFAULTS.each_pair do |key, value|
-            setting = cli_options[key] || yaml_config[key.to_s]
-            ::ActionSubscriber.config.__send__("#{key}=", setting) if setting
+            exists, setting = fetch_config_value(key, cli_options, yaml_config)
+            ::ActionSubscriber.config.__send__("#{key}=", setting) if exists
           end
 
           true
         end
       end
     end
+
+    def self.fetch_config_value(key, cli_options, yaml_config)
+      return [true, cli_options[key]] if cli_options.key?(key)
+      return [true, cli_options[key.to_s]] if cli_options.key?(key.to_s)
+      return [true, yaml_config[key]] if yaml_config.key?(key)
+      return [true, yaml_config[key.to_s]] if yaml_config.key?(key.to_s)
+      [false, nil]
+    end
+    private_class_method :fetch_config_value
 
     ##
     # Instance Methods
