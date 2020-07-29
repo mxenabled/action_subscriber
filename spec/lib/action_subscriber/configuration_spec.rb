@@ -24,6 +24,13 @@ describe ::ActionSubscriber::Configuration do
         ::ActionSubscriber::Configuration.configure_from_yaml_and_cli({}, true)
       end
     end
+
+    it "can override a true value with a false value" do
+      expect(::ActionSubscriber.configuration.verify_peer).to eq(true)
+      expect(::ActionSubscriber.configuration).to receive(:verify_peer=).with(false).and_call_original
+      ::ActionSubscriber::Configuration.configure_from_yaml_and_cli({"verify_peer" => false}, true)
+      expect(::ActionSubscriber.configuration.verify_peer).to eq(false)
+    end
   end
 
   describe "add_decoder" do
