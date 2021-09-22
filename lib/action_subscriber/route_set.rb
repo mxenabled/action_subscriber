@@ -14,6 +14,7 @@ module ActionSubscriber
 
     def print_middleware_stack
       ::ActionSubscriber.config.middleware.print_middleware_stack
+      ::ActionSubscriber.config.resubscribe_middleware.print_middleware_stack
     end
 
     def print_subscriptions

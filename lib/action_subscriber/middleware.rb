@@ -2,6 +2,8 @@ require "action_subscriber/logging"
 require "action_subscriber/middleware/decoder"
 require "action_subscriber/middleware/env"
 require "action_subscriber/middleware/error_handler"
+require "action_subscriber/middleware/resubscribe_env"
+require "action_subscriber/middleware/resubscribe_handler"
 require "action_subscriber/middleware/router"
 require "action_subscriber/middleware/runner"
 
@@ -27,6 +29,13 @@ module ActionSubscriber
 
       builder.use ::ActionSubscriber::Middleware::ErrorHandler
       builder.use ::ActionSubscriber::Middleware::Decoder
+
+      builder
+    end
+
+    def self.initialize_resubscribe_stack
+      builder = ::ActionSubscriber::Middleware::Builder.new
+      builder.use ::ActionSubscriber::Middleware::ResubscribeHandler
 
       builder
     end

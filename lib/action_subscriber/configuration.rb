@@ -142,10 +142,6 @@ module ActionSubscriber
       [ host ]
     end
 
-    def middleware
-      @middleware ||= Middleware.initialize_stack
-    end
-
     def inspect
       inspection_string  = <<-INSPECT.strip_heredoc
         Rabbit Hosts: #{hosts}
@@ -156,6 +152,14 @@ module ActionSubscriber
       INSPECT
       decoder.each_key { |key| inspection_string << "  --#{key}\n" }
       return inspection_string
+    end
+
+    def middleware
+      @middleware ||= Middleware.initialize_stack
+    end
+
+    def resubscribe_middleware
+      @resubscribe_middleware ||= ::ActionSubscriber::Middleware.initialize_resubscribe_stack
     end
   end
 end

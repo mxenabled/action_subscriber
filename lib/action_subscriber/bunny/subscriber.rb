@@ -30,8 +30,6 @@ module ActionSubscriber
         end
       end
 
-    private
-
       def start_subscriber_for_subscription(subscription)
         route = subscription[:route]
         queue = subscription[:queue]
@@ -43,11 +41,14 @@ module ActionSubscriber
         if ::ActionSubscriber.configuration.resubscribe_on_consumer_cancellation
           # Add cancellation callback to rebuild subscriber on cancel.
           consumer.on_cancellation do
-            ::ActionSubscriber.logger.warn "Cancelation received for queue consumer: #{queue.name}, rebuilding subscription..."
-            bunny_consumers.delete(consumer)
-            channel.close
-            queue = subscription[:queue] = setup_queue(route)
-            start_subscriber_for_subscription(subscription)
+            properties = {
+              :consumer => consumer,
+              :consumers => bunny_consumers,
+              :route_set => self,
+              :subscription => subscription
+            }
+            env = ::ActionSubscriber::Middleware::ResubscribeEnv.new(properties)
+            ::ActionSubscriber.config.resubscribe_middleware.call(env)
           end
         end
 

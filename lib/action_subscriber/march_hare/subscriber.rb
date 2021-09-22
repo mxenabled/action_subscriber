@@ -31,8 +31,6 @@ module ActionSubscriber
         end
       end
 
-    private
-
       def start_subscriber_for_subscription(subscription)
         route = subscription[:route]
         queue = subscription[:queue]
@@ -43,11 +41,14 @@ module ActionSubscriber
         if ::ActionSubscriber.configuration.resubscribe_on_consumer_cancellation
           # Add cancellation callback to rebuild subscriber on cancel.
           opts[:on_cancellation] = lambda do |the_consumer|
-            ::ActionSubscriber.logger.warn "Cancelation received for queue consumer: #{queue.name}, rebuilding subscription..."
-            march_hare_consumers.delete(the_consumer)
-            queue.channel.close
-            queue = subscription[:queue] = setup_queue(route)
-            start_subscriber_for_subscription(subscription)
+            properties = {
+              :consumer => the_consumer,
+              :consumers => march_hare_consumers,
+              :route_set => self,
+              :subscription => subscription
+            }
+            env = ::ActionSubscriber::Middleware::ResubscribeEnv.new(properties)
+            ::ActionSubscriber.config.resubscribe_middleware.call(env)
           end
         end
 
@@ -79,6 +80,8 @@ module ActionSubscriber
         queue.bind(exchange, :routing_key => route.routing_key)
         queue
       end
+
+    private
 
       def _normalized_headers(metadata)
         return {} unless metadata.headers
