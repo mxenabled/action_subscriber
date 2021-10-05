@@ -2,6 +2,7 @@ module ActionSubscriber
   module Bunny
     module Subscriber
       include ::ActionSubscriber::Logging
+      include ::ActionSubscriber::Subscriber
 
       def bunny_consumers
         @bunny_consumers ||= []
@@ -43,11 +44,10 @@ module ActionSubscriber
         if ::ActionSubscriber.configuration.resubscribe_on_consumer_cancellation
           # Add cancellation callback to rebuild subscriber on cancel.
           consumer.on_cancellation do
-            ::ActionSubscriber.logger.warn "Cancelation received for queue consumer: #{queue.name}, rebuilding subscription..."
+            ::ActionSubscriber.logger.warn "Cancellation received for queue consumer: #{queue.name}, rebuilding subscription..."
             bunny_consumers.delete(consumer)
             channel.close
-            queue = subscription[:queue] = setup_queue(route)
-            start_subscriber_for_subscription(subscription)
+            safely_restart_subscriber(subscription)
           end
         end
 
