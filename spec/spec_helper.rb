@@ -1,6 +1,14 @@
 require 'rubygems'
 require 'bundler'
 
+unless ENV["NO_COV"]
+  require "simplecov"
+  ::SimpleCov.start do
+    enable_coverage :branch
+    add_filter "spec"
+  end
+end
+
 ENV['APP_NAME'] = 'Alice'
 
 Bundler.require(:default, :development, :test)
