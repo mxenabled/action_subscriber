@@ -1,3 +1,5 @@
+require "fileutils"
+
 module ActionSubscriber
   module Babou
     ##
@@ -10,6 +12,9 @@ module ActionSubscriber
       ::ActionSubscriber.print_subscriptions
       ::ActionSubscriber.start_subscribers!
       logger.info "Action Subscriber connected"
+
+      ::FileUtils.mkdir_p(File.join(Rails.root, "tmp"))
+      ::FileUtils.touch(File.join(Rails.root, "tmp", "subscriber-started"))
 
       while true
         sleep 1.0 #just hang around waiting for messages
