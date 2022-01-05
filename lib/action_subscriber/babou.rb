@@ -1,4 +1,4 @@
-require "fileutils"
+require 'active_support/notifications'
 
 module ActionSubscriber
   module Babou
@@ -11,11 +11,8 @@ module ActionSubscriber
       ::ActionSubscriber.setup_subscriptions!
       ::ActionSubscriber.print_subscriptions
       ::ActionSubscriber.start_subscribers!
-
-      ::FileUtils.mkdir_p(File.join(Rails.root, "tmp"))
-      ::FileUtils.touch(File.join(Rails.root, "tmp", "subscriber-started"))
-
       logger.info "Action Subscriber connected"
+      ::ActiveSupport::Notifications.instrument("action_subscriber:server_started")
       while true
         sleep 1.0 #just hang around waiting for messages
         break if shutting_down?
@@ -26,7 +23,7 @@ module ActionSubscriber
       logger.info "Shutting down"
       ::ActionSubscriber::RabbitConnection.subscriber_disconnect!
       logger.info "Shutdown complete"
-      ::FileUtils.remove_file(File.join(Rails.root, "tmp", "subscriber-started"), force = true)
+      ::ActiveSupport::Notifications.instrument("action_subscriber:server_stopped")
       exit(0)
     end
 
