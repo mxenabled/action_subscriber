@@ -11,11 +11,11 @@ module ActionSubscriber
       ::ActionSubscriber.setup_subscriptions!
       ::ActionSubscriber.print_subscriptions
       ::ActionSubscriber.start_subscribers!
-      logger.info "Action Subscriber connected"
 
       ::FileUtils.mkdir_p(File.join(Rails.root, "tmp"))
       ::FileUtils.touch(File.join(Rails.root, "tmp", "subscriber-started"))
 
+      logger.info "Action Subscriber connected"
       while true
         sleep 1.0 #just hang around waiting for messages
         break if shutting_down?
@@ -26,6 +26,7 @@ module ActionSubscriber
       logger.info "Shutting down"
       ::ActionSubscriber::RabbitConnection.subscriber_disconnect!
       logger.info "Shutdown complete"
+      ::FileUtils.remove_file(File.join(Rails.root, "tmp", "subscriber-started"), force = true)
       exit(0)
     end
 
