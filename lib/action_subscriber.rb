@@ -87,6 +87,18 @@ module ActionSubscriber
     route_set.wait_to_finish_with_timeout(timeout)
   end
 
+  def self.after_server_start(&block)
+    ::ActiveSupport::Notifications.subscribe("action_subscriber:server_started") do |*args|
+      block.call(*args)
+    end
+  end
+
+  def self.after_server_stop(&block)
+    ::ActiveSupport::Notifications.subscribe("action_subscriber:server_stopped") do |*args|
+      block.call(*args)
+    end
+  end
+
   # Execution is delayed until after app loads when used with bin/action_subscriber
   require "action_subscriber/railtie" if defined?(Rails)
   ::ActiveSupport.run_load_hooks(:action_subscriber, Base)

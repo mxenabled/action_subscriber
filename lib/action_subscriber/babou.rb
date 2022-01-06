@@ -1,3 +1,5 @@
+require "active_support/notifications"
+
 module ActionSubscriber
   module Babou
     ##
@@ -10,7 +12,7 @@ module ActionSubscriber
       ::ActionSubscriber.print_subscriptions
       ::ActionSubscriber.start_subscribers!
       logger.info "Action Subscriber connected"
-
+      ::ActiveSupport::Notifications.instrument("action_subscriber:server_started")
       while true
         sleep 1.0 #just hang around waiting for messages
         break if shutting_down?
@@ -21,6 +23,7 @@ module ActionSubscriber
       logger.info "Shutting down"
       ::ActionSubscriber::RabbitConnection.subscriber_disconnect!
       logger.info "Shutdown complete"
+      ::ActiveSupport::Notifications.instrument("action_subscriber:server_stopped")
       exit(0)
     end
 
