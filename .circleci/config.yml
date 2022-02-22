@@ -57,6 +57,5 @@ workflows:
                 - circleci/ruby:2.5
                 - circleci/ruby:2.6
                 - circleci/ruby:2.7
-                - circleci/jruby:9.1
                 - circleci/jruby:9.2
                 - circleci/jruby:9.3
