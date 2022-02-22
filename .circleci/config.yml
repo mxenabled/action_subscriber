@@ -5,6 +5,11 @@ version: 2.1
 orbs:
   ruby: circleci/ruby@1.1
 
+
+  # If you want to work on `action_subscriber` you will need to have a rabbitmq instance running locally on port 5672 with a management plugin enabled on port 15672. Usually the easiest way to accomplish this is to use docker and run the command:
+
+  # ```
+
 jobs:
   test:
     parallelism: 1
@@ -13,7 +18,7 @@ jobs:
         type: string
     docker:
       - image: << parameters.ruby-image >>
-      - image: rabbitmq
+      - image: rabbitmq:3.6.6-management
 
     steps:
       - checkout
