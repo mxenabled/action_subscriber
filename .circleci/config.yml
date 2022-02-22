@@ -13,7 +13,7 @@ jobs:
         type: string
     docker:
       - image: << parameters.ruby-image >>
-      - image: rabbitmq
+      - image: rabbitmq:3.6.6-management
 
     steps:
       - checkout
