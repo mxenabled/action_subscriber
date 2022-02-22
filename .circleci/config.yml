@@ -1,0 +1,57 @@
+# Inspired by: http://mikebian.co/running-tests-against-multiple-ruby-versions-using-circleci/
+
+version: 2.1
+
+orbs:
+  ruby: circleci/ruby@1.1
+
+jobs:
+  test:
+    parallelism: 1
+    parameters:
+      ruby-image:
+        type: string
+    docker:
+      - image: << parameters.ruby-image >>
+      - image: rabbitmq
+
+    steps:
+      - checkout
+      - run:
+          name: install dockerize
+          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+          environment:
+            DOCKERIZE_VERSION: v0.3.0
+      # - run:
+      #     name: Wait for rabbitmq
+      #     command: dockerize -wait tcp://localhost:5672 -timeout 1m
+      - run:
+          name: Install bundler
+          command: gem install bundler
+      - run:
+          name: Which bundler?
+          command: bundle -v
+      - run:
+          name: bundle install
+          command: bundle install
+      - run:
+          name: rspec
+          command: bundle exec rspec
+
+# strangely, there seems to be very little documentation about exactly how martix builds work.
+# By defining a param inside your job definition, Circle CI will automatically spawn a job for
+# unique param value passed via `matrix`. Neat!
+# https://circleci.com/blog/circleci-matrix-jobs/
+workflows:
+  build_and_test:
+    jobs:
+      - test:
+          matrix:
+            parameters:
+              ruby-image:
+                - circleci/ruby:2.5
+                - circleci/ruby:2.6
+                - circleci/ruby:2.7
+                - circleci/jruby:9.1
+                - circleci/jruby:9.2
+                - circleci/jruby:9.3
