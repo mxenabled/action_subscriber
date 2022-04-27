@@ -69,11 +69,9 @@ module ActionSubscriber
           absolute_config_path = ::File.expand_path(::File.join("config", "action_subscriber.yml"))
           if ::File.exists?(absolute_config_path)
             erb = ::ERB.new(::File.read(absolute_config_path)).result
-            if defined?(SafeYAML)
-              yaml_config = ::YAML.load(erb, :safe => true)[env]
-            else
-              yaml_config = ::YAML.load(erb)[env]
-            end
+            # Defined in Psych 3.2+ and the new canonical way to load trusted documents:
+            # https://github.com/ruby/psych/issues/533#issuecomment-1019363688
+            yaml_config = ::YAML.unsafe_load(erb)[env]
           end
 
           ::ActionSubscriber::Configuration::DEFAULTS.each_pair do |key, value|

@@ -1,7 +1,7 @@
 # coding: utf-8
-lib = File.expand_path('../lib', __FILE__)
+lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'action_subscriber/version'
+require "action_subscriber/version"
 
 Gem::Specification.new do |spec|
   spec.name                  = "action_subscriber"
@@ -18,17 +18,18 @@ Gem::Specification.new do |spec|
   spec.test_files            = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths         = ["lib"]
 
-  spec.add_dependency 'activesupport', '>= 3.2'
+  spec.add_dependency "activesupport", ">= 3.2"
 
-  if ENV['PLATFORM'] == "java" || ::RUBY_PLATFORM == 'java'
+  if ENV["PLATFORM"] == "java" || ::RUBY_PLATFORM == "java"
     spec.platform = "java"
-    spec.add_dependency 'march_hare', '~> 4.4'
+    spec.add_dependency "march_hare", "~> 4.4"
   else
-    spec.add_dependency 'bunny', '>= 1.5.0'
+    spec.add_dependency "bunny", ">= 1.5.0"
   end
-  spec.add_dependency 'concurrent-ruby'
-  spec.add_dependency 'middleware'
-  spec.add_dependency 'thor'
+  spec.add_dependency "concurrent-ruby"
+  spec.add_dependency "middleware"
+  spec.add_dependency "psych", ">= 3.3.2"
+  spec.add_dependency "thor"
 
   spec.add_development_dependency "active_publisher", "~> 0.1.5"
   spec.add_development_dependency "activerecord", ">= 3.2"
