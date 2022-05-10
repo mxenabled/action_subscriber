@@ -28,7 +28,6 @@ Gem::Specification.new do |spec|
   end
   spec.add_dependency "concurrent-ruby"
   spec.add_dependency "middleware"
-  spec.add_dependency "psych", ">= 3.3.2"
   spec.add_dependency "thor"
 
   spec.add_development_dependency "active_publisher", "~> 0.1.5"
