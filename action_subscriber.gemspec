@@ -31,12 +31,12 @@ Gem::Specification.new do |spec|
   spec.add_dependency "psych", ">= 3.3.2"
   spec.add_dependency "thor"
 
-  spec.add_development_dependency "active_publisher", "~> 0.1.5"
+  spec.add_development_dependency "active_publisher"
   spec.add_development_dependency "activerecord", ">= 3.2"
   spec.add_development_dependency "bundler", ">= 1.6"
   spec.add_development_dependency "pry-nav"
-  spec.add_development_dependency "rabbitmq_http_api_client", "~> 1.2.0"
-  spec.add_development_dependency "rspec", "~> 3.0"
+  spec.add_development_dependency "rabbitmq_http_api_client"
+  spec.add_development_dependency "rspec"
   spec.add_development_dependency "rake"
   spec.add_development_dependency "simplecov"
 end
