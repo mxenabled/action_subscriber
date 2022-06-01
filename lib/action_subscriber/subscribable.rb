@@ -35,7 +35,11 @@ module ActionSubscriber
                               when ENV['APP_NAME'] then
                                 ENV['APP_NAME'].to_s.dup
                               when defined?(::Rails) then
-                                ::Rails.application.class.parent_name.dup
+                                if ::Rails.application.class.respond_to?("module_parent_name")
+                                  ::Rails.application.class.module_parent_name.dup
+                                else
+                                  ::Rails.application.class.parent_name.dup
+                                end
                               else
                                 raise "Define an application name (ENV['APP_NAME'])"
                               end
