@@ -62,12 +62,16 @@ module ActionSubscriber
     def mock_subscriber(opts = {})
       encoded_payload = opts.fetch(:encoded_payload) { double('encoded payload').as_null_object }
       subscriber_class = opts.fetch(:subscriber) { described_class }
-      properties = PROPERTIES_DEFAULTS.merge(opts.slice(:channel,
+      properties = PROPERTIES_DEFAULTS.merge(opts.slice(:action,
+                                                        :channel,
                                                         :content_type,
                                                         :delivery_tag,
                                                         :exchange,
+                                                        :headers,
                                                         :message_id,
-                                                        :routing_key))
+                                                        :routing_key,
+                                                        :queue,
+                                                        :uses_acknoledgements))
 
 
       env = ActionSubscriber::Middleware::Env.new(subscriber_class, encoded_payload, properties)
