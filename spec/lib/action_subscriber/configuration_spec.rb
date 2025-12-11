@@ -11,6 +11,7 @@ describe ::ActionSubscriber::Configuration do
     specify { expect(subject.threadpool_size).to eq(8) }
     specify { expect(subject.timeout).to eq(1) }
     specify { expect(subject.tls).to eq(false) }
+    specify { expect(subject.queue_type).to eq("classic") }
   end
 
   describe ".configure_from_yaml_and_cli" do
@@ -79,6 +80,22 @@ describe ::ActionSubscriber::Configuration do
       rescue => error
         subject.error_handler.call(error, {})
       end
+    end
+  end
+
+  describe "queue_type validation" do
+    it "allows 'classic' as a valid type" do
+      expect { subject.queue_type = "classic" }.not_to raise_error
+      expect(subject.queue_type).to eq("classic")
+    end
+
+    it "allows 'quorum' as a valid type" do
+      expect { subject.queue_type = "quorum" }.not_to raise_error
+      expect(subject.queue_type).to eq("quorum")
+    end
+
+    it "raises error for invalid type" do
+      expect { subject.queue_type = "invalid_type" }.to raise_error(ArgumentError, /Invalid queue_type 'invalid_type'/)
     end
   end
 end

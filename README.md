@@ -143,6 +143,7 @@ Other configuration options include :
 * config.tls_ca_certificats - a list of ca certificates to use for verifying the servers TLS certificate
 * config.tls_cert - a client certificate to use during the TLS handshake
 * config.tls_key - a key to use during the TLS handshake
+* config.queue_type - This gem only supports "classic" or "quorum" queue types (default "classic")
 * config.username - RabbitMQ username (default "guest")
 * config.verify_peer - whether to attempt to validate the server's TLS certificate
 * config.virtual_host - RabbitMQ virtual host (default "/")

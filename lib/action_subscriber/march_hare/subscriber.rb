@@ -75,7 +75,7 @@ module ActionSubscriber
       def setup_queue(route)
         channel = ::ActionSubscriber::RabbitConnection.with_connection{|connection| connection.create_channel }
         exchange = channel.topic(route.exchange)
-        queue = channel.queue(route.queue, :durable => route.durable)
+        queue = channel.queue(route.queue, :durable => route.durable, :type => ::ActionSubscriber.config.queue_type)
         queue.bind(exchange, :routing_key => route.routing_key)
         queue
       end

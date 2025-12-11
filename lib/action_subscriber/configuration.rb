@@ -24,6 +24,7 @@ module ActionSubscriber
                   :tls_ca_certificates,
                   :tls_cert,
                   :tls_key,
+                  :queue_type,
                   :username,
                   :verify_peer,
                   :virtual_host
@@ -51,10 +52,13 @@ module ActionSubscriber
       :tls_ca_certificates => [],
       :tls_cert => nil,
       :tls_key => nil,
+      :queue_type => "classic",
       :username => "guest",
       :verify_peer => true,
       :virtual_host => "/"
     }
+
+    VALID_TYPES = ["classic", "quorum"].freeze
 
     ##
     # Class Methods
@@ -154,6 +158,17 @@ module ActionSubscriber
       INSPECT
       decoder.each_key { |key| inspection_string << "  --#{key}\n" }
       return inspection_string
+    end
+
+    def queue_type=(value)
+      unless VALID_TYPES.include?(value)
+        raise ArgumentError, "Invalid queue_type '#{value}'. Must be 'classic' or 'quorum'."
+      end
+      @queue_type = value
+    end
+
+    def queue_type
+      @queue_type
     end
   end
 end
