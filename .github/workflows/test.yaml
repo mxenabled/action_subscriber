@@ -1,0 +1,92 @@
+name: Ruby Compatibility Matrix
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build_and_test:
+    name: test-${{ matrix.docker_image }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        docker_image:
+          - "ruby:3.1"
+          - "ruby:3.4"
+          - "jruby:9.4"
+          - "jruby:10"
+
+    container:
+      image: ${{ matrix.docker_image }}
+      env:
+        JRUBY_OPTS: "-J-Xmx1024m"
+        RAILS_ENV: test
+        # Use the service name 'rabbitmq' as the host, not localhost
+        RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
+        RABBITMQ_HOST: rabbitmq
+
+    services:
+      rabbitmq:
+        image: rabbitmq:3.12-management
+        env:
+          RABBITMQ_DEFAULT_USER: guest
+          RABBITMQ_DEFAULT_PASS: guest
+        # Note: Health checks here ensure the container is up before steps start
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q check_running"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install System Dependencies
+        run: |
+          if [ "$(id -u)" = "0" ]; then
+            apt-get update && apt-get install -y build-essential git netcat-openbsd
+          else
+            sudo apt-get update && sudo apt-get install -y build-essential git netcat-openbsd
+          fi
+
+      - name: Cache Ruby Gems
+        uses: actions/cache@v4
+        with:
+          path: vendor/bundle
+          key: v1-gems-${{ matrix.docker_image }}-${{ hashFiles('Gemfile.lock') }}
+          restore-keys: |
+            v1-gems-${{ matrix.docker_image }}-
+
+      - name: Install Ruby Dependencies
+        run: |
+          gem install bundler
+          bundle config set --local path 'vendor/bundle'
+          bundle install --jobs=4 --retry=3
+
+      - name: Wait for RabbitMQ
+        run: |
+          echo "Waiting for RabbitMQ to start at hostname 'rabbitmq'..."
+          # Fix: Use the service name 'rabbitmq' instead of 'localhost'
+          for i in {1..30}; do
+            if nc -z rabbitmq 5672; then
+              echo "RabbitMQ is ready!"
+              exit 0
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 1
+          done
+          echo "RabbitMQ failed to start"
+          exit 1
+
+      - name: Run Tests
+        run : |
+          echo "$PWD"
+          cp ./config/action_subscriber.yml.sample ./config/action_subscriber.yml
+          echo "$(ls -ltr config)"
+
+          bundle exec rspec

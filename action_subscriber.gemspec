@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
   spec.test_files            = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths         = ["lib"]
 
-  spec.add_dependency "activesupport", ">= 3.2"
+  spec.add_dependency "activesupport", ">= 6.0"
 
   if ENV["PLATFORM"] == "java" || ::RUBY_PLATFORM == "java"
     spec.platform = "java"
@@ -30,12 +30,14 @@ Gem::Specification.new do |spec|
   spec.add_dependency "middleware"
   spec.add_dependency "thor"
 
+  spec.required_ruby_version = '>= 3.1.0'
+
   spec.add_development_dependency "active_publisher", "~> 0.1.5"
-  spec.add_development_dependency "activerecord", ">= 3.2"
-  spec.add_development_dependency "bundler", ">= 1.6"
+  spec.add_development_dependency "activerecord", ">= 6.0"
+  spec.add_development_dependency "bundler"
   spec.add_development_dependency "pry-nav"
   spec.add_development_dependency "rabbitmq_http_api_client", "~> 1.15.0"
-  spec.add_development_dependency "rspec", "~> 3.0"
+  spec.add_development_dependency "rspec"
   spec.add_development_dependency "rake"
   spec.add_development_dependency "simplecov"
 end

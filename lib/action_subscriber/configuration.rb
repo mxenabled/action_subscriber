@@ -67,11 +67,15 @@ module ActionSubscriber
 
           yaml_config = {}
           absolute_config_path = ::File.expand_path(::File.join("config", "action_subscriber.yml"))
-          if ::File.exists?(absolute_config_path)
+          puts "Trying to look for config file at #{absolute_config_path}"
+          if ::File.exist?(absolute_config_path)
+            puts "config file exists, loading"
             erb_yaml = ::ERB.new(::File.read(absolute_config_path)).result
             # Defined in Psych 3.2+ and the new canonical way to load trusted documents:
             # https://github.com/ruby/psych/issues/533#issuecomment-1019363688
             yaml_config = ::YAML.respond_to?(:unsafe_load) ? ::YAML.unsafe_load(erb_yaml)[env] : ::YAML.load(erb_yaml)[env]
+          else
+            puts "config file does not exist"
           end
 
           ::ActionSubscriber::Configuration::DEFAULTS.each_pair do |key, value|

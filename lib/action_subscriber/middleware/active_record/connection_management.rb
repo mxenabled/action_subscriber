@@ -16,7 +16,7 @@ module ActionSubscriber
                 :execution_interval => ::ActionSubscriber.config.connection_reaping_interval,
                 :timeout_interval => ::ActionSubscriber.config.connection_reaping_timeout_interval) do
 
-                ::ActiveRecord::Base.clear_active_connections!
+                ::ActiveRecord::Base.connection_handler.clear_active_connections!
                 end
 
               timed_task.execute
