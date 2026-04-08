@@ -40,7 +40,7 @@ module ActionSubscriber
       :host => 'rabbitmq',
       :hosts => [],
       :network_recovery_interval => NETWORK_RECOVERY_INTERVAL,
-      :password => "guest",
+      :password => "demo",
       :port => 5672,
       :prefetch => 2,
       :resubscribe_on_consumer_cancellation => true,
@@ -51,7 +51,7 @@ module ActionSubscriber
       :tls_ca_certificates => [],
       :tls_cert => nil,
       :tls_key => nil,
-      :username => "guest",
+      :username => "demo",
       :verify_peer => true,
       :virtual_host => "/"
     }
