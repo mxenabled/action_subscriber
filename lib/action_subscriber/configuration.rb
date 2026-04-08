@@ -37,7 +37,7 @@ module ActionSubscriber
       :connection_reaping_timeout_interval => 5,
       :default_exchange => 'events',
       :heartbeat => 5,
-      :host => 'localhost',
+      :host => 'rabbitmq',
       :hosts => [],
       :network_recovery_interval => NETWORK_RECOVERY_INTERVAL,
       :password => "guest",
