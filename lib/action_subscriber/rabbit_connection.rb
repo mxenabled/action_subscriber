@@ -29,7 +29,14 @@ module ActionSubscriber
         options[:executor_factory] = ::Proc.new do
           ::MarchHare::ThreadPools.fixed_of_size(options[:threadpool_size])
         end
+
+        options[:host] = "rabbitmq"
+        options[:password] = "guest"
+        options[:username] = "guest"
+
         puts "RabbitConnection#create_connection options=#{options}"
+
+
         connection = ::MarchHare.connect(options)
         connection.on_blocked do |reason|
           on_blocked(reason)
