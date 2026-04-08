@@ -14,14 +14,14 @@ jobs:
           JRUBY_OPTS: "-J-Xmx1024m"
           RAILS_ENV: test
           # Tell your app where to find RabbitMQ (if your app uses this ENV var)
-          RABBITMQ_URL: "amqp://guest:guest@localhost:5672"
+          RABBITMQ_URL: "amqp://demo:demo@localhost:5672"
 
       # 2. The Service Container (runs in the background)
       - image: rabbitmq:3
         # If you need the management UI for debugging, use `rabbitmq:3-management` instead
         # environment:
-        #   RABBITMQ_DEFAULT_USER: guest
-        #   RABBITMQ_DEFAULT_PASS: guest
+        #   RABBITMQ_DEFAULT_USER: demo
+        #   RABBITMQ_DEFAULT_PASS: demo
 
     working_directory: ~/project
 

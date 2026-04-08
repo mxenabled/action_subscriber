@@ -31,8 +31,8 @@ module ActionSubscriber
         end
 
         options[:host] = "rabbitmq"
-        options[:password] = "guest"
-        options[:username] = "guest"
+        options[:password] = "demo"
+        options[:username] = "demo"
 
         puts "RabbitConnection#create_connection options=#{options}"
 
