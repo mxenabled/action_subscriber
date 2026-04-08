@@ -26,15 +26,15 @@ jobs:
         JRUBY_OPTS: "-J-Xmx1024m"
         RAILS_ENV: test
         # Use the service name 'rabbitmq' as the host, not localhost
-        RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
+        RABBITMQ_URL: "amqp://demo:demo@rabbitmq:5672"
         RABBITMQ_HOST: rabbitmq
 
     services:
       rabbitmq:
         image: rabbitmq:3.12-management
         env:
-          RABBITMQ_DEFAULT_USER: guest
-          RABBITMQ_DEFAULT_PASS: guest
+          RABBITMQ_DEFAULT_USER: demo
+          RABBITMQ_DEFAULT_PASS: demo
         # Note: Health checks here ensure the container is up before steps start
         options: >-
           --health-cmd "rabbitmq-diagnostics -q check_running"

@@ -4,8 +4,8 @@ defaults: &defaults
   host: rabbitmq
   network_recovery_interval: 5
   port: 5672
-  username: guest
-  password: guest
+  username: demo
+  password: demo
 
 production: *defaults
 development: *defaults
