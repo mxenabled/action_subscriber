@@ -85,6 +85,3 @@ workflows:
             parameters:
               docker_image:
                 - "cimg/ruby:3.1"
-                - "cimg/ruby:3.4"
-                - "jruby:9.4"
-                - "jruby:10"
