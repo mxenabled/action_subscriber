@@ -1,0 +1,10 @@
+default: &default
+  host: rabbitmq
+  username: demo
+  password: demo
+
+development:
+  <<: *default
+
+test:
+  <<: *default
