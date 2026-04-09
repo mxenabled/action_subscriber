@@ -32,7 +32,7 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = '>= 3.1.0'
 
-  spec.add_development_dependency "active_publisher", "~> 0.1.5"
+  spec.add_development_dependency "active_publisher", "1.6.0.pre1"
   spec.add_development_dependency "activerecord", ">= 6.0"
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "pry-nav"
