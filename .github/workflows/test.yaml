@@ -28,6 +28,7 @@ jobs:
         # Use the service name 'rabbitmq' as the host, not localhost
         RABBITMQ_URL: "amqp://demo:demo@rabbitmq:5672"
         RABBITMQ_HOST: rabbitmq
+        RABBITMQ_MANAGEMENT_URL: "http://demo:demo@rabbitmq:15672"
 
     services:
       rabbitmq:
@@ -82,6 +83,11 @@ jobs:
           done
           echo "RabbitMQ failed to start"
           exit 1
+
+      - name: Configure RabbitMQ Management user "demo"
+        run: |
+         docker exec ${{ job.services.rabbitmq.id }} rabbitmqctl set_user_tags "demo" administrator
+         docker exec ${{ job.services.rabbitmq.id }} rabbitmqctl set_permissions -p / "demo" ".*" ".*" ".*"
 
       - name: Run Tests
         run : |
