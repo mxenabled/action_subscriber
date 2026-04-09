@@ -47,8 +47,17 @@ module ActionSubscriber
         connection
       else
 
+        options[:host] = "rabbitmq"
+
         puts "bunny opts=#{options}"
         connection = ::Bunny.new(options)
+
+        if connection.host != options[:host]
+          raise "invalid connection -> #{connection.inspect}"
+        else
+          puts "connection -> #{connection.inspect}"
+        end
+
         connection.start
         connection.on_blocked do |blocked_message|
           on_blocked(blocked_message.reason)

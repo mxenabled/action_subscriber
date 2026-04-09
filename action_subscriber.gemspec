@@ -24,7 +24,7 @@ Gem::Specification.new do |spec|
     spec.platform = "java"
     spec.add_dependency "march_hare", "~> 4.4"
   else
-    spec.add_dependency "bunny", ">= 1.5.0"
+    spec.add_dependency "bunny", ">= 2.24.0"
   end
   spec.add_dependency "concurrent-ruby"
   spec.add_dependency "middleware"
