@@ -13,7 +13,11 @@ describe "Automatically handles consumer cancellation", :integration => true, :s
       default_routes_for ::YoloSubscriber
     end
   end
-  let(:http_client) { ::RabbitMQ::HTTP::Client.new("http://127.0.0.1:15672") }
+
+  let(:rabbitmq_host) {
+    ENV["RABBITMQ_HOST"] || "127.0.0.1"
+  }
+  let(:http_client) { ::RabbitMQ::HTTP::Client.new("http://#{rabbitmq_host}:15672") }
   let(:subscriber) { ::YoloSubscriber }
 
   it "resubscribes on cancellation" do

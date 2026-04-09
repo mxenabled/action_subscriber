@@ -24,7 +24,8 @@ require 'action_subscriber/rspec'
 $TESTING = true
 ::ActionSubscriber::Logging.initialize_logger(nil)
 ::ActionSubscriber.setup_default_threadpool!
-# setup active publisher
+
+# load from action_subscriber.yml for both ActivePublisher and ActionSubscriber
 ::ActivePublisher::Configuration.configure_from_yaml_and_cli
 ::ActionSubscriber::Configuration.configure_from_yaml_and_cli
 
