@@ -37,7 +37,7 @@ module ActionSubscriber
         puts "RabbitConnection#create_connection options=#{options}"
 
 
-        connection = ::MarchHare.connect(options)
+        connection = ::MarchHare.connect(**options)
         connection.on_blocked do |reason|
           on_blocked(reason)
         end
