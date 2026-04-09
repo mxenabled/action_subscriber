@@ -1,11 +1,11 @@
 ---
 defaults: &defaults
   heartbeat: 15
-  host: rabbitmq
+  host: localhost
   network_recovery_interval: 5
   port: 5672
-  username: demo
-  password: demo
+  username: WAT
+  password: WAT
 
 production: *defaults
 development: *defaults
