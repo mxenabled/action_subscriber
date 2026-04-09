@@ -50,9 +50,9 @@ jobs:
       - name: Install System Dependencies
         run: |
           if [ "$(id -u)" = "0" ]; then
-            apt-get update && apt-get install -y build-essential git netcat-openbsd
+            apt-get update && apt-get install -y build-essential git netcat-openbsd docker-ce-cli
           else
-            sudo apt-get update && sudo apt-get install -y build-essential git netcat-openbsd
+            sudo apt-get update && sudo apt-get install -y build-essential git netcat-openbsd docker-ce-cli
           fi
 
       - name: Cache Ruby Gems
@@ -72,7 +72,6 @@ jobs:
       - name: Wait for RabbitMQ
         run: |
           echo "Waiting for RabbitMQ to start at hostname 'rabbitmq'..."
-          # Fix: Use the service name 'rabbitmq' instead of 'localhost'
           for i in {1..30}; do
             if nc -z rabbitmq 5672; then
               echo "RabbitMQ is ready!"
