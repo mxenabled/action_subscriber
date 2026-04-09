@@ -46,6 +46,8 @@ module ActionSubscriber
         end
         connection
       else
+
+        puts "bunny opts=#{options}"
         connection = ::Bunny.new(options)
         connection.start
         connection.on_blocked do |blocked_message|
