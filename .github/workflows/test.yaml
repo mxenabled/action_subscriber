@@ -18,7 +18,7 @@ jobs:
           - "ruby:3.1"
           - "ruby:3.4"
           - "jruby:9.4"
-          - "jruby:10"
+          - "jruby:10.0"
 
     container:
       image: ${{ matrix.docker_image }}
@@ -92,4 +92,4 @@ jobs:
       #     bundle exec rspec
 
       - name: Run Tests
-        run : bundle exec rspec
+        run : JRUBY_OPTS="--dev --debug" bundle exec rspec
