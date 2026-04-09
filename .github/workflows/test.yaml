@@ -93,5 +93,6 @@ jobs:
 
       - name: Run Tests
         run : |
+         git config --global --add safe.directory /__w/action_subscriber/action_subscriber
          echo $(env)
          bundle exec rspec
