@@ -83,17 +83,9 @@ jobs:
           echo "RabbitMQ failed to start"
           exit 1
 
-      # - name: Run Tests
-      #   run : |
-      #     echo "$PWD"
-      #     cp ./config/action_subscriber.yml.sample ./config/action_subscriber.yml
-      #     echo "$(ls -ltr config)"
-
-      #     bundle exec rspec
-
       - name: Run Tests
         run : |
          git config --global --add safe.directory /__w/action_subscriber/action_subscriber
-         cp ./config/active_publisher.yml.sample ./config/active_publisher.yml
+         cp ./config/action_subscriber.yml.sample ./config/action_subscriber.yml
          echo $(env)
          bundle exec rspec

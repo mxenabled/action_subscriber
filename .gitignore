@@ -19,3 +19,6 @@ Gemfile.lock
 .yardoc
 _yardoc
 doc/
+
+config/active_publisher.yml
+config/action_subscriber.yml

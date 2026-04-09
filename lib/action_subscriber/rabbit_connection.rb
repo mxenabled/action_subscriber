@@ -30,13 +30,6 @@ module ActionSubscriber
           ::MarchHare::ThreadPools.fixed_of_size(options[:threadpool_size])
         end
 
-        options[:host] = "rabbitmq"
-        options[:password] = "demo"
-        options[:username] = "demo"
-
-        puts "RabbitConnection#create_connection options=#{options}"
-
-
         connection = ::MarchHare.connect(**options)
         connection.on_blocked do |reason|
           on_blocked(reason)
@@ -46,17 +39,7 @@ module ActionSubscriber
         end
         connection
       else
-
-        options[:host] = "rabbitmq"
-
-        puts "bunny opts=#{options}"
         connection = ::Bunny.new(options)
-
-        if connection.host != options[:host]
-          raise "invalid connection -> #{connection.inspect}"
-        else
-          puts "connection -> #{connection.inspect}"
-        end
 
         connection.start
         connection.on_blocked do |blocked_message|

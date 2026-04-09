@@ -37,10 +37,10 @@ module ActionSubscriber
       :connection_reaping_timeout_interval => 5,
       :default_exchange => 'events',
       :heartbeat => 5,
-      :host => 'rabbitmq',
+      :host => 'localhost',
       :hosts => [],
       :network_recovery_interval => NETWORK_RECOVERY_INTERVAL,
-      :password => "demo",
+      :password => 'guest',
       :port => 5672,
       :prefetch => 2,
       :resubscribe_on_consumer_cancellation => true,
@@ -51,7 +51,7 @@ module ActionSubscriber
       :tls_ca_certificates => [],
       :tls_cert => nil,
       :tls_key => nil,
-      :username => "demo",
+      :username => 'guest',
       :verify_peer => true,
       :virtual_host => "/"
     }

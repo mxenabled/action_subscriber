@@ -24,6 +24,8 @@ require 'action_subscriber/rspec'
 $TESTING = true
 ::ActionSubscriber::Logging.initialize_logger(nil)
 ::ActionSubscriber.setup_default_threadpool!
+# setup active publisher
+::ActivePublisher::Configuration.configure_from_yaml_and_cli
 
 RSpec.configure do |config|
   config.mock_with :rspec do |mocks|
