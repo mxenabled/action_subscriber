@@ -92,4 +92,6 @@ jobs:
       #     bundle exec rspec
 
       - name: Run Tests
-        run : JRUBY_OPTS="--dev --debug" bundle exec rspec
+        run : |
+         echo $(env)
+         bundle exec rspec
