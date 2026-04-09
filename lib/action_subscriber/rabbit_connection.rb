@@ -30,6 +30,9 @@ module ActionSubscriber
           ::MarchHare::ThreadPools.fixed_of_size(options[:threadpool_size])
         end
 
+        puts "march_hare new connection = #{options}"
+
+
         connection = ::MarchHare.connect(**options)
         connection.on_blocked do |reason|
           on_blocked(reason)
@@ -40,6 +43,8 @@ module ActionSubscriber
         connection
       else
         connection = ::Bunny.new(options)
+
+        puts "bunny new connection = #{options}"
 
         connection.start
         connection.on_blocked do |blocked_message|
