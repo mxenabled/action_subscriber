@@ -1,63 +1,87 @@
-# Inspired by: http://mikebian.co/running-tests-against-multiple-ruby-versions-using-circleci/
-
 version: 2.1
 
-orbs:
-  ruby: circleci/ruby@1.1
-
-
-  # If you want to work on `action_subscriber` you will need to have a rabbitmq instance running locally on port 5672 with a management plugin enabled on port 15672. Usually the easiest way to accomplish this is to use docker and run the command:
-
-  # ```
-
 jobs:
-  test:
-    parallelism: 1
+  build_and_test:
     parameters:
-      ruby-image:
+      docker_image:
         type: string
+        description: "The Ruby or JRuby Docker image to test against"
+
     docker:
-      - image: << parameters.ruby-image >>
-      - image: rabbitmq:3.11-management
+      # 1. The Primary Container (where your code actually runs)
+      - image: << parameters.docker_image >>
+        environment:
+          JRUBY_OPTS: "-J-Xmx1024m"
+          RAILS_ENV: test
+          # Tell your app where to find RabbitMQ (if your app uses this ENV var)
+          RABBITMQ_URL: "amqp://guest:guest@localhost:5672"
+
+      # 2. The Service Container (runs in the background)
+      - image: rabbitmq:3
+        # If you need the management UI for debugging, use `rabbitmq:3-management` instead
+        # environment:
+        #   RABBITMQ_DEFAULT_USER: guest
+        #   RABBITMQ_DEFAULT_PASS: guest
+
+    working_directory: ~/project
 
     steps:
+      - run:
+          name: Install System Dependencies
+          command: |
+            if [ "$(id -u)" = "0" ]; then
+              apt-get update && apt-get install -y build-essential git
+            else
+              sudo apt-get update && sudo apt-get install -y build-essential git
+            fi
       - checkout
+      # Note: We added the docker_image parameter to the cache key
+      # so MRI and JRuby gems don't conflict.
+      - restore_cache:
+          keys:
+            - v1-gems-<< parameters.docker_image >>-{{ checksum "Gemfile.lock" }}
+            - v1-gems-<< parameters.docker_image >>-
+
       - run:
-          name: install dockerize
-          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
-          environment:
-            DOCKERIZE_VERSION: v0.3.0
-      # - run:
-      #     name: Wait for rabbitmq
-      #     command: dockerize -wait tcp://localhost:5672 -timeout 1m
+          name: Install Ruby Dependencies
+          command: |
+            gem install bundler
+            bundle config set --local path 'vendor/bundle'
+            bundle install --jobs=4 --retry=3
+
+      - save_cache:
+          paths:
+            - ./vendor/bundle
+          key: v1-gems-<< parameters.docker_image >>-{{ checksum "Gemfile.lock" }}
+
+      # Wait for RabbitMQ to be ready before running tests.
+      # Service containers can sometimes take a few seconds to boot up.
       - run:
-          name: Install bundler
-          command: gem install bundler
+          name: Wait for RabbitMQ
+          command: |
+            if [ "$(id -u)" = "0" ]; then
+              apt-get install -y netcat-openbsd
+            else
+              sudo apt-get install -y netcat-openbsd
+            fi
+
+            echo "Waiting for RabbitMQ to start..."
+            while ! nc -z localhost 5672; do
+              sleep 1
+            done
+            echo "RabbitMQ is ready!"
+
       - run:
-          name: Which bundler?
-          command: bundle -v
-      - run:
-          name: bundle install
-          command: bundle install
-      - run:
-          name: rspec
+          name: Run Tests
           command: bundle exec rspec
 
-# strangely, there seems to be very little documentation about exactly how martix builds work.
-# By defining a param inside your job definition, Circle CI will automatically spawn a job for
-# unique param value passed via `matrix`. Neat!
-# https://circleci.com/blog/circleci-matrix-jobs/
 workflows:
-  build_and_test:
+  version: 2
+  ruby_compatibility_matrix:
     jobs:
-      - test:
+      - build_and_test:
+          name: test-<< matrix.docker_image >>
           matrix:
             parameters:
-              ruby-image:
-                - circleci/ruby:2.6
-                - circleci/ruby:2.7
-                - cimg/ruby:3.0
-                - cimg/ruby:3.1
-                - circleci/jruby:9.2
-                - circleci/jruby:9.3
-              # - circleci/jruby:9.4 (TODO: Restore once this image exists)
+              docker_image:
+                - "cimg/ruby:3.1"
