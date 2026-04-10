@@ -6,7 +6,7 @@ describe ActionSubscriber::Middleware::ActiveRecord::ConnectionManagement do
   before {
     pool = double("pool")
     allow(pool).to receive(:with_connection).and_yield
-    allow(ActiveRecord::Base).to receive(:clear_active_connections!)
+    allow(ActiveRecord::Base.connection_handler).to receive(:clear_active_connections!)
     allow(ActiveRecord::Base).to receive(:connection_pool).and_return(pool)
   }
 
