@@ -17,7 +17,7 @@ jobs:
           RABBITMQ_URL: "amqp://guest:guest@localhost:5672"
 
       # 2. The Service Container (runs in the background)
-      - image: rabbitmq:3
+      - image: rabbitmq:3.12-management
         # If you need the management UI for debugging, use `rabbitmq:3-management` instead
         # environment:
         #   RABBITMQ_DEFAULT_USER: guest
