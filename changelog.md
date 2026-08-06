@@ -1,6 +1,6 @@
 ### Changelog
 
-### Unreleased
+### 7.5.0 - August 6, 2026
 
 **Breaking change on JRuby.** `march_hare` defaults its `:type` option to
 `classic` and so was injecting `x-queue-type: classic` on every queue it
