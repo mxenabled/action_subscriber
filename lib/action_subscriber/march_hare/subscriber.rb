@@ -75,7 +75,9 @@ module ActionSubscriber
       def setup_queue(route)
         channel = ::ActionSubscriber::RabbitConnection.with_connection{|connection| connection.create_channel }
         exchange = channel.topic(route.exchange)
-        queue = channel.queue(route.queue, :durable => route.durable)
+        # :type must be passed even when nil -- omitting it declares a classic
+        # queue here, unlike bunny. See ActionSubscriber::QueueType.
+        queue = channel.queue(route.queue, :durable => route.durable, :type => route.driver_queue_type)
         queue.bind(exchange, :routing_key => route.routing_key)
         queue
       end

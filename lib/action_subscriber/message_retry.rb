@@ -51,7 +51,8 @@ module ActionSubscriber
         channel.confirm_select
         # an empty string is the default exchange [see bunny docs](http://rubybunny.info/articles/exchanges.html#default_exchange)
         exchange = channel.topic("")
-        queue = channel.queue(retry_queue_name, :arguments => {"x-dead-letter-exchange" => "", "x-message-ttl" => ttl, "x-dead-letter-routing-key" => env.queue})
+        queue_type = ::ActionSubscriber::QueueType.driver_option(::ActionSubscriber.config.queue_type)
+        queue = channel.queue(retry_queue_name, :type => queue_type, :arguments => {"x-dead-letter-exchange" => "", "x-message-ttl" => ttl, "x-dead-letter-routing-key" => env.queue})
         yield(exchange)
         channel.wait_for_confirms
       end

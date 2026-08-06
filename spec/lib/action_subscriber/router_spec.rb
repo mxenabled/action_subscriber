@@ -57,6 +57,53 @@ describe ActionSubscriber::Router do
     expect(routes.first.queue).to eq("alice.fake.foo")
   end
 
+  it "defers to the broker by default" do
+    routes = described_class.draw_routes do
+      route FakeSubscriber, :foo
+    end
+
+    expect(routes.first.queue_type).to be_nil
+    expect(routes.first.driver_queue_type).to be_nil
+  end
+
+  it "accepts :broker_default as an explicit alias for nil" do
+    routes = described_class.draw_routes do
+      route FakeSubscriber, :foo, :queue_type => :broker_default
+    end
+
+    expect(routes.first.queue_type).to be_nil
+    expect(routes.first.driver_queue_type).to be_nil
+  end
+
+  it "can specify a queue type" do
+    routes = described_class.draw_routes do
+      route FakeSubscriber, :foo, :queue_type => :classic
+    end
+
+    expect(routes.first.queue_type).to eq(:classic)
+    expect(routes.first.driver_queue_type).to eq("classic")
+    expect(routes.first.durable).to eq(false)
+  end
+
+  it "forces quorum queues to be durable" do
+    routes = described_class.draw_routes do
+      route FakeSubscriber, :foo, :queue_type => :quorum
+    end
+
+    expect(routes.first.queue_type).to eq(:quorum)
+    expect(routes.first.durable).to eq(true)
+  end
+
+  it "inherits the queue type from the global configuration" do
+    allow(ActionSubscriber.config).to receive(:queue_type).and_return(:quorum)
+
+    routes = described_class.draw_routes do
+      route FakeSubscriber, :foo
+    end
+
+    expect(routes.first.queue_type).to eq(:quorum)
+  end
+
   it "can specify a queue is durable" do
     routes = described_class.draw_routes do
       route FakeSubscriber, :foo, :durable => true

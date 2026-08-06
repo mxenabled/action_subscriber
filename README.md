@@ -45,6 +45,86 @@ end
 
 That will give you a similar behavior to the old `--mode=pop` where messages polled from the server, but with reduced latency.
 
+Queue Types
+-----------
+
+Set the queue type globally, or per route:
+
+```ruby
+::ActionSubscriber.configure do |config|
+  config.queue_type = :quorum
+end
+
+::ActionSubscriber.draw_routes do
+  route UserSubscriber, :created, :queue_type => :quorum
+  route AuditSubscriber, :created, :queue_type => :broker_default
+end
+```
+
+| Value | `x-queue-type` sent |
+| --- | --- |
+| `nil` (default), or `:broker_default` | *not sent* — the broker applies its own `default_queue_type` |
+| `:classic` | `classic` |
+| `:quorum` | `quorum` |
+| `:stream` | `stream` |
+
+The default declares a queue without expressing an opinion, which lets an
+operator move a vhost onto quorum queues with a broker policy instead of a code
+change. `:broker_default` is accepted as a more readable spelling of `nil`; both
+normalize to `nil`, and `config.queue_type` always reads back as `nil` or one of
+the three type symbols.
+
+`:quorum` and `:stream` queues only exist as durable queues, so those two values
+force `:durable => true` on the route regardless of what you pass.
+
+Invalid values raise an `ArgumentError` at the point they are assigned, rather
+than later when routes are drawn or a queue is declared.
+
+> Note: a queue's type is fixed at declaration. Changing this setting will not
+> convert an existing queue — the queue has to be deleted and redeclared, and
+> redeclaring an existing queue with a conflicting type fails with
+> `PRECONDITION_FAILED`.
+
+### Breaking change on JRuby
+
+Prior to this setting the two drivers disagreed. `march_hare` defaults its
+`:type` option to `classic` and so injected `x-queue-type: classic` on every
+queue it declared, while `bunny` sent no argument at all. ActionSubscriber now
+passes `:type` explicitly on both drivers and defaults to `nil`, so neither
+platform sends `x-queue-type`.
+
+**MRI behavior is unchanged. On JRuby, newly declared queues change from
+`classic` to whatever the broker defaults to.** Set `config.queue_type = :classic`
+to keep the previous JRuby behavior.
+
+The reason this matters beyond new queues: because queue type is fixed at
+declaration, an existing `classic` queue is now *redeclared* without
+`x-queue-type`. That is harmless on a vhost whose `default_queue_type` is
+classic, since the broker resolves to the same type. It fails with
+`PRECONDITION_FAILED` on a vhost whose default is `quorum` or `stream`. Before
+upgrading a JRuby deployment, audit the `default_queue_type` of every vhost it
+connects to:
+
+```
+rabbitmqctl list_vhosts name default_queue_type
+```
+
+If any are non-classic, set `config.queue_type = :classic` before rolling out.
+
+### Known limitation: retry queues
+
+`ActionSubscriber::MessageRetry` declares its `*.retry_*` queues using the
+**global** `config.queue_type`, not the type of the route that produced the
+message. A route that opts into `:quorum` while the global setting is left at
+the default will dead-letter into a retry queue of a different type.
+
+If you rely on per-route queue types and on retries, set `config.queue_type` to
+match rather than setting it per route.
+
+Note also that retry queues carry `x-message-ttl` and `x-dead-letter-exchange`,
+which streams do not support — so a global `config.queue_type = :stream` will
+make every retry declaration fail.
+
 Supported Message Types
 -----------------
 ActionSubscriber support JSON and plain text out of the box, but you can easily
@@ -135,6 +215,7 @@ Other configuration options include :
 * config.network_recovery_interval - reconnection interval for TCP connection failures (default 1)
 * config.password - RabbitMQ password (default "guest")
 * config.prefetch - number of messages to hold in the local queue in subscriber mode
+* config.queue_type - default queue type for all routes: `nil` (default, defers to the broker), `:classic`, `:quorum` or `:stream`
 * config.resubscribe_on_consumer_cancellation - resubscribe when the consumer is cancelled (queue deleted or cluster fails, default true)
 * config.seconds_to_wait_for_graceful_shutdown - time to wait before force stopping server after shutdown signal
 * config.threadpool_size - set the number of threads available to action_subscriber
