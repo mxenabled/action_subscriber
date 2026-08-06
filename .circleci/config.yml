@@ -6,6 +6,9 @@ jobs:
       docker_image:
         type: string
         description: "The Ruby or JRuby Docker image to test against"
+      gemfile:
+        type: string
+        description: "The Appraisal gemfile (Rails version) to test against"
 
     docker:
       # 1. The Primary Container (where your code actually runs)
@@ -13,15 +16,19 @@ jobs:
         environment:
           JRUBY_OPTS: "-J-Xmx1024m"
           RAILS_ENV: test
-          # Tell your app where to find RabbitMQ (if your app uses this ENV var)
+          # Select the Rails version under test via the Appraisal gemfile.
+          BUNDLE_GEMFILE: << parameters.gemfile >>
+          # Tell the suite where to find RabbitMQ.
           RABBITMQ_URL: "amqp://guest:guest@localhost:5672"
+          RABBITMQ_HOST: "localhost"
+          RABBITMQ_PORT: "5672"
 
-      # 2. The Service Container (runs in the background)
+      # 2. The Service Container (runs in the background).
+      # NOTE: action_subscriber declares transient (non-durable) queues by default,
+      # which RabbitMQ 4.x denies out of the box. rabbitmq:3.12 still permits them.
+      # If/when moving to a 4.x image, permit the deprecated feature via config:
+      #   deprecated_features.permit.transient_nonexcl_queues = true
       - image: rabbitmq:3.12-management
-        # If you need the management UI for debugging, use `rabbitmq:3-management` instead
-        # environment:
-        #   RABBITMQ_DEFAULT_USER: guest
-        #   RABBITMQ_DEFAULT_PASS: guest
 
     working_directory: ~/project
 
@@ -35,12 +42,13 @@ jobs:
               sudo apt-get update && sudo apt-get install -y build-essential git
             fi
       - checkout
-      # Note: We added the docker_image parameter to the cache key
-      # so MRI and JRuby gems don't conflict.
+      # Cache key includes the Ruby image + the specific appraisal gemfile + the gemspec,
+      # so MRI/JRuby and each Rails version get independent caches. (Gemfile.lock and the
+      # generated gemfiles/*.lock are gitignored, so we key on committed files instead.)
       - restore_cache:
           keys:
-            - v1-gems-<< parameters.docker_image >>-{{ checksum "Gemfile.lock" }}
-            - v1-gems-<< parameters.docker_image >>-
+            - v2-gems-<< parameters.docker_image >>-<< parameters.gemfile >>-{{ checksum "action_subscriber.gemspec" }}
+            - v2-gems-<< parameters.docker_image >>-<< parameters.gemfile >>-
 
       - run:
           name: Install Ruby Dependencies
@@ -52,7 +60,7 @@ jobs:
       - save_cache:
           paths:
             - ./vendor/bundle
-          key: v1-gems-<< parameters.docker_image >>-{{ checksum "Gemfile.lock" }}
+          key: v2-gems-<< parameters.docker_image >>-<< parameters.gemfile >>-{{ checksum "action_subscriber.gemspec" }}
 
       # Wait for RabbitMQ to be ready before running tests.
       # Service containers can sometimes take a few seconds to boot up.
@@ -77,10 +85,12 @@ jobs:
 
 workflows:
   version: 2
-  ruby_compatibility_matrix:
+  ruby_rails_compatibility_matrix:
     jobs:
+      # Rails 6.1 - 7.2 run on every supported Ruby. Rails 6.1/7.0/7.1 need the
+      # default-gem shims on Ruby >= 3.4 (see Appraisals); 7.2 needs Ruby >= 3.1.
       - build_and_test:
-          name: test-<< matrix.docker_image >>
+          name: test-<< matrix.docker_image >>-<< matrix.gemfile >>
           matrix:
             parameters:
               docker_image:
@@ -88,3 +98,22 @@ workflows:
                 - "cimg/ruby:3.4"
                 - "jruby:9.4"
                 - "jruby:10.0"
+              gemfile:
+                - "gemfiles/rails_6.1.gemfile"
+                - "gemfiles/rails_7.0.gemfile"
+                - "gemfiles/rails_7.1.gemfile"
+                - "gemfiles/rails_7.2.gemfile"
+
+      # Rails 8.0/8.1 require Ruby >= 3.2, so they get their own matrix rather
+      # than excludes against the Ruby 3.1-class images. jruby:9.4 targets Ruby
+      # 3.1 compatibility and is therefore not eligible here either.
+      - build_and_test:
+          name: test-<< matrix.docker_image >>-<< matrix.gemfile >>
+          matrix:
+            parameters:
+              docker_image:
+                - "cimg/ruby:3.4"
+                - "jruby:10.0"
+              gemfile:
+                - "gemfiles/rails_8.0.gemfile"
+                - "gemfiles/rails_8.1.gemfile"

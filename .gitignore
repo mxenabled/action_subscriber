@@ -15,6 +15,10 @@ tmp
 
 Gemfile.lock
 
+# Appraisal-generated lock files (the .gemfile stubs are committed, the locks are not)
+gemfiles/*.gemfile.lock
+gemfiles/.bundle
+
 # YARD artifacts
 .yardoc
 _yardoc

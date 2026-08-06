@@ -18,6 +18,7 @@ require 'active_record'
 
 # Require spec support files
 require 'support/user_subscriber'
+require 'support/rabbitmq'
 require 'action_subscriber/rspec'
 
 # Silence the Logger
@@ -28,6 +29,12 @@ $TESTING = true
 RSpec.configure do |config|
   config.mock_with :rspec do |mocks|
     mocks.verify_partial_doubles = true
+  end
+
+  # Fail fast with a clear message (rather than a flurry of Bunny reconnect warnings)
+  # if the broker isn't up yet when the integration suite starts.
+  config.before(:suite) do
+    RabbitMQTestHelper.wait_for_rabbitmq! if RSpec.world.filtered_examples.values.flatten.any? { |ex| ex.metadata[:integration] }
   end
 
   config.before(:each, :integration => true) do
