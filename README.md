@@ -322,3 +322,25 @@ $ cd action_subscriber
 $ bundle install
 $ bundle exec rspec
 ```
+
+### Testing against multiple Rails versions
+
+The supported Rails versions are declared in `Appraisals`. The `gemfiles/`
+directory is **generated, not committed** — it is gitignored, and CI regenerates
+it on every run. To create it locally:
+
+```
+$ bundle exec appraisal generate   # writes gemfiles/*.gemfile
+$ bundle exec appraisal install    # resolves a lockfile for each
+```
+
+Then run the suite against one version, or all of them:
+
+```
+$ BUNDLE_GEMFILE=gemfiles/rails_8.0.gemfile bundle exec rspec
+$ bundle exec appraisal rspec
+```
+
+Re-run `appraisal generate` after editing `Appraisals`. Note that Rails 7.2
+requires Ruby >= 3.1 and Rails 8.0/8.1 require Ruby >= 3.2, so those gemfiles
+will not resolve on older interpreters.
