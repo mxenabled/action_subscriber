@@ -42,25 +42,33 @@ jobs:
               sudo apt-get update && sudo apt-get install -y build-essential git
             fi
       - checkout
-      # The gemfiles/ directory is gitignored and regenerated below, so it does not
-      # exist at checkout. BUNDLE_GEMFILE points at the target appraisal gemfile for
-      # the whole job, which means it has to be overridden to the root Gemfile here --
-      # otherwise appraisal would try to read the very file it is about to write.
-      - run:
-          name: Generate Appraisal Gemfiles
-          command: |
-            gem install bundler appraisal
-            BUNDLE_GEMFILE=Gemfile appraisal generate
-            ls -1 gemfiles/
-
       # Cache key includes the Ruby image + the specific appraisal gemfile + the gemspec
       # + the Appraisals file, so MRI/JRuby and each Rails version get independent caches
       # and a dependency change in either file busts them. (All lockfiles are gitignored,
       # so we key on committed sources instead.)
       - restore_cache:
           keys:
-            - v3-gems-<< parameters.docker_image >>-<< parameters.gemfile >>-{{ checksum "action_subscriber.gemspec" }}-{{ checksum "Appraisals" }}
-            - v3-gems-<< parameters.docker_image >>-<< parameters.gemfile >>-
+            - v4-gems-<< parameters.docker_image >>-<< parameters.gemfile >>-{{ checksum "action_subscriber.gemspec" }}-{{ checksum "Appraisals" }}
+            - v4-gems-<< parameters.docker_image >>-<< parameters.gemfile >>-
+
+      # gemfiles/ is gitignored and generated here, so it does not exist at checkout.
+      #
+      # Two things this step has to get right:
+      #   1. BUNDLE_GEMFILE is set job-wide to the target appraisal gemfile, which does
+      #      not exist yet. Override it to the root Gemfile or appraisal tries to read
+      #      the very file it is about to write.
+      #   2. appraisal runs under bundler, so the root Gemfile must be *installed*
+      #      first -- otherwise it aborts with "Could not find gem ... in locally
+      #      installed gems". The two bundles differ only in their Rails pins and share
+      #      vendor/bundle, so the second install below is mostly a no-op.
+      - run:
+          name: Generate Appraisal Gemfiles
+          command: |
+            gem install bundler appraisal
+            bundle config set --local path 'vendor/bundle'
+            BUNDLE_GEMFILE=Gemfile bundle install --jobs=4 --retry=3
+            BUNDLE_GEMFILE=Gemfile bundle exec appraisal generate
+            ls -1 gemfiles/
 
       - run:
           name: Install Ruby Dependencies
@@ -68,10 +76,15 @@ jobs:
             bundle config set --local path 'vendor/bundle'
             bundle install --jobs=4 --retry=3
 
+      # Two paths: `bundle config --local` is relative to the directory holding
+      # BUNDLE_GEMFILE, so the root bundle lands in ./vendor/bundle while the
+      # appraisal bundle lands in ./gemfiles/vendor/bundle. Caching only the first
+      # would silently reinstall the gems the tests actually run against.
       - save_cache:
           paths:
             - ./vendor/bundle
-          key: v3-gems-<< parameters.docker_image >>-<< parameters.gemfile >>-{{ checksum "action_subscriber.gemspec" }}-{{ checksum "Appraisals" }}
+            - ./gemfiles/vendor/bundle
+          key: v4-gems-<< parameters.docker_image >>-<< parameters.gemfile >>-{{ checksum "action_subscriber.gemspec" }}-{{ checksum "Appraisals" }}
 
       # Wait for RabbitMQ to be ready before running tests.
       # Service containers can sometimes take a few seconds to boot up.
