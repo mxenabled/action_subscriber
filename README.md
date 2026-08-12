@@ -45,6 +45,55 @@ end
 
 That will give you a similar behavior to the old `--mode=pop` where messages polled from the server, but with reduced latency.
 
+Durability
+----------
+
+Queues default to transient. Set durability globally, per subscriber, or per
+route:
+
+```yaml
+# config/action_subscriber.yml
+production:
+  durable: true
+```
+
+```ruby
+::ActionSubscriber.configure do |config|
+  config.durable = true
+end
+
+class UserSubscriber < ::ActionSubscriber::Base
+  exchange :events
+  durable true            # every queue drawn from this subscriber
+end
+
+::ActionSubscriber.draw_routes do
+  route AuditSubscriber, :created, :durable => true   # just this route
+end
+```
+
+The most specific setting wins: a route's `:durable` option beats the
+subscriber's `durable` declaration, which beats `config.durable`. `durable false`
+on a subscriber or route pins it transient even when the global setting is on.
+`:quorum` and `:stream` queues override all of it — those types only exist as
+durable queues.
+
+> Note: durability is fixed when a queue is created. Unlike most settings it is
+> not something the client can defer to the broker — `durable` is a field in the
+> declaration frame, so a client always states a value, and RabbitMQ rejects a
+> redeclaration that disagrees with the existing queue:
+>
+> ```
+> PRECONDITION_FAILED - inequivalent arg 'durable' for queue 'x' in vhost '/':
+>   received 'false' but current is 'true'
+> ```
+>
+> Turning this on for queues that already exist means deleting them first.
+
+Note that retry queues follow `config.durable` — the global setting only, since
+they are declared by `ActionSubscriber::MessageRetry` rather than drawn as
+routes.
+
 Queue Types
 -----------
 
@@ -114,16 +163,62 @@ If any are non-classic, set `config.queue_type = :classic` before rolling out.
 ### Known limitation: retry queues
 
 `ActionSubscriber::MessageRetry` declares its `*.retry_*` queues using the
-**global** `config.queue_type`, not the type of the route that produced the
-message. A route that opts into `:quorum` while the global setting is left at
-the default will dead-letter into a retry queue of a different type.
+**global** `config.queue_type` and `config.durable`, not the settings of the
+route that produced the message. A route that opts into `:quorum` while the
+global setting is left at the default will dead-letter into a retry queue of a
+different type, and the same goes for a route that sets `:durable => true` on
+its own.
 
-If you rely on per-route queue types and on retries, set `config.queue_type` to
-match rather than setting it per route.
+If you rely on per-route queue types or durability and on retries, set the
+global settings to match rather than setting them per route.
 
 Note also that retry queues carry `x-message-ttl` and `x-dead-letter-exchange`,
 which streams do not support — so a global `config.queue_type = :stream` will
 make every retry declaration fail.
+
+Retry queues are transient unless the configured type forces otherwise, which
+means they carry the same RabbitMQ 4.x limitation as the default route shape —
+see below.
+
+Supported RabbitMQ Versions
+---------------------------
+
+ActionSubscriber is tested against the latest RabbitMQ 3.x and 4.x on both
+drivers. The two series do not accept the same queue declarations.
+
+**Routes default to `:durable => false`, which makes every default route a
+transient non-exclusive queue.** RabbitMQ moved that from
+`permitted_by_default` to `denied_by_default` in 4.0:
+
+| | RabbitMQ 3.x | RabbitMQ 4.x |
+| --- | --- | --- |
+| `transient_nonexcl_queues` | `permitted_by_default` | `denied_by_default` |
+
+So on a stock 4.x broker a default route cannot be declared at all. The broker
+answers with a *connection*-level `541 INTERNAL_ERROR`, which takes down the
+whole connection rather than just the channel — and neither driver decodes it
+into something readable. march_hare reports `Unknown reply code: 541` and bunny
+simply blocks until `continuation_timeout` and raises `Timeout::Error`.
+
+There are two ways to run on 4.x:
+
+1. **Declare durable queues** (recommended) — `config.durable = true`, which
+   can be set from the YAML config with no code change, or
+   `config.queue_type = :quorum`, which forces durability as a side effect of
+   changing the queue type. CI runs both. See "Durability" below.
+2. **Permit the deprecated feature on the broker**, which keeps the current
+   transient topology working for now but not past its removal:
+
+   ```
+   # rabbitmq.conf
+   deprecated_features.permit.transient_nonexcl_queues = true
+   ```
+
+Check where a broker currently stands with:
+
+```
+rabbitmqctl list_deprecated_features
+```
 
 Supported Message Types
 -----------------
@@ -209,6 +304,7 @@ Other configuration options include :
 * config.connection_reaping_interval - Connection reaping interval when using a project ActiveRecord
 * config.connection_reaping_timeout_interval - Connection reaping timeout interval when using a project ActiveRecord
 * config.default_exchange - set the default exchange that your queues will use, using the default RabbitMQ exchange is not recommended
+* config.durable - default durability for all routes (default false). Required on RabbitMQ 4.x, which refuses transient queues
 * config.error_handler - handle error like you want to handle them!
 * config.heartbeat - number of seconds between hearbeats (default 5) [see bunny documentation for more details](http://rubybunny.info/articles/connecting.html)
 * config.hosts - an array of hostnames in your cluster (ie `["rabbit1.myapp.com", "rabbit2.myapp.com"]`)
@@ -312,7 +408,7 @@ Development
 If you want to work on `action_subscriber` you will need to have a rabbitmq instance running locally on port 5672 with a management plugin enabled on port 15672. Usually the easiest way to accomplish this is to use docker and run the command:
 
 ```
-$ docker run --net=host --rm=true --hostname diagon --name rabbit rabbitmq:3.6.6-management
+$ docker run -d --rm --name rabbit -p 5672:5672 -p 15672:15672 rabbitmq:3.13-management
 ```
 
 Now that rabbitmq is running you can clone this project and run:
@@ -344,3 +440,36 @@ $ bundle exec appraisal rspec
 Re-run `appraisal generate` after editing `Appraisals`. Note that Rails 7.2
 requires Ruby >= 3.1 and Rails 8.0/8.1 require Ruby >= 3.2, so those gemfiles
 will not resolve on older interpreters.
+
+### Testing against multiple RabbitMQ versions
+
+The suite reads its broker location from the environment, so you can run two
+brokers side by side and point it at either:
+
+```
+$ docker run -d --rm --name rabbit3 -p 5673:5672 -p 15673:15672 rabbitmq:3.13-management
+$ docker run -d --rm --name rabbit4 -p 5674:5672 -p 15674:15672 rabbitmq:4-management
+```
+
+```
+$ RABBITMQ_PORT=5673 RABBITMQ_MANAGEMENT_PORT=15673 bundle exec rspec
+
+# 4.x denies transient non-exclusive queues, so the suite needs durable queues
+# there -- either way works. See "Supported RabbitMQ Versions" above.
+$ RABBITMQ_PORT=5674 RABBITMQ_MANAGEMENT_PORT=15674 \
+    ACTION_SUBSCRIBER_DURABLE=true bundle exec rspec
+$ RABBITMQ_PORT=5674 RABBITMQ_MANAGEMENT_PORT=15674 \
+    ACTION_SUBSCRIBER_QUEUE_TYPE=quorum bundle exec rspec
+```
+
+`ACTION_SUBSCRIBER_QUEUE_TYPE` and `ACTION_SUBSCRIBER_DURABLE` set
+`config.queue_type` and `config.durable` for the integration examples only, so
+the unit specs still assert the real defaults.
+`EXPECTED_RABBITMQ_MAJOR` makes the suite verify it reached the broker series
+you meant. The other knobs are `RABBITMQ_HOST`, `RABBITMQ_USERNAME`,
+`RABBITMQ_PASSWORD`, `RABBITMQ_VHOST` and `RABBITMQ_WAIT_TIMEOUT`.
+
+**The suite deletes every queue in the vhost when it starts** — a run under one
+queue type would otherwise collide with queues left by a run under another,
+since type and durability are fixed at declaration. Point it at a broker you
+own.
