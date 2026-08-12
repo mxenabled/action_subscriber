@@ -1,4 +1,3 @@
-require "rabbitmq/http/client"
 
 class GusSubscriber < ActionSubscriber::Base
   def spoke
@@ -12,7 +11,7 @@ describe "Automatically reconnect on connection failure", :integration => true, 
       default_routes_for GusSubscriber
     end
   end
-  let(:http_client) { RabbitMQ::HTTP::Client.new("http://127.0.0.1:15672") }
+  let(:http_client) { RabbitMQTestHelper.http_client }
   let(:subscriber) { GusSubscriber }
 
   it "reconnects when a connection drops" do

@@ -6,9 +6,16 @@ module ActionSubscriber
       router.routes
     end
 
+    # :durable is deliberately absent -- baking it in here would make an unspecified
+    # route indistinguishable from one that explicitly asked for false, and Route needs
+    # to tell them apart to fall back to config.durable. Same reason :prefetch is absent.
+    #
+    # The two keys that remain predate that rule and do not follow it: :exchange shadows
+    # config.default_exchange, and :acknowledgements shadows the subscriber's
+    # at_least_once! / manual_acknowledgement! declaration, for `route` but not for
+    # `default_routes_for`. Moving either into Route is a behavior change, not a cleanup.
     DEFAULT_SETTINGS = {
       :acknowledgements => false,
-      :durable => false,
       :exchange => "events",
     }.freeze
 

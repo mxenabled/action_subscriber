@@ -1,8 +1,13 @@
+# Every environment carries the same values: the suite does not set RAILS_ENV locally
+# (so it reads "development") while CI does set it to "test".
 development:
   password: <%= "WAT" %>
+  durable: true
 
 test:
   password: <%= "WAT" %>
+  durable: true
 
 production:
   password: <%= "WAT" %>
+  durable: true

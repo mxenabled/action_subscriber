@@ -32,8 +32,9 @@ Gem::Specification.new do |spec|
   spec.add_dependency "middleware"
   spec.add_dependency "thor"
 
-  spec.add_development_dependency "active_publisher", "1.6.0.pre1"
+  spec.add_development_dependency "active_publisher", "1.6.0"
   spec.add_development_dependency "activerecord", ">= 6.0"
+  spec.add_development_dependency "appraisal", "~> 2.5"
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "pry-nav"
   spec.add_development_dependency "rabbitmq_http_api_client", "~> 1.15.0"

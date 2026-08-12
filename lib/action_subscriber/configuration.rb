@@ -1,4 +1,5 @@
 require "yaml"
+require "action_subscriber/queue_type"
 require "action_subscriber/uri"
 
 module ActionSubscriber
@@ -8,6 +9,7 @@ module ActionSubscriber
                   :connection_reaping_timeout_interval,
                   :decoder,
                   :default_exchange,
+                  :durable,
                   :error_handler,
                   :heartbeat,
                   :host,
@@ -28,6 +30,10 @@ module ActionSubscriber
                   :verify_peer,
                   :virtual_host
 
+    # Written through QueueType.normalize so a typo raises where it was set
+    # rather than at route-draw time. nil means "defer to the broker".
+    attr_reader :queue_type
+
     CONFIGURATION_MUTEX = ::Mutex.new
     NETWORK_RECOVERY_INTERVAL = 1.freeze
 
@@ -36,6 +42,10 @@ module ActionSubscriber
       :connection_reaping_interval => 6,
       :connection_reaping_timeout_interval => 5,
       :default_exchange => 'events',
+      # Default durability for every route that does not name one. Kept at false for
+      # backwards compatibility, but note that a transient queue cannot be declared at
+      # all on a stock RabbitMQ 4.x broker -- see the README.
+      :durable => false,
       :heartbeat => 5,
       :host => 'localhost',
       :hosts => [],
@@ -43,6 +53,7 @@ module ActionSubscriber
       :password => "guest",
       :port => 5672,
       :prefetch => 2,
+      :queue_type => nil,
       :resubscribe_on_consumer_cancellation => true,
       :seconds_to_wait_for_graceful_shutdown => 30,
       :threadpool_size => 8,
@@ -142,6 +153,10 @@ module ActionSubscriber
 
     def middleware
       @middleware ||= Middleware.initialize_stack
+    end
+
+    def queue_type=(value)
+      @queue_type = ::ActionSubscriber::QueueType.normalize(value)
     end
 
     def inspect

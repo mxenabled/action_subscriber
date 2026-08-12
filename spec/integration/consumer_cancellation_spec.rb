@@ -1,6 +1,3 @@
-require "spec_helper"
-require "rabbitmq/http/client"
-
 class YoloSubscriber < ActionSubscriber::Base
   def created
     $messages << payload
@@ -13,7 +10,6 @@ describe "Automatically handles consumer cancellation", :integration => true, :s
       default_routes_for ::YoloSubscriber
     end
   end
-  let(:http_client) { ::RabbitMQ::HTTP::Client.new("http://127.0.0.1:15672") }
   let(:subscriber) { ::YoloSubscriber }
 
   it "resubscribes on cancellation" do
@@ -26,7 +22,7 @@ describe "Automatically handles consumer cancellation", :integration => true, :s
     consumers = rabbit_consumers.dup
 
     # Signal a cancellation event to all subscribers.
-    delete_all_queues!
+    delete_subscriber_queues!
 
     # Give consumers a chance to restart.
     sleep 2.0
@@ -54,7 +50,7 @@ describe "Automatically handles consumer cancellation", :integration => true, :s
       consumers = rabbit_consumers.dup
 
       # Signal a cancellation event to all subscribers.
-      delete_all_queues!
+      delete_subscriber_queues!
 
       # Give consumers a chance to restart.
       sleep 2.0
@@ -115,9 +111,17 @@ describe "Automatically handles consumer cancellation", :integration => true, :s
     route_set.try(:bunny_consumers) || route_set.try(:march_hare_consumers)
   end
 
-  def delete_all_queues!
-    http_client.list_queues.each do |queue|
-      http_client.delete_queue(queue.vhost, queue.name)
+  # Deleting the queues out from under the consumers is how this spec triggers the
+  # cancellation it is testing.
+  #
+  # Only this spec's own queues, not every queue in the vhost. Both do trigger the
+  # cancellation, but the wider version also deletes queues that other examples left
+  # channels open against on the same shared connection, which turns an unrelated blip
+  # into a Bunny::NetworkFailure raised on Thread.main -- i.e. against whatever line the
+  # example happens to be on.
+  def delete_subscriber_queues!
+    ::ActionSubscriber.send(:route_set).routes.each do |route|
+      RabbitMQTestHelper.delete_queue!(route.queue)
     end
   end
 end

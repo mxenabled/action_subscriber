@@ -6,6 +6,37 @@ jobs:
       docker_image:
         type: string
         description: "The Ruby or JRuby Docker image to test against"
+      gemfile:
+        type: string
+        description: "The Appraisal gemfile (Rails version) to test against"
+      rabbitmq_image:
+        type: string
+        default: "rabbitmq:3.13-management"
+        description: "The RabbitMQ Docker image to run the integration suite against"
+      expected_rabbitmq_major:
+        type: string
+        default: "3"
+        description: >
+          The RabbitMQ major version this job believes it selected. The suite asserts it,
+          so an image tag that quietly stops resolving to that series fails loudly
+          instead of passing as a duplicate of another job.
+      queue_type:
+        type: string
+        default: ""
+        description: >
+          Sets config.queue_type for the whole integration suite. Empty means the broker
+          default.
+      durable:
+        type: string
+        default: ""
+        description: >
+          Sets config.durable for the whole integration suite. Empty leaves the default
+          (false). One of this or queue_type=quorum is required on RabbitMQ 4.x:
+          action_subscriber's routes default to :durable => false, and 4.x denies
+          transient non-exclusive queues, so the default route shape cannot be declared
+          there at all. Both are covered below, since they are the two fixes the README
+          offers and they exercise different code paths -- durable keeps the broker's
+          queue type, quorum changes it.
 
     docker:
       # 1. The Primary Container (where your code actually runs)
@@ -13,15 +44,20 @@ jobs:
         environment:
           JRUBY_OPTS: "-J-Xmx1024m"
           RAILS_ENV: test
-          # Tell your app where to find RabbitMQ (if your app uses this ENV var)
-          RABBITMQ_URL: "amqp://guest:guest@localhost:5672"
+          # Select the Rails version under test via the Appraisal gemfile.
+          BUNDLE_GEMFILE: << parameters.gemfile >>
+          # Tell the suite where to find RabbitMQ.
+          RABBITMQ_HOST: "localhost"
+          RABBITMQ_PORT: "5672"
+          RABBITMQ_MANAGEMENT_PORT: "15672"
+          ACTION_SUBSCRIBER_QUEUE_TYPE: << parameters.queue_type >>
+          ACTION_SUBSCRIBER_DURABLE: << parameters.durable >>
+          EXPECTED_RABBITMQ_MAJOR: << parameters.expected_rabbitmq_major >>
 
-      # 2. The Service Container (runs in the background)
-      - image: rabbitmq:3.12-management
-        # If you need the management UI for debugging, use `rabbitmq:3-management` instead
-        # environment:
-        #   RABBITMQ_DEFAULT_USER: guest
-        #   RABBITMQ_DEFAULT_PASS: guest
+      # 2. The Service Container (runs in the background). Management plugin included --
+      # the suite reads queue types and durability back over the HTTP API, since that is
+      # the only way to see what a declaration actually produced.
+      - image: << parameters.rabbitmq_image >>
 
     working_directory: ~/project
 
@@ -35,27 +71,54 @@ jobs:
               sudo apt-get update && sudo apt-get install -y build-essential git
             fi
       - checkout
-      # Note: We added the docker_image parameter to the cache key
-      # so MRI and JRuby gems don't conflict.
+      # Cache key includes the Ruby image + the specific appraisal gemfile + the gemspec
+      # + the Appraisals file, so MRI/JRuby and each Rails version get independent caches
+      # and a dependency change in either file busts them. (All lockfiles are gitignored,
+      # so we key on committed sources instead.)
       - restore_cache:
           keys:
-            - v1-gems-<< parameters.docker_image >>-{{ checksum "Gemfile.lock" }}
-            - v1-gems-<< parameters.docker_image >>-
+            - v4-gems-<< parameters.docker_image >>-<< parameters.gemfile >>-{{ checksum "action_subscriber.gemspec" }}-{{ checksum "Appraisals" }}
+            - v4-gems-<< parameters.docker_image >>-<< parameters.gemfile >>-
+
+      # gemfiles/ is gitignored and generated here, so it does not exist at checkout.
+      #
+      # Two things this step has to get right:
+      #   1. BUNDLE_GEMFILE is set job-wide to the target appraisal gemfile, which does
+      #      not exist yet. Override it to the root Gemfile or appraisal tries to read
+      #      the very file it is about to write.
+      #   2. appraisal runs under bundler, so the root Gemfile must be *installed*
+      #      first -- otherwise it aborts with "Could not find gem ... in locally
+      #      installed gems". The two bundles differ only in their Rails pins and share
+      #      vendor/bundle, so the second install below is mostly a no-op.
+      - run:
+          name: Generate Appraisal Gemfiles
+          command: |
+            gem install bundler appraisal
+            bundle config set --local path 'vendor/bundle'
+            BUNDLE_GEMFILE=Gemfile bundle install --jobs=4 --retry=3
+            BUNDLE_GEMFILE=Gemfile bundle exec appraisal generate
+            ls -1 gemfiles/
 
       - run:
           name: Install Ruby Dependencies
           command: |
-            gem install bundler
             bundle config set --local path 'vendor/bundle'
             bundle install --jobs=4 --retry=3
 
+      # Two paths: `bundle config --local` is relative to the directory holding
+      # BUNDLE_GEMFILE, so the root bundle lands in ./vendor/bundle while the
+      # appraisal bundle lands in ./gemfiles/vendor/bundle. Caching only the first
+      # would silently reinstall the gems the tests actually run against.
       - save_cache:
           paths:
             - ./vendor/bundle
-          key: v1-gems-<< parameters.docker_image >>-{{ checksum "Gemfile.lock" }}
+            - ./gemfiles/vendor/bundle
+          key: v4-gems-<< parameters.docker_image >>-<< parameters.gemfile >>-{{ checksum "action_subscriber.gemspec" }}-{{ checksum "Appraisals" }}
 
       # Wait for RabbitMQ to be ready before running tests.
-      # Service containers can sometimes take a few seconds to boot up.
+      # Service containers can sometimes take a few seconds to boot up. The management
+      # plugin comes up after the AMQP listener, and the suite reads queue types back
+      # over the HTTP API, so wait for both.
       - run:
           name: Wait for RabbitMQ
           command: |
@@ -69,18 +132,26 @@ jobs:
             while ! nc -z localhost 5672; do
               sleep 1
             done
-            echo "RabbitMQ is ready!"
+            while ! nc -z localhost 15672; do
+              sleep 1
+            done
+            echo "RabbitMQ is ready (<< parameters.rabbitmq_image >>)!"
 
+      # On failure the suite prints the full reproduction command -- seed, broker and
+      # every environment variable the run actually consumed -- as the last thing in the
+      # log. See spec/support/reproduction_reporter.rb.
       - run:
           name: Run Tests
           command: bundle exec rspec
 
 workflows:
   version: 2
-  ruby_compatibility_matrix:
+  ruby_rails_compatibility_matrix:
     jobs:
+      # Rails 6.1 - 7.2 run on every supported Ruby. Rails 6.1/7.0/7.1 need the
+      # default-gem shims on Ruby >= 3.4 (see Appraisals); 7.2 needs Ruby >= 3.1.
       - build_and_test:
-          name: test-<< matrix.docker_image >>
+          name: test-<< matrix.docker_image >>-<< matrix.gemfile >>
           matrix:
             parameters:
               docker_image:
@@ -88,3 +159,77 @@ workflows:
                 - "cimg/ruby:3.4"
                 - "jruby:9.4"
                 - "jruby:10.0"
+              gemfile:
+                - "gemfiles/rails_6.1.gemfile"
+                - "gemfiles/rails_7.0.gemfile"
+                - "gemfiles/rails_7.1.gemfile"
+                - "gemfiles/rails_7.2.gemfile"
+
+      # Rails 8.0/8.1 require Ruby >= 3.2, so they get their own matrix rather
+      # than excludes against the Ruby 3.1-class images. jruby:9.4 targets Ruby
+      # 3.1 compatibility and is therefore not eligible here either.
+      - build_and_test:
+          name: test-<< matrix.docker_image >>-<< matrix.gemfile >>
+          matrix:
+            parameters:
+              docker_image:
+                - "cimg/ruby:3.4"
+                - "jruby:10.0"
+              gemfile:
+                - "gemfiles/rails_8.0.gemfile"
+                - "gemfiles/rails_8.1.gemfile"
+
+  # Broker compatibility. The matrix above pins the Rails axis against one broker; this
+  # one pins the broker axis against one Rails version, so the two do not multiply out.
+  #
+  # Both drivers are covered deliberately: bunny and march_hare disagree about queue
+  # declaration in ways only a live broker shows. march_hare fills in
+  # x-queue-type: classic for an omitted :type where bunny sends nothing, and march_hare
+  # forces quorum queues durable where bunny does not.
+  broker_compatibility_matrix:
+    jobs:
+      # RabbitMQ 3.x is already covered with broker-default queues by the Rails matrix.
+      # This adds the quorum path on 3.x, so a quorum deployment is tested on both series
+      # rather than only on the one that requires it.
+      # Every value goes through matrix.parameters, including the ones that only ever
+      # take a single value, so the whole invocation uses one mechanism.
+      - build_and_test:
+          name: broker-3.13-quorum-<< matrix.docker_image >>
+          matrix:
+            parameters:
+              docker_image:
+                - "cimg/ruby:3.4"
+                - "jruby:10.0"
+              gemfile: ["gemfiles/rails_8.1.gemfile"]
+              rabbitmq_image: ["rabbitmq:3.13-management"]
+              expected_rabbitmq_major: ["3"]
+              queue_type: ["quorum"]
+
+      # RabbitMQ 4.x, durable classic queues. This is the smaller of the two upgrade
+      # paths for an existing deployment -- the queue type is untouched, only durability
+      # changes -- so it is the one most users will take.
+      - build_and_test:
+          name: broker-4.x-durable-<< matrix.docker_image >>
+          matrix:
+            parameters:
+              docker_image:
+                - "cimg/ruby:3.4"
+                - "jruby:10.0"
+              gemfile: ["gemfiles/rails_8.1.gemfile"]
+              rabbitmq_image: ["rabbitmq:4-management"]
+              expected_rabbitmq_major: ["4"]
+              durable: ["true"]
+
+      # RabbitMQ 4.x, quorum queues. The other path, and the one that also exercises
+      # quorum-specific behavior (forced durability, quorum retry queues).
+      - build_and_test:
+          name: broker-4.x-quorum-<< matrix.docker_image >>
+          matrix:
+            parameters:
+              docker_image:
+                - "cimg/ruby:3.4"
+                - "jruby:10.0"
+              gemfile: ["gemfiles/rails_8.1.gemfile"]
+              rabbitmq_image: ["rabbitmq:4-management"]
+              expected_rabbitmq_major: ["4"]
+              queue_type: ["quorum"]

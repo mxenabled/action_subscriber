@@ -42,6 +42,32 @@ describe ::ActionSubscriber::DSL do
     end
   end
 
+  describe "durable" do
+    context "when set to true" do
+      before { subscriber.durable true }
+
+      it "reads back as true" do
+        expect(subscriber.durable).to eq(true)
+      end
+    end
+
+    context "when set to false" do
+      before { subscriber.durable false }
+
+      # Distinct from "unset" -- this pins the subscriber transient even when
+      # config.durable is on.
+      it "reads back as false" do
+        expect(subscriber.durable).to eq(false)
+      end
+    end
+
+    context "when not set" do
+      it "is nil, so routes fall back to config.durable" do
+        expect(subscriber.durable).to be_nil
+      end
+    end
+  end
+
   describe "exchange_names" do
     context "when exchange names are set" do
       before { subscriber.exchange_names :foo, :bar }
