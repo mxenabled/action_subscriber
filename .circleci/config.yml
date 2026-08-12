@@ -137,6 +137,9 @@ jobs:
             done
             echo "RabbitMQ is ready (<< parameters.rabbitmq_image >>)!"
 
+      # On failure the suite prints the full reproduction command -- seed, broker and
+      # every environment variable the run actually consumed -- as the last thing in the
+      # log. See spec/support/reproduction_reporter.rb.
       - run:
           name: Run Tests
           command: bundle exec rspec

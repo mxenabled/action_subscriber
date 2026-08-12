@@ -31,10 +31,28 @@ module RabbitMQTestHelper
   # Every environment variable the suite honors goes through here. Blank is treated as
   # unset: a CircleCI job parameter that defaults to "" still reaches the environment as
   # an empty string. Pass a block to coerce a value that is actually present.
+  #
+  # Reads are recorded so the suite can print back exactly what a run was configured
+  # with. Deriving that from what was actually consumed, rather than from a hand-kept
+  # list, is the only way it stays correct as knobs are added.
   def env(name, default = nil)
     value = ENV[name].to_s.strip
     return default if value.empty?
+    observed_env[name] = value
     block_given? ? yield(value) : value
+  end
+
+  # Raw strings, so they can be pasted back into a shell. Only variables that were
+  # actually set appear -- defaults are not worth restating.
+  def observed_env
+    @observed_env ||= {}
+  end
+
+  # The broker version if some earlier call already fetched it, otherwise nil. Callers
+  # that only want it for a diagnostic must not trigger the fetch: the management client
+  # has generous timeouts, and a unit-only run has no broker to ask.
+  def known_broker_version
+    @broker_version
   end
 
   def host
@@ -61,11 +79,16 @@ module RabbitMQTestHelper
     env("RABBITMQ_VHOST", "/")
   end
 
+  # Timeouts are set explicitly: the client passes its options straight to Faraday, which
+  # sets none of its own, so the Net::HTTP defaults (60s connect, 60s read) apply. A host
+  # that drops packets rather than refusing -- a killed CI service container, say -- would
+  # otherwise wedge the suite for two minutes with no output.
   def http_client
     @http_client ||= ::RabbitMQ::HTTP::Client.new(
       "http://#{host}:#{management_port}",
       :username => username,
-      :password => password
+      :password => password,
+      :request => { :open_timeout => 5, :timeout => 5 }
     )
   end
 

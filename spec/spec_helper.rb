@@ -19,6 +19,7 @@ require 'active_record'
 # Require spec support files
 require 'support/user_subscriber'
 require 'support/rabbitmq'
+require 'support/reproduction_reporter'
 require 'action_subscriber/rspec'
 
 # Silence the Logger
@@ -60,6 +61,11 @@ RSpec.configure do |config|
     mocks.verify_partial_doubles = true
   end
 
+  # Lets `rspec --only-failures` and `--next-failure` work locally.
+  config.example_status_persistence_file_path = "spec/examples.txt"
+
+  ReproductionReporter.register!(config)
+
   # Fail fast with a clear message (rather than a flurry of Bunny reconnect warnings)
   # if the broker isn't up yet when the integration suite starts.
   config.before(:suite) do
@@ -99,6 +105,7 @@ RSpec.configure do |config|
     ::ActionSubscriber.stop_subscribers!(0.1)
     ::ActionSubscriber::RabbitConnection.subscriber_disconnect!
   end
+
 end
 
 # Set ActionSubscriber configuration for the duration of the block and put it back
