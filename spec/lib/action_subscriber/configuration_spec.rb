@@ -2,6 +2,7 @@ describe ::ActionSubscriber::Configuration do
   describe "default values" do
     specify { expect(subject.allow_low_priority_methods).to eq(false) }
     specify { expect(subject.default_exchange).to eq("events") }
+    specify { expect(subject.durable).to eq(false) }
     specify { expect(subject.heartbeat).to eq(5) }
     specify { expect(subject.host).to eq("localhost") }
     specify { expect(subject.network_recovery_interval).to eq(1) }
@@ -14,7 +15,10 @@ describe ::ActionSubscriber::Configuration do
   end
 
   describe ".configure_from_yaml_and_cli" do
-    context "when using a yaml file" do
+    # These examples really load the fixture, so whatever it sets sticks. :as_config
+    # names durable so it gets snapshotted and put back -- every route drawn by the rest
+    # of the suite reads it.
+    context "when using a yaml file", :as_config => { :durable => false } do
       let!(:sample_yaml_location) { ::File.expand_path(::File.join("spec", "support", "sample_config.yml")) }
 
       before { allow(::File).to receive(:expand_path) { sample_yaml_location } }
@@ -22,6 +26,20 @@ describe ::ActionSubscriber::Configuration do
       it "parses any ERB in the yaml" do
         expect(::ActionSubscriber.configuration).to receive(:password=).with("WAT").and_return(true)
         ::ActionSubscriber::Configuration.configure_from_yaml_and_cli({}, true)
+      end
+
+      # durable has no bespoke wiring -- being in DEFAULTS is the whole implementation.
+      # Worth pinning, since the point of the setting is that an operator can turn
+      # durability on from the config file without a code change.
+      it "loads durable" do
+        # The fixture sets password too, and this example -- unlike the one above -- really
+        # applies what it loads. A leaked password fails every later integration example
+        # with Bunny::AuthenticationFailureError, so keep that one from landing.
+        expect(::ActionSubscriber.configuration).to receive(:password=).with("WAT")
+
+        ::ActionSubscriber::Configuration.configure_from_yaml_and_cli({}, true)
+
+        expect(::ActionSubscriber.configuration.durable).to eq(true)
       end
     end
 

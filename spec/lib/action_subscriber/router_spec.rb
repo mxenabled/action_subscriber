@@ -118,6 +118,81 @@ describe ActionSubscriber::Router do
     expect(routes.first.queue).to eq("alice.fake.foo")
   end
 
+  describe "durability" do
+    context "with a global durable setting", :as_config => { :durable => true } do
+      it "is inherited by a route that does not name durability" do
+        routes = described_class.draw_routes do
+          route FakeSubscriber, :foo
+        end
+
+        expect(routes.first.durable).to eq(true)
+      end
+
+      # The distinction Router::DEFAULT_SETTINGS used to erase: an unspecified route has
+      # to be told apart from one that explicitly asked for false.
+      it "can be opted out of per route" do
+        routes = described_class.draw_routes do
+          route FakeSubscriber, :foo, :durable => false
+        end
+
+        expect(routes.first.durable).to eq(false)
+      end
+    end
+
+    context "with a subscriber that declares durability" do
+      class DurableDeclaringSubscriber < ::ActionSubscriber::Base
+        durable true
+        def foo; end
+      end
+
+      class TransientDeclaringSubscriber < ::ActionSubscriber::Base
+        durable false
+        def foo; end
+      end
+
+      it "beats the global configuration" do
+        routes = described_class.draw_routes do
+          route DurableDeclaringSubscriber, :foo
+        end
+
+        expect(routes.first.durable).to eq(true)
+      end
+
+      it "applies to default_routes_for as well" do
+        routes = described_class.draw_routes do
+          default_routes_for DurableDeclaringSubscriber
+        end
+
+        expect(routes.first.durable).to eq(true)
+      end
+
+      it "loses to an explicit route option" do
+        routes = described_class.draw_routes do
+          route DurableDeclaringSubscriber, :foo, :durable => false
+        end
+
+        expect(routes.first.durable).to eq(false)
+      end
+
+      it "can pin a subscriber transient against a global durable setting", :as_config => { :durable => true } do
+        routes = described_class.draw_routes do
+          route TransientDeclaringSubscriber, :foo
+        end
+
+        expect(routes.first.durable).to eq(false)
+      end
+
+      # Quorum queues only exist as durable queues, so this is not overridable.
+      it "cannot make a quorum route transient" do
+        routes = described_class.draw_routes do
+          route TransientDeclaringSubscriber, :foo, :queue_type => :quorum
+        end
+
+        expect(routes.first.durable).to eq(true)
+      end
+    end
+  end
+
   it "can specify a prefetch value" do
     routes = described_class.draw_routes do
       route FakeSubscriber, :foo, :acknowledgements => true, :prefetch => 10

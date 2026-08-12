@@ -42,5 +42,13 @@ module ActionSubscriber
     def self.always_durable?(queue_type)
       ALWAYS_DURABLE.include?(queue_type)
     end
+
+    # The durability a declaration should actually use. Quorum and stream queues only
+    # exist as durable queues, so those two override whatever was requested. Every
+    # declaration site goes through here -- march_hare forces this internally and bunny
+    # does not, so open-coding it once per site is how the drivers drift apart.
+    def self.durable?(queue_type, requested)
+      always_durable?(queue_type) || !!requested
+    end
   end
 end

@@ -9,6 +9,7 @@ module ActionSubscriber
                   :connection_reaping_timeout_interval,
                   :decoder,
                   :default_exchange,
+                  :durable,
                   :error_handler,
                   :heartbeat,
                   :host,
@@ -41,6 +42,10 @@ module ActionSubscriber
       :connection_reaping_interval => 6,
       :connection_reaping_timeout_interval => 5,
       :default_exchange => 'events',
+      # Default durability for every route that does not name one. Kept at false for
+      # backwards compatibility, but note that a transient queue cannot be declared at
+      # all on a stock RabbitMQ 4.x broker -- see the README.
+      :durable => false,
       :heartbeat => 5,
       :host => 'localhost',
       :hosts => [],

@@ -46,13 +46,25 @@ describe ActionSubscriber::QueueType do
     end
   end
 
-  describe "configuration" do
-    around do |example|
-      original = ActionSubscriber.config.queue_type
-      example.run
-      ActionSubscriber.config.queue_type = original
+  describe ".durable?" do
+    it "honors the request for types that can be either" do
+      expect(described_class.durable?(:classic, true)).to eq(true)
+      expect(described_class.durable?(:classic, false)).to eq(false)
+      expect(described_class.durable?(nil, false)).to eq(false)
     end
 
+    it "forces durability for types that only exist as durable queues" do
+      expect(described_class.durable?(:quorum, false)).to eq(true)
+      expect(described_class.durable?(:stream, false)).to eq(true)
+    end
+
+    it "always answers with a boolean" do
+      expect(described_class.durable?(nil, nil)).to eq(false)
+    end
+  end
+
+  # These examples assign the global setting; :as_config puts it back.
+  describe "configuration", :as_config => { :queue_type => nil } do
     it "defaults to nil" do
       expect(ActionSubscriber.config.queue_type).to be_nil
     end

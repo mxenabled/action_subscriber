@@ -55,6 +55,29 @@ module ActionSubscriber
       !!@_acknowledge_messages
     end
 
+    # Set durability for every queue drawn from this subscriber, overriding
+    # config.durable. A route's own :durable option still wins over this.
+    #
+    #   class UserSubscriber < ::ActionSubscriber::Base
+    #     exchange :events
+    #     durable true
+    #   end
+    #
+    # Pass false to pin a subscriber transient when config.durable is on. Note that
+    # RabbitMQ 4.x refuses transient non-exclusive queues outright.
+    #
+    # Durability is fixed when a queue is created -- the broker rejects a redeclaration
+    # that disagrees with the existing queue -- so changing this for a subscriber whose
+    # queues already exist means deleting those queues first.
+    #
+    # Reads back nil when never set, which is how a route knows to fall back to
+    # config.durable. Deliberately not `durable?` -- every predicate in this file
+    # returns a strict boolean, and this cannot.
+    def durable(value = nil)
+      @_durable = value unless value.nil?
+      @_durable
+    end
+
     def around_filter(callback_method, options = nil)
       filter = Filter.new(callback_method, options)
       conditionally_add_filter!(filter)
