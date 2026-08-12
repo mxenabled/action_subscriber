@@ -51,8 +51,12 @@ module ActionSubscriber
         channel.confirm_select
         # an empty string is the default exchange [see bunny docs](http://rubybunny.info/articles/exchanges.html#default_exchange)
         exchange = channel.topic("")
-        queue_type = ::ActionSubscriber::QueueType.driver_option(::ActionSubscriber.config.queue_type)
-        queue = channel.queue(retry_queue_name, :type => queue_type, :arguments => {"x-dead-letter-exchange" => "", "x-message-ttl" => ttl, "x-dead-letter-routing-key" => env.queue})
+        # Retry queues follow the global settings, since they are declared here rather
+        # than drawn as routes. Both matter: a non-durable quorum queue is refused
+        # outright, and a transient retry queue cannot be declared at all on RabbitMQ 4.x.
+        queue_type = ::ActionSubscriber.config.queue_type
+        durable = ::ActionSubscriber::QueueType.durable?(queue_type, ::ActionSubscriber.config.durable)
+        channel.queue(retry_queue_name, :durable => durable, :type => ::ActionSubscriber::QueueType.driver_option(queue_type), :arguments => {"x-dead-letter-exchange" => "", "x-message-ttl" => ttl, "x-dead-letter-routing-key" => env.queue})
         yield(exchange)
         channel.wait_for_confirms
       end
