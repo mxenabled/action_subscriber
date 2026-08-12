@@ -1,6 +1,3 @@
-require "spec_helper"
-require "rabbitmq/http/client"
-
 class YoloSubscriber < ActionSubscriber::Base
   def created
     $messages << payload
@@ -13,7 +10,6 @@ describe "Automatically handles consumer cancellation", :integration => true, :s
       default_routes_for ::YoloSubscriber
     end
   end
-  let(:http_client) { ::RabbitMQ::HTTP::Client.new("http://127.0.0.1:15672") }
   let(:subscriber) { ::YoloSubscriber }
 
   it "resubscribes on cancellation" do
@@ -115,9 +111,9 @@ describe "Automatically handles consumer cancellation", :integration => true, :s
     route_set.try(:bunny_consumers) || route_set.try(:march_hare_consumers)
   end
 
+  # Deleting the queues out from under the consumers is how this spec triggers the
+  # cancellation it is testing.
   def delete_all_queues!
-    http_client.list_queues.each do |queue|
-      http_client.delete_queue(queue.vhost, queue.name)
-    end
+    RabbitMQTestHelper.delete_all_queues!
   end
 end
