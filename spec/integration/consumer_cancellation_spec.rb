@@ -22,7 +22,7 @@ describe "Automatically handles consumer cancellation", :integration => true, :s
     consumers = rabbit_consumers.dup
 
     # Signal a cancellation event to all subscribers.
-    delete_all_queues!
+    delete_subscriber_queues!
 
     # Give consumers a chance to restart.
     sleep 2.0
@@ -50,7 +50,7 @@ describe "Automatically handles consumer cancellation", :integration => true, :s
       consumers = rabbit_consumers.dup
 
       # Signal a cancellation event to all subscribers.
-      delete_all_queues!
+      delete_subscriber_queues!
 
       # Give consumers a chance to restart.
       sleep 2.0
@@ -113,7 +113,15 @@ describe "Automatically handles consumer cancellation", :integration => true, :s
 
   # Deleting the queues out from under the consumers is how this spec triggers the
   # cancellation it is testing.
-  def delete_all_queues!
-    RabbitMQTestHelper.delete_all_queues!
+  #
+  # Only this spec's own queues, not every queue in the vhost. Both do trigger the
+  # cancellation, but the wider version also deletes queues that other examples left
+  # channels open against on the same shared connection, which turns an unrelated blip
+  # into a Bunny::NetworkFailure raised on Thread.main -- i.e. against whatever line the
+  # example happens to be on.
+  def delete_subscriber_queues!
+    ::ActionSubscriber.send(:route_set).routes.each do |route|
+      RabbitMQTestHelper.delete_queue!(route.queue)
+    end
   end
 end

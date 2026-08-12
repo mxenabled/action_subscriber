@@ -128,17 +128,33 @@ describe "Queue types", :integration => true do
     let(:queue_name) { "alice.conflicting_type.created" }
 
     before do
+      @opened_channels = []
       helper.delete_queue!(queue_name)
       helper.declare_queue!(queue_name, :durable => true, :type => "quorum")
     end
 
-    after { helper.delete_queue!(queue_name) }
+    after do
+      # setup_queue opens a channel on the *shared* subscriber connection and never
+      # closes it. Leaving them open leaks a consumer work pool per example and gives
+      # later specs -- consumer_cancellation deletes every queue in the vhost -- more
+      # channels on that connection to disturb.
+      @opened_channels.each do |channel|
+        begin
+          channel.close
+        rescue ::StandardError
+          nil
+        end
+      end
+      helper.delete_queue!(queue_name)
+    end
 
     def setup_queue_for(route_options)
       routes = ::ActionSubscriber::Router.draw_routes do
         route ::ConflictingTypeSubscriber, :created, route_options
       end
-      ::ActionSubscriber::RouteSet.new(routes).send(:setup_queue, routes.first)
+      queue = ::ActionSubscriber::RouteSet.new(routes).send(:setup_queue, routes.first)
+      @opened_channels << queue.channel
+      queue
     end
 
     it "fails when the route does not name the type (what master always did)" do
